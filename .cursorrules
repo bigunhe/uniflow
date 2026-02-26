@@ -1,0 +1,12 @@
+Rule 1: Never cross-contaminate Route Group folders. If working in (networking), do not import UI from (learning), and vice versa. Each route group is its own silo unless code is explicitly placed into a shared folder (such as components/shared or lib).
+
+Rule 2: Database schema changes must be approved by the DB Admin. Do not auto-generate Supabase migrations or alter database structure unless the team explicitly requests it and provides the desired schema change.
+
+Rule 3: All authentication checks MUST use getCurrentUser() from lib/auth.ts. Do not write custom Supabase auth calls or session lookups inside feature silos. If authentication behavior needs to change, update it centrally in lib/auth.ts (owned by Member 4).
+
+Rule 4: Do not modify package.json or any layout.tsx files without explicitly warning the team first, since these files affect global behavior and can cause severe merge conflicts.
+
+Additional Guidance:
+- Keep each feature silo self-contained. If a feature needs to share logic, move that logic into a clearly named shared folder (e.g., components/shared, lib, or a dedicated shared subdirectory) and document the ownership.
+- When in doubt about ownership or boundaries, prefer creating a new internal helper within the current silo rather than importing from another silo.
+- Prefer small, focused pull requests that only touch one feature silo at a time to minimize merge conflicts.

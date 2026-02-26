@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "UniFlow Extension",
+  "version": "1.0.0",
+  "description": "UniFlow browser extension",
+  "background": {
+    "service_worker": "background.js"
+  }
+}
