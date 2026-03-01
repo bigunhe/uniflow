@@ -1,8 +1,15 @@
-/**
- * Supabase client creation — server-side usage only.
- * Configure with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
- */
+import { createClient } from "@supabase/supabase-js";
 
-// Placeholder: create and export createClient when env is set
-// import { createClient } from '@supabase/supabase-js';
-export {};
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+/**
+ * One Supabase client for the app. Use only on the server (Server Components / Server Actions).
+ * Members 2 & 3 use the same project (as collaborators); set URL and anon key in .env.
+ */
+export function getSupabase() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+}

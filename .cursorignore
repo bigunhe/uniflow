@@ -1,0 +1,8 @@
+# Prevent AI from reading build files, environments, and secrets
+node_modules/
+.next/
+out/
+__pycache__/
+venv/
+.env*
+.git/

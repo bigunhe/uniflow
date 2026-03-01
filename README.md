@@ -1,4 +1,4 @@
-# UniFlow - SLIIT Year 3 Project
+# UniFlow - SLIIT Year 3 Project -- this README is temporary... have to change later...
 
 Welcome to the UniFlow Monorepo! We are using a strict "Feature Silo" architecture to prevent Git merge conflicts and keep our code clean. 
 
