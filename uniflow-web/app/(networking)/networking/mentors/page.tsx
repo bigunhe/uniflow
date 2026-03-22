@@ -1,49 +1,42 @@
-import { getMentors, createMentor, deleteMentor } from "./actions";
 import Link from "next/link";
+import { mentorButtonClassName } from "./_components/MentorButton";
 
-export default async function MentorsPage() {
-  const mentors = await getMentors();
-
+export default function MentorsEntryPage() {
   return (
-    <main className="p-6 max-w-lg">
-      <div className="mb-4">
-        <Link href="/networking" className="text-blue-600 hover:underline">
-          ← Networking
-        </Link>
+    <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm lg:p-10">
+      <div className="col-span-12 space-y-5 lg:col-span-8">
+        <p className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold tracking-wide text-sky-800">
+          Welcome Space
+        </p>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          Welcome to UniFlow Mentors
+        </h1>
+        <p className="max-w-2xl text-base leading-relaxed text-slate-600">
+          Start by registering as a user so we can personalize your mentor marketplace experience.
+          After registration, you will continue to your mentors home.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <Link href="/networking/mentors/start" className={mentorButtonClassName({ size: "lg" })}>
+            Register as User
+          </Link>
+          <Link
+            href="/networking/mentors/home"
+            className={mentorButtonClassName({ variant: "secondary", size: "lg" })}
+          >
+            Skip to Home
+          </Link>
+        </div>
       </div>
-      <h1 className="text-xl font-semibold mb-4">Mentors</h1>
 
-      <form action={createMentor} className="flex flex-col gap-2 mb-6">
-        <input
-          name="name"
-          placeholder="Name"
-          required
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          className="border px-3 py-2 rounded"
-        />
-        <button type="submit" className="bg-blue-600 text-white px-3 py-2 rounded w-fit">
-          Add
-        </button>
-      </form>
-
-      <ul className="space-y-2">
-        {mentors.map((m) => (
-          <li key={m.id} className="flex items-center justify-between border-b pb-2">
-            <span>{m.name} — {m.email ?? "(no email)"}</span>
-            <form action={deleteMentor.bind(null, m.id)}>
-              <button type="submit" className="text-red-600 text-sm hover:underline">
-                Delete
-              </button>
-            </form>
-          </li>
-        ))}
-      </ul>
-      {mentors.length === 0 && <p className="text-gray-500">No mentors yet. Add one above.</p>}
-    </main>
+      <div className="col-span-12 rounded-2xl bg-slate-50 p-6 lg:col-span-4">
+        <h2 className="text-lg font-semibold text-slate-900">How it works</h2>
+        <ol className="mt-3 space-y-3 text-sm text-slate-600">
+          <li>1. Register your role and profile details.</li>
+          <li>2. Access your personalized mentors home.</li>
+          <li>3. Discover mentors and request guidance.</li>
+        </ol>
+      </div>
+    </section>
   );
 }
