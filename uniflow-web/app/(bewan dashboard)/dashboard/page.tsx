@@ -53,7 +53,7 @@ function PulseRing({ score }: { score: number }) {
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
         {/* Track */}
         <circle cx={size/2} cy={size/2} r={r} fill="none"
-          stroke="rgba(255,255,255,0.06)" strokeWidth={strokeWidth} />
+          stroke="rgba(22,49,94,0.14)" strokeWidth={strokeWidth} />
         {/* Glow layer */}
         <circle cx={size/2} cy={size/2} r={r} fill="none"
           stroke={color} strokeWidth={strokeWidth + 4}
@@ -69,10 +69,10 @@ function PulseRing({ score }: { score: number }) {
       </svg>
       {/* Center content */}
       <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ fontSize: 42, fontWeight: 800, fontFamily:"'Syne',sans-serif", color: "#fff", letterSpacing: "-0.04em", lineHeight:1 }}>
+        <div style={{ fontSize: 42, fontWeight: 800, fontFamily:"'Syne',sans-serif", color: "#1b2c4c", letterSpacing: "-0.04em", lineHeight:1 }}>
           {animated}
         </div>
-        <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform:"uppercase", marginTop: 4 }}>
+        <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(38,60,99,0.65)", letterSpacing: "0.1em", textTransform:"uppercase", marginTop: 4 }}>
           Pulse
         </div>
         <div style={{ marginTop: 8, padding: "3px 10px", borderRadius: 99, background: `${color}22`, border: `1px solid ${color}55`, fontSize: 11, fontWeight: 600, color: color, letterSpacing:"0.05em" }}>
@@ -92,11 +92,11 @@ function PillarBar({ label, value, color, icon }: { label:string; value:number; 
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 6 }}>
         <div style={{ display:"flex", alignItems:"center", gap: 8 }}>
           <span style={{ fontSize: 14 }}>{icon}</span>
-          <span style={{ fontSize: 13, color:"rgba(255,255,255,0.5)", fontWeight:400 }}>{label}</span>
+          <span style={{ fontSize: 13, color:"rgba(34,54,92,0.82)", fontWeight:500 }}>{label}</span>
         </div>
-        <span style={{ fontSize: 13, fontWeight:600, color:"rgba(255,255,255,0.7)" }}>{value}%</span>
+        <span style={{ fontSize: 13, fontWeight:700, color:"rgba(31,49,84,0.9)" }}>{value}%</span>
       </div>
-      <div style={{ height: 6, borderRadius: 99, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
+      <div style={{ height: 6, borderRadius: 99, background:"rgba(26,47,88,0.14)", overflow:"hidden" }}>
         <div style={{ height:"100%", borderRadius:99, background: color, width:`${w}%`, transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 10px ${color}88` }} />
       </div>
     </div>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
     <div style={{ minHeight:"100vh", background:"var(--app-bg-gradient)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>
       <div style={{ textAlign:"center" }}>
         <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,210,180,0.2)", borderTopColor:"#00d2b4", animation:"spin 0.8s linear infinite", margin:"0 auto 16px" }} />
-        <div style={{ color:"rgba(255,255,255,0.3)", fontSize:14 }}>Loading your dashboard…</div>
+        <div style={{ color:"rgba(37,56,92,0.74)", fontSize:14 }}>Loading your dashboard…</div>
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -209,8 +209,12 @@ export default function DashboardPage() {
       router.push("/profile-setup");
     } else if (id === "evidence") {
       router.push("/evidance");
-    } else if (id === "pulse" && profile?.username) {
-      router.push(`/pulse/${profile.username}`);
+    } else if (id === "pulse") {
+      if (profile?.username) {
+        router.push(`/pulse/${profile.username}`);
+      } else {
+        router.push("/profile-setup");
+      }
     }
   };
 
@@ -238,30 +242,30 @@ export default function DashboardPage() {
         .g2{width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.08) 0%,transparent 70%);bottom:-150px;right:-100px;}
 
         /* Sidebar */
-        .sidebar{width:240px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;padding:28px 16px;position:fixed;top:0;left:0;height:100vh;z-index:10;transition:transform .3s;}
+        .sidebar{width:240px;flex-shrink:0;background:rgba(255,255,255,.78);border-right:1px solid rgba(48,77,131,.16);display:flex;flex-direction:column;padding:28px 16px;position:fixed;top:0;left:0;height:100vh;z-index:10;transition:transform .3s;backdrop-filter:blur(8px);}
         .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:40px;}
         .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
-        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#fff;}
+        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1b2c4c;}
         .logo-name span{color:#00d2b4;}
-        .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:0 12px;margin-bottom:8px;}
-        .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(255,255,255,.4);transition:all .18s;margin-bottom:2px;border:1px solid transparent;}
-        .nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);}
+        .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(46,68,108,.52);padding:0 12px;margin-bottom:8px;}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(39,60,100,.78);transition:all .18s;margin-bottom:2px;border:1px solid transparent;}
+        .nav-item:hover{background:rgba(56,90,150,.08);color:#22365d;}
         .nav-item.active{background:rgba(0,210,180,.1);border-color:rgba(0,210,180,.2);color:#00d2b4;}
         .nav-icon{width:20px;text-align:center;font-size:15px;}
-        .sidebar-bottom{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);}
+        .sidebar-bottom{margin-top:auto;padding-top:16px;border-top:1px solid rgba(48,77,131,.14);}
         .profile-btn:hover{background:rgba(0,210,180,.08)!important;border-color:rgba(0,210,180,.2)!important;}
-        .signout-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.25);transition:all .18s;width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;}
+        .signout-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:rgba(48,70,111,.68);transition:all .18s;width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;}
         .signout-btn:hover{background:rgba(239,68,68,.08);color:#f87171;}
 
         /* Main */
         .main{flex:1;margin-left:240px;padding:32px 32px 48px;position:relative;z-index:1;}
         .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
-        .topbar-left h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;}
-        .topbar-left p{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px;}
+        .topbar-left h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#1a2a49;letter-spacing:-.03em;}
+        .topbar-left p{font-size:13px;color:rgba(47,70,113,.74);margin-top:2px;}
         .topbar-right{display:flex;align-items:center;gap:12px;}
         .portfolio-btn{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);color:#00d2b4;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;}
         .portfolio-btn:hover{background:rgba(0,210,180,.18);}
-        .avatar-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,210,180,.3);overflow:hidden;cursor:pointer;background:#1a2030;display:flex;align-items:center;justify-content:center;font-size:16px;}
+        .avatar-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,210,180,.32);overflow:hidden;cursor:pointer;background:#dfe8f8;display:flex;align-items:center;justify-content:center;font-size:16px;}
         .avatar-btn img{width:100%;height:100%;object-fit:cover;}
 
         /* Grid */
@@ -269,65 +273,65 @@ export default function DashboardPage() {
         .grid-bottom{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 
         /* Cards */
-        .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:24px;animation:fadeUp .5s ease both;}
-        .card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
+        .card{background:rgba(255,255,255,.86);border:1px solid rgba(38,67,118,.15);border-radius:20px;padding:24px;animation:fadeUp .5s ease both;box-shadow:0 10px 30px rgba(35,62,109,.08);}
+        .card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:rgba(35,57,95,.72);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
 
         /* Pulse card */
         .pulse-card{display:flex;flex-direction:column;align-items:center;gap:20px;min-width:264px;}
         .pulse-ring-wrap{position:relative;}
         .pulse-label-row{display:flex;gap:16px;}
-        .pulse-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:99px;padding:5px 12px;}
+        .pulse-pill{display:flex;align-items:center;gap:6px;background:rgba(69,98,154,.08);border:1px solid rgba(69,98,154,.18);border-radius:99px;padding:5px 12px;}
         .pulse-pill-dot{width:7px;height:7px;border-radius:50%;}
-        .pulse-pill-text{font-size:12px;color:rgba(255,255,255,.4);}
-        .pulse-pill-val{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);}
+        .pulse-pill-text{font-size:12px;color:rgba(35,56,93,.7);}
+        .pulse-pill-val{font-size:12px;font-weight:700;color:rgba(28,46,79,.9);}
 
         /* Pillar card */
         .pillar-card{}
 
         /* Mentor card */
         .mentor-card{}
-        .mentor-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:16px;width:100%;text-align:left;font-family:'DM Sans',sans-serif;color:inherit;}
+        .mentor-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(74,103,161,.08);border:1px solid rgba(74,103,161,.18);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:16px;width:100%;text-align:left;font-family:'DM Sans',sans-serif;color:inherit;}
         .mentor-toggle-row.on{background:rgba(0,210,180,.07);border-color:rgba(0,210,180,.25);}
         .mentor-toggle-row.busy{opacity:.75;pointer-events:none;}
-        .mentor-label strong{display:block;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);}
-        .mentor-label span{font-size:12px;color:rgba(255,255,255,.3);}
-        .toggle{width:40px;height:22px;border-radius:99px;background:rgba(255,255,255,.1);position:relative;flex-shrink:0;transition:background .2s;}
+        .mentor-label strong{display:block;font-size:14px;font-weight:600;color:rgba(28,48,83,.9);}
+        .mentor-label span{font-size:12px;color:rgba(46,67,108,.72);}
+        .toggle{width:40px;height:22px;border-radius:99px;background:rgba(74,103,161,.25);position:relative;flex-shrink:0;transition:background .2s;}
         .toggle.on{background:linear-gradient(90deg,#00d2b4,#6366f1);}
         .toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .22s;box-shadow:0 1px 4px rgba(0,0,0,.3);}
         .toggle.on::after{transform:translateX(18px);}
         .subjects-wrap{display:flex;flex-wrap:wrap;gap:6px;}
-        .subj-tag{padding:4px 10px;border-radius:99px;font-size:11px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:rgba(165,168,255,.8);}
+        .subj-tag{padding:4px 10px;border-radius:99px;font-size:11px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:rgba(66,74,170,.95);}
 
         /* Activity */
         .activity-list{display:flex;flex-direction:column;gap:10px;}
-        .activity-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:12px;transition:background .18s;}
-        .activity-item:hover{background:rgba(255,255,255,.045);}
+        .activity-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(70,99,157,.06);border:1px solid rgba(70,99,157,.12);border-radius:12px;transition:background .18s;}
+        .activity-item:hover{background:rgba(70,99,157,.1);}
         .act-icon{width:34px;height:34px;border-radius:9px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-        .act-label{font-size:13px;color:rgba(255,255,255,.65);flex:1;}
-        .act-time{font-size:11px;color:rgba(255,255,255,.25);}
+        .act-label{font-size:13px;color:rgba(31,49,84,.85);flex:1;}
+        .act-time{font-size:11px;color:rgba(58,82,125,.65);}
         .act-pts{font-size:12px;font-weight:600;color:#00d2b4;background:rgba(0,210,180,.1);padding:2px 8px;border-radius:99px;}
 
         /* Badges */
-        .badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;}
-        .badge-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 8px;border-radius:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);transition:all .18s;cursor:default;}
-        .badge-item.earned{background:rgba(0,210,180,.06);border-color:rgba(0,210,180,.2);}
+        .badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;}
+        .badge-item{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px;border-radius:14px;border:1px solid rgba(67,96,151,.2);background:rgba(255,255,255,.9);transition:all .18s;cursor:default;}
+        .badge-item.earned{background:rgba(0,210,180,.1);border-color:rgba(0,210,180,.32);}
         .badge-item:hover.earned{background:rgba(0,210,180,.1);}
-        .badge-icon{font-size:22px;filter:grayscale(0);}
-        .badge-item:not(.earned) .badge-icon{filter:grayscale(1);opacity:.3;}
-        .badge-label{font-size:10px;font-weight:500;color:rgba(255,255,255,.35);text-align:center;line-height:1.3;}
-        .badge-item.earned .badge-label{color:rgba(255,255,255,.6);}
-        .badge-lock{font-size:10px;color:rgba(255,255,255,.15);}
+        .badge-icon{font-size:26px;filter:grayscale(0);}
+        .badge-item:not(.earned) .badge-icon{filter:grayscale(1);opacity:.52;}
+        .badge-label{font-size:14px;font-weight:600;color:rgba(33,53,89,.9);text-align:center;line-height:1.35;}
+        .badge-item.earned .badge-label{color:rgba(24,45,80,.95);}
+        .badge-lock{font-size:14px;color:rgba(33,53,89,.75);}
 
         /* Submit evidence CTA */
         .cta-card{background:linear-gradient(135deg,rgba(0,210,180,.1),rgba(99,102,241,.1));border:1px solid rgba(0,210,180,.2);border-radius:20px;padding:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;animation:fadeUp .5s ease both;}
-        .cta-text h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
-        .cta-text p{font-size:13px;color:rgba(255,255,255,.4);}
+        .cta-text h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#1b2c4c;margin-bottom:4px;}
+        .cta-text p{font-size:13px;color:rgba(42,64,103,.72);}
         .cta-btn{padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .18s,transform .18s;}
         .cta-btn:hover{opacity:.88;transform:translateY(-1px);}
 
         /* Hamburger for mobile */
-        .hamburger{display:none;position:fixed;top:16px;left:16px;z-index:20;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:pointer;align-items:center;justify-content:center;font-size:18px;color:#fff;}
-        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9;}
+        .hamburger{display:none;position:fixed;top:16px;left:16px;z-index:20;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.86);border:1px solid rgba(48,77,131,.16);cursor:pointer;align-items:center;justify-content:center;font-size:18px;color:#1f3260;}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(9,18,39,.22);z-index:9;}
 
         @media(max-width:1100px){
           .grid-top{grid-template-columns:1fr 1fr;}
@@ -374,13 +378,13 @@ export default function DashboardPage() {
 
           <div className="sidebar-bottom">
             {/* User row */}
-            <button className="profile-btn" onClick={()=>handleNavClick("profile")} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:8, background:"transparent", border:"1px solid rgba(255,255,255,.08)", borderRadius:"8px", cursor:"pointer", transition:"all .18s", width:"100%" }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", background:"#1a2030", flexShrink:0 }}>
+            <button className="profile-btn" onClick={()=>handleNavClick("profile")} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:8, background:"transparent", border:"1px solid rgba(48,77,131,.16)", borderRadius:"8px", cursor:"pointer", transition:"all .18s", width:"100%" }}>
+              <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", background:"#dfe8f8", flexShrink:0 }}>
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="av" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:14}}>👤</span>}
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, fontWeight:500, color:"rgba(255,255,255,.7)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{profile?.display_name}</div>
-                <div style={{ fontSize:11, color:"rgba(255,255,255,.25)" }}>{profile?.job_role || "Student"}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:"rgba(28,48,83,.9)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{profile?.display_name}</div>
+                <div style={{ fontSize:11, color:"rgba(58,82,125,.7)" }}>{profile?.job_role || "Student"}</div>
               </div>
             </button>
             <button className="signout-btn" onClick={handleSignOut}>
@@ -429,7 +433,7 @@ export default function DashboardPage() {
                 <PulseRing score={score} />
               </div>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,.3)", marginBottom:12 }}>
+                <div style={{ fontSize:12, color:"rgba(51,74,116,.72)", marginBottom:12 }}>
                   Score breakdown
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:6, width:"100%", minWidth:160 }}>
@@ -458,9 +462,9 @@ export default function DashboardPage() {
               <PillarBar label="Academic Mastery" value={mastery} color="#00d2b4" icon="📘" />
               <PillarBar label="Practical Projects" value={projects} color="#6366f1" icon="🔗" />
               <PillarBar label="Community Impact" value={community} color="#f59e0b" icon="🤝" />
-              <div style={{ marginTop:20, padding:"14px 16px", background:"rgba(255,255,255,.025)", borderRadius:12, border:"1px solid rgba(255,255,255,.06)" }}>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,.3)", marginBottom:6 }}>How to improve</div>
-                <div style={{ fontSize:13, color:"rgba(255,255,255,.5)", lineHeight:1.6 }}>
+              <div style={{ marginTop:20, padding:"14px 16px", background:"rgba(70,99,157,.06)", borderRadius:12, border:"1px solid rgba(70,99,157,.12)" }}>
+                <div style={{ fontSize:12, color:"rgba(52,75,116,.72)", marginBottom:6 }}>How to improve</div>
+                <div style={{ fontSize:13, color:"rgba(37,58,95,.85)", lineHeight:1.6 }}>
                   {projects < mastery && community < mastery
                     ? "Submit a project with GitHub evidence to boost your score the most (+40 pts)."
                     : community < 30
@@ -491,20 +495,20 @@ export default function DashboardPage() {
               )}
               {profile?.is_mentor && (
                 <>
-                  <div style={{ fontSize:12, color:"rgba(255,255,255,.3)", marginBottom:10 }}>Your subjects</div>
+                  <div style={{ fontSize:12, color:"rgba(52,75,116,.72)", marginBottom:10 }}>Your subjects</div>
                   <div className="subjects-wrap">
                     {(profile.mentor_subjects ?? []).length > 0
                       ? profile.mentor_subjects.map(s=>(
                           <span key={s} className="subj-tag">{s}</span>
                         ))
-                      : <span style={{fontSize:12,color:"rgba(255,255,255,.25)"}}>No subjects set — edit your profile</span>
+                      : <span style={{fontSize:12,color:"rgba(58,82,125,.7)"}}>No subjects set — edit your profile</span>
                     }
                   </div>
                 </>
               )}
               {!profile?.is_mentor && (
-                <div style={{ fontSize:13, color:"rgba(255,255,255,.25)", lineHeight:1.6 }}>
-                  Mentoring others adds <strong style={{color:"rgba(255,255,255,.4)"}}>Community Impact</strong> to your Pulse Score and generates endorsements for your public portfolio.
+                <div style={{ fontSize:13, color:"rgba(52,75,116,.72)", lineHeight:1.6 }}>
+                  Mentoring others adds <strong style={{color:"rgba(34,55,94,.88)"}}>Community Impact</strong> to your Pulse Score and generates endorsements for your public portfolio.
                 </div>
               )}
             </div>
@@ -542,7 +546,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop:16, padding:"12px 14px", background:"rgba(255,255,255,.02)", borderRadius:10, border:"1px solid rgba(255,255,255,.05)", fontSize:12, color:"rgba(255,255,255,.25)", lineHeight:1.6 }}>
+              <div style={{ marginTop:16, padding:"12px 14px", background:"rgba(67,96,151,.08)", borderRadius:10, border:"1px solid rgba(67,96,151,.18)", fontSize:12, color:"rgba(39,60,100,.86)", lineHeight:1.6 }}>
                 🏆 Earn badges by completing KPIs, submitting projects, and helping peers.
               </div>
             </div>

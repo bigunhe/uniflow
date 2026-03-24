@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 function createUsernameSeed(user: { email?: string | null; user_metadata?: Record<string, unknown>; id: string }) {
   const fromMeta = typeof user.user_metadata?.username === "string" ? user.user_metadata.username : "";
@@ -14,69 +15,88 @@ function createUsernameSeed(user: { email?: string | null; user_metadata?: Recor
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const tokenHash = requestUrl.searchParams.get("token_hash");
+  const otpType = requestUrl.searchParams.get("type") as EmailOtpType | null;
+
+  if (!code && !(tokenHash && otpType)) {
+    return NextResponse.redirect(`${requestUrl.origin}/login`);
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll(); },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          },
-        },
+    const exchange = await supabase.auth.exchangeCodeForSession(code);
+    if (exchange.error) {
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_link_invalid`);
+    }
+  } else if (tokenHash && otpType) {
+    const verification = await supabase.auth.verifyOtp({
+      type: otpType,
+      token_hash: tokenHash,
+    });
+    if (verification.error) {
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_link_expired`);
+    }
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("user_data")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) {
+      const baseUsername = createUsernameSeed(user as unknown as { email?: string | null; user_metadata?: Record<string, unknown>; id: string });
+      const fallbackUsername = `${baseUsername.slice(0, 12)}_${user.id.slice(0, 6)}`;
+
+      const payload = {
+        id: user.id,
+        email: user.email,
+        display_name:
+          (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name) ||
+          (typeof user.user_metadata?.name === "string" && user.user_metadata.name) ||
+          user.email?.split("@")[0] ||
+          "Member",
+        username: baseUsername,
+        avatar_url:
+          (typeof user.user_metadata?.avatar_url === "string" && user.user_metadata.avatar_url) ||
+          "",
+        is_mentor: false,
+        mentor_subjects: [],
+        pulse_score: 0,
+      };
+
+      let { error: insertErr } = await supabase.from("user_data").insert(payload);
+      if (insertErr && /duplicate key value|unique constraint/i.test(insertErr.message || "")) {
+        const retryPayload = { ...payload, username: fallbackUsername };
+        const retry = await supabase.from("user_data").insert(retryPayload);
+        insertErr = retry.error;
       }
-    );
 
-    await supabase.auth.exchangeCodeForSession(code);
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from("user_data")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        const baseUsername = createUsernameSeed(user as unknown as { email?: string | null; user_metadata?: Record<string, unknown>; id: string });
-        const fallbackUsername = `${baseUsername.slice(0, 12)}_${user.id.slice(0, 6)}`;
-
-        const payload = {
-          id: user.id,
-          email: user.email,
-          display_name:
-            (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name) ||
-            (typeof user.user_metadata?.name === "string" && user.user_metadata.name) ||
-            user.email?.split("@")[0] ||
-            "Member",
-          username: baseUsername,
-          avatar_url:
-            (typeof user.user_metadata?.avatar_url === "string" && user.user_metadata.avatar_url) ||
-            "",
-          is_mentor: false,
-          mentor_subjects: [],
-          pulse_score: 0,
-        };
-
-        let { error: insertErr } = await supabase.from("user_data").insert(payload);
-        if (insertErr && /duplicate key value|unique constraint/i.test(insertErr.message || "")) {
-          const retryPayload = { ...payload, username: fallbackUsername };
-          const retry = await supabase.from("user_data").insert(retryPayload);
-          insertErr = retry.error;
-        }
-
-        if (insertErr) {
-          return NextResponse.redirect(`${requestUrl.origin}/profile-setup`);
-        }
-
+      if (insertErr) {
         return NextResponse.redirect(`${requestUrl.origin}/profile-setup`);
       }
+
+      return NextResponse.redirect(`${requestUrl.origin}/profile-setup`);
     }
   }
 

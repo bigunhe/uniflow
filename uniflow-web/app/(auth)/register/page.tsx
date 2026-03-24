@@ -136,6 +136,39 @@ export default function RegisterPage() {
         @keyframes spin{to{transform:rotate(360deg)}}
         .login-link{margin-top:20px;text-align:center;font-size:13px;color:rgba(255,255,255,.25);}
         .login-link a{color:rgba(0,210,180,.6);text-decoration:none;font-weight:500;}
+
+        /* Light theme contrast overrides */
+        .sidebar{background:rgba(255,255,255,.78);border-right:1px solid rgba(48,77,131,.14);backdrop-filter:blur(8px);}
+        .logo-name{color:#1a2a49;}
+        .step-name{color:rgba(47,70,113,.76);}
+        .step-item.active .step-name{color:#1f3260;}
+        .step-item.done .step-name{color:#1e8c83;}
+        .step-desc{color:rgba(60,84,128,.62);}
+        .sidebar-footer{color:rgba(54,78,121,.72);}
+        .sidebar-footer a{color:#3f5cff;}
+
+        .form-title{color:#1a2a49;}
+        .form-sub{color:rgba(53,76,118,.76);}
+        .divider-text{color:rgba(57,80,123,.68);}
+
+        .field label{color:rgba(45,68,110,.86);}
+        .input-wrap input{background:rgba(255,255,255,.9);border:1px solid rgba(60,89,139,.2);color:#1f3260;}
+        .input-wrap input:focus{border-color:rgba(63,92,255,.45);background:rgba(255,255,255,.98);}
+        .input-wrap input::placeholder{color:rgba(78,100,141,.72);}
+        .prefix-text{color:rgba(76,99,141,.78);}
+
+        .check-label{color:rgba(48,71,111,.82);}
+        .check-label a{color:#3f5cff;}
+        .checkbox{border-color:rgba(67,96,151,.38);}
+
+        .btn-back{background:rgba(67,96,151,.08);border-color:rgba(67,96,151,.2);color:rgba(38,59,99,.88);}
+        .btn-back:hover{background:rgba(67,96,151,.14);color:#1f3260;}
+        .login-link{color:rgba(52,75,117,.78);}
+        .login-link a{color:#3f5cff;}
+
+        .success-title{color:#1a2a49;}
+        .success-text{color:rgba(53,76,118,.8);}
+
         @media(max-width:860px){.sidebar{display:none;}.main{padding:32px 20px;}}
       `}</style>
 

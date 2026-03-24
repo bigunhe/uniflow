@@ -5,14 +5,36 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const supabase = createClient();
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [sentTo, setSentTo] = useState("");
 
-  const handleGoogleLogin = async () => {
+  const handleMagicLinkLogin = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      setError("Enter a valid email address to continue.");
+      return;
+    }
+
+    setError("");
+    setSentTo("");
     setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: `${location.origin}/callback`,
+        shouldCreateUser: true,
+      },
     });
+
+    if (otpError) {
+      setError(otpError.message || "Unable to send your magic link right now.");
+      setLoading(false);
+      return;
+    }
+
+    setSentTo(normalizedEmail);
     setLoading(false);
   };
 
@@ -48,13 +70,20 @@ export default function LoginPage() {
         .card-label{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:32px;display:inline-block;text-decoration:none;transition:color .18s,opacity .18s;}
         .card-label:hover,.card-label:focus-visible{color:rgba(0,210,180,.85);opacity:1;outline:none;}
         .card-heading{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.03em;text-align:center;margin-bottom:8px;}
-        .card-sub{font-size:14px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6;margin-bottom:40px;}
-        .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:15px 24px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#1a1a2e;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 24px rgba(0,0,0,.35);}
-        .btn-google:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
-        .btn-google:disabled{opacity:.6;cursor:not-allowed;}
+        .card-sub{font-size:14px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6;margin-bottom:24px;}
+        .input-wrap{width:100%;margin-bottom:14px;}
+        .input-wrap input{width:100%;padding:14px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s;}
+        .input-wrap input:focus{border-color:rgba(0,210,180,.45);background:rgba(0,210,180,.05);}
+        .input-wrap input::placeholder{color:rgba(255,255,255,.35);}
+        .btn-magic{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:15px 24px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#1a1a2e;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 24px rgba(0,0,0,.35);}
+        .btn-magic:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+        .btn-magic:disabled{opacity:.6;cursor:not-allowed;}
         .spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.15);border-top-color:#1a1a2e;border-radius:50%;animation:spin .7s linear infinite;}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .divider{display:flex;align-items:center;gap:12px;width:100%;margin:28px 0;}
+        .feedback{width:100%;border-radius:11px;padding:10px 12px;font-size:13px;line-height:1.5;margin-bottom:12px;}
+        .feedback-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fecaca;}
+        .feedback-success{background:rgba(0,210,180,.12);border:1px solid rgba(0,210,180,.3);color:#bff5ea;}
+        .divider{display:flex;align-items:center;gap:12px;width:100%;margin:20px 0 28px;}
         .divider-line{flex:1;height:1px;background:rgba(255,255,255,.08);}
         .divider-text{font-size:12px;color:rgba(255,255,255,.2);}
         .info-list{width:100%;display:flex;flex-direction:column;gap:14px;}
@@ -85,17 +114,22 @@ export default function LoginPage() {
         <div className="right-panel">
           <a className="card-label" href="/register">Get started free</a>
           <h2 className="card-heading">Welcome to UniFlow</h2>
-          <p className="card-sub">Sign in with your university Google account to start building your verified career portfolio.</p>
-          <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
-            {loading ? <span className="spinner" /> : (
-              <svg width="20" height="20" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9L37 9.7C33.7 6.8 29.1 5 24 5 12.9 5 4 13.9 4 25s8.9 20 20 20c11 0 19.7-7.7 19.7-20 0-1.3-.1-2.7-.1-4z"/>
-                <path fill="#FF3D00" d="M6.3 15.1l6.6 4.8C14.7 16.1 19 13 24 13c3 0 5.7 1.1 7.8 2.9L37 9.7C33.7 6.8 29.1 5 24 5c-7.7 0-14.3 4.3-17.7 10.1z"/>
-                <path fill="#4CAF50" d="M24 45c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 36.5 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-8H6.4v5.5C9.9 40.7 16.5 45 24 45z"/>
-                <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 6l6.2 5.2C40.9 35.8 44 30.8 44 25c0-1.3-.1-2.7-.4-5z"/>
-              </svg>
-            )}
-            {loading ? "Connecting…" : "Continue with Google"}
+          <p className="card-sub">Enter your email and we&apos;ll send a secure magic link. No password, no OAuth setup.</p>
+          {error ? <div className="feedback feedback-error">{error}</div> : null}
+          {sentTo ? <div className="feedback feedback-success">Magic link sent to <strong>{sentTo}</strong>. Check your inbox and spam folder.</div> : null}
+          <div className="input-wrap">
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@university.edu"
+              autoComplete="email"
+              disabled={loading}
+            />
+          </div>
+          <button className="btn-magic" onClick={handleMagicLinkLogin} disabled={loading}>
+            {loading ? <span className="spinner" /> : null}
+            {loading ? "Sending magic link…" : "Send magic link"}
           </button>
           <div className="divider"><div className="divider-line" /><span className="divider-text">what you get</span><div className="divider-line" /></div>
           <div className="info-list">
