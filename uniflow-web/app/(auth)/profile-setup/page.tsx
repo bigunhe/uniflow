@@ -48,7 +48,7 @@ export default function ProfileSetupPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        .root{min-height:100vh;background:#080c14;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;padding:32px 16px;position:relative;overflow:hidden;}
+        .root{min-height:100vh;background:var(--app-bg-gradient);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;padding:32px 16px;position:relative;overflow:hidden;}
         .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.04) 1px,transparent 1px);background-size:48px 48px;}
         .bg-glow{position:fixed;pointer-events:none;border-radius:50%;filter:blur(100px);}
         .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,210,180,.14) 0%,transparent 70%);top:-150px;left:-150px;}

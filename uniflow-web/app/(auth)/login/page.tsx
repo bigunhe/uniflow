@@ -21,7 +21,7 @@ export default function LoginPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        .login-root{min-height:100vh;background:#080c14;display:flex;font-family:'DM Sans',sans-serif;overflow:hidden;position:relative;}
+        .login-root{min-height:100vh;background:var(--app-bg-gradient);display:flex;font-family:'DM Sans',sans-serif;overflow:hidden;position:relative;}
         .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,210,180,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.04) 1px,transparent 1px);background-size:48px 48px;}
         .bg-glow{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
         .glow-1{width:520px;height:520px;background:radial-gradient(circle,rgba(0,210,180,.18) 0%,transparent 70%);top:-120px;left:-120px;animation:drift1 9s ease-in-out infinite alternate;}
@@ -103,7 +103,7 @@ export default function LoginPage() {
             <div className="info-item"><div className="info-icon">🔗</div><div className="info-text"><strong>Public Portfolio URL</strong> — share uniflow.lk/p/you on LinkedIn with verified proof of skills.</div></div>
             <div className="info-item"><div className="info-icon">🎓</div><div className="info-text"><strong>Mentor Mode</strong> — tutor peers, earn community impact points, get endorsements.</div></div>
           </div>
-          <p className="terms">By signing in you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+          <p className="terms">By signing in you agree to our <a href="/terms-of-service">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>.</p>
         </div>
       </div>
     </>

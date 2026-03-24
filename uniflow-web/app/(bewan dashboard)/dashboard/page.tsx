@@ -184,7 +184,7 @@ export default function DashboardPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh", background:"#080c14", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"var(--app-bg-gradient)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>
       <div style={{ textAlign:"center" }}>
         <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,210,180,0.2)", borderTopColor:"#00d2b4", animation:"spin 0.8s linear infinite", margin:"0 auto 16px" }} />
         <div style={{ color:"rgba(255,255,255,0.3)", fontSize:14 }}>Loading your dashboard…</div>
@@ -227,11 +227,11 @@ export default function DashboardPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#080c14;}
+        body{background:var(--app-bg-gradient);}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes pulse-ring{0%,100%{opacity:1}50%{opacity:.5}}
-        .dash-root{min-height:100vh;background:#080c14;display:flex;font-family:'DM Sans',sans-serif;position:relative;overflow-x:hidden;}
+        .dash-root{min-height:100vh;background:var(--app-bg-gradient);display:flex;font-family:'DM Sans',sans-serif;position:relative;overflow-x:hidden;}
         .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.03) 1px,transparent 1px);background-size:48px 48px;z-index:0;}
         .bg-glow{position:fixed;pointer-events:none;border-radius:50%;filter:blur(120px);z-index:0;}
         .g1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,210,180,.10) 0%,transparent 70%);top:-200px;left:-100px;}

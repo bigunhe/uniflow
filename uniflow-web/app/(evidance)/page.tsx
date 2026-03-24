@@ -135,7 +135,7 @@ export default function SubmitEvidencePage() {
         @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
       `}</style>
-      <div style={{ minHeight:"100vh", background:"#080c14", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif", padding:24 }}>
+      <div style={{ minHeight:"100vh", background:"var(--app-bg-gradient)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif", padding:24 }}>
         <div style={{ textAlign:"center", maxWidth:440 }}>
           <div style={{ fontSize:72, animation:"pop .6s cubic-bezier(.4,0,.2,1) both", marginBottom:24 }}>🎉</div>
           <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:28, fontWeight:800, color:"#fff", marginBottom:12, animation:"fadeUp .5s .2s both" }}>Evidence Submitted!</h1>
@@ -163,7 +163,7 @@ export default function SubmitEvidencePage() {
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
 
-        .root{min-height:100vh;background:#080c14;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;padding:40px 16px 64px;position:relative;overflow:hidden;}
+        .root{min-height:100vh;background:var(--app-bg-gradient);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;padding:40px 16px 64px;position:relative;overflow:hidden;}
         .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.03) 1px,transparent 1px);background-size:48px 48px;}
         .bg-glow{position:fixed;pointer-events:none;border-radius:50%;filter:blur(100px);}
         .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,210,180,.12) 0%,transparent 70%);top:-150px;right:-100px;}
