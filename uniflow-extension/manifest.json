@@ -1,8 +1,34 @@
 {
   "manifest_version": 3,
-  "name": "UniFlow Extension",
+  "name": "UniFlow Sync",
   "version": "1.0.0",
-  "description": "UniFlow browser extension",
+  "description": "Scrape, bundle, and download academic resources from CourseWeb as a ZIP file.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://courseweb.sliit.lk/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://courseweb.sliit.lk/*"],
+      "js": ["jszip.min.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["tailwind.css", "icons/*"],
+      "matches": ["*://courseweb.sliit.lk/*"]
+    }
+  ],
   "background": {
     "service_worker": "background.js"
   }
