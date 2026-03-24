@@ -249,6 +249,7 @@ export default function DashboardPage() {
         .nav-item.active{background:rgba(0,210,180,.1);border-color:rgba(0,210,180,.2);color:#00d2b4;}
         .nav-icon{width:20px;text-align:center;font-size:15px;}
         .sidebar-bottom{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);}
+        .profile-btn:hover{background:rgba(0,210,180,.08)!important;border-color:rgba(0,210,180,.2)!important;}
         .signout-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.25);transition:all .18s;width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;}
         .signout-btn:hover{background:rgba(239,68,68,.08);color:#f87171;}
 
@@ -373,7 +374,7 @@ export default function DashboardPage() {
 
           <div className="sidebar-bottom">
             {/* User row */}
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:8 }}>
+            <button className="profile-btn" onClick={()=>handleNavClick("profile")} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:8, background:"transparent", border:"1px solid rgba(255,255,255,.08)", borderRadius:"8px", cursor:"pointer", transition:"all .18s", width:"100%" }}>
               <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", background:"#1a2030", flexShrink:0 }}>
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="av" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:14}}>👤</span>}
               </div>
@@ -381,7 +382,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize:13, fontWeight:500, color:"rgba(255,255,255,.7)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{profile?.display_name}</div>
                 <div style={{ fontSize:11, color:"rgba(255,255,255,.25)" }}>{profile?.job_role || "Student"}</div>
               </div>
-            </div>
+            </button>
             <button className="signout-btn" onClick={handleSignOut}>
               <span>🚪</span><span>Sign Out</span>
             </button>
