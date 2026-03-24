@@ -1,6 +1,8 @@
 import { getAlumni, createAlumni, deleteAlumni } from "./actions";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AlumniPage() {
   const alumni = await getAlumni();
 
