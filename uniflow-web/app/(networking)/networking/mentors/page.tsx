@@ -1,6 +1,8 @@
 import { getMentors, createMentor, deleteMentor } from "./actions";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function MentorsPage() {
   const mentors = await getMentors();
 
