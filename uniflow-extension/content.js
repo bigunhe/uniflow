@@ -328,6 +328,44 @@ function attachEvents(container) {
 // SECTION D: FETCH + ZIP PIPELINE
 // ============================================================
 
+const MIME_TO_EXT = {
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/vnd.ms-powerpoint': '.ppt',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+  'application/vnd.ms-excel': '.xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+  'text/plain': '.txt',
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'application/zip': '.zip',
+};
+
+/**
+ * Determines the best filename for a fetched resource.
+ * Priority: Content-Disposition header > original name + Content-Type extension.
+ * Ensures the filename always has an extension so the OS can identify it.
+ */
+function resolveFilename(originalName, response) {
+  // 1. Try Content-Disposition: attachment; filename="Lecture01.pdf"
+  const cd = response.headers.get('Content-Disposition') || '';
+  const cdMatch = cd.match(/filename\*?=(?:UTF-8'')?["']?([^;"'\r\n]+)["']?/i);
+  if (cdMatch && cdMatch[1]) {
+    const cdName = sanitizeFilename(decodeURIComponent(cdMatch[1].trim()));
+    if (cdName) return cdName;
+  }
+
+  // 2. If the scraped name already has an extension, keep it
+  if (/\.[a-z0-9]{2,5}$/i.test(originalName)) return originalName;
+
+  // 3. Infer extension from Content-Type
+  const contentType = (response.headers.get('Content-Type') || '').split(';')[0].trim();
+  const ext = MIME_TO_EXT[contentType] || '';
+  return originalName + ext;
+}
+
 /**
  * Fetches each selected file, bundles them into a ZIP using JSZip,
  * triggers a download via chrome.downloads, and updates storage.
@@ -360,7 +398,7 @@ async function runZipPipeline(container, files, moduleCode) {
       const response = await fetch(href, { credentials: 'include' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const blob = await response.blob();
-      zip.file(name, blob);
+      zip.file(resolveFilename(name, response), blob);
       successUrls.push(href);
     } catch (err) {
       console.warn(`[UniFlow] Failed: ${name}`, err);
