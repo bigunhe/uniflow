@@ -109,10 +109,10 @@ export default function SubmitEvidencePage() {
     if (dbErr) { setError(dbErr.message); setSaving(false); return; }
 
     // Recalculate pulse score (increment project weight)
-    const { data: profile } = await supabase.from("profiles").select("pulse_score").eq("id", userId).single();
+    const { data: profile } = await supabase.from("user_data").select("pulse_score").eq("id", userId).single();
     if (profile) {
       const newScore = Math.min(100, (profile.pulse_score || 0) + 15);
-      await supabase.from("profiles").update({ pulse_score: newScore }).eq("id", userId);
+      await supabase.from("user_data").update({ pulse_score: newScore }).eq("id", userId);
     }
 
     setSaving(false);

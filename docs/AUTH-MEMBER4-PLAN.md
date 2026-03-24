@@ -35,9 +35,9 @@ He does **not** add routes under `(networking)` or `(learning)`. New auth/profil
 ## 3. Build order (quick path)
 
 1. **Dummy login and register** — so the flow exists but auth is skipped.
-2. **Supabase `profiles` table** — one table for profile data.
+2. **Supabase `user_data` table** — one table for profile data.
 3. **Server actions for profile** — create and read profile (same Supabase project as the rest of the app).
-4. **Profile-setup page** — form that saves to `profiles` and then links to pulse.
+4. **Profile-setup page** — form that saves to `user_data` and then links to pulse.
 5. **Pulse page** — load profile by `username` and show it (minimal).
 
 No Google auth implementation yet; `lib/auth.ts` stays as-is (`getCurrentUser()` returns `null`). When you add real auth later, you’ll wire `getCurrentUser()` and optionally protect `/profile-setup` and `/profile`.
@@ -75,32 +75,32 @@ No Google auth implementation yet; `lib/auth.ts` stays as-is (`getCurrentUser()`
 
 ---
 
-### Step 4: Supabase `profiles` table
+### Step 4: Supabase `user_data` table
 
 **Where:** Supabase Dashboard → your project → SQL Editor.
 
-**Table:** `profiles`. Same project as mentors/alumni; same env vars. Member 4 uses `getSupabase()` from `lib/supabase.ts`.
+**Table:** `user_data`. Same project as mentors/alumni; same env vars. Member 4 uses `getSupabase()` from `lib/supabase.ts`.
 
-Run:
+Run this exact script from `docs/PROFILES-TABLE.sql` in Supabase SQL Editor:
 
 ```sql
-create table if not exists public.profiles (
-  id uuid primary key default gen_random_uuid(),
-  display_name text not null,
-  email text,
-  username text not null unique,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+create table user_data (
+  id uuid primary key,
+  email text unique,
+  display_name text,
+  username text unique,
+  avatar_url text,
+  is_mentor boolean default false,
+  mentor_subjects text[] default '{}',
+  job_role text,
+  university text,
+  year_of_study text,
+  pulse_score int default 0,
+  created_at timestamp default now()
 );
-
-alter table public.profiles enable row level security;
-
-create policy "Allow all for profiles"
-  on public.profiles for all
-  using (true) with check (true);
 ```
 
-Later you can add `user_id uuid references auth.users(id)` when you add real auth.
+Optional next step after table creation: enable RLS and add policies based on your auth model.
 
 ---
 
@@ -111,9 +111,9 @@ Later you can add `user_id uuid references auth.users(id)` when you add real aut
 - `"use server"`.
 - Use `getSupabase()` from `@/lib/supabase`.
 - **`createProfile(formData: FormData)`**  
-  Read `display_name`, `email`, `username` from form. Insert into `profiles`. Call `revalidatePath` as needed. Return something like `{ success: true, username }` or throw on error (e.g. duplicate username).
+  Read `display_name`, `email`, `username` from form. Insert into `user_data`. Call `revalidatePath` as needed. Return something like `{ success: true, username }` or throw on error (e.g. duplicate username).
 - **`getProfileByUsername(username: string)`**  
-  `from("profiles").select("*").eq("username", username).single()`. Used by the pulse page.
+  `from("user_data").select("*").eq("username", username).single()`. Used by the pulse page.
 
 Keep all auth/profile server logic here (or in one place under `(auth)`); do not put it in `(networking)` or `(learning)`.
 
@@ -158,7 +158,7 @@ Keep all auth/profile server logic here (or in one place under `(auth)`); do not
 - Implement Google auth (e.g. Supabase Auth with Google provider).
 - In `lib/auth.ts`, implement `getCurrentUser()` using Supabase session.
 - In `/profile-setup` (and later `/profile`), call `getCurrentUser()` and redirect to `/login` if null.
-- Add `user_id` to `profiles` and link rows to `auth.users`; optionally restrict RLS so users only see/edit their own profile.
+- Add `user_id` to `user_data` and link rows to `auth.users`; optionally restrict RLS so users only see/edit their own profile.
 
 Until then, the dummy login and profile-setup flow are enough to build and test the profile creation path.
 
@@ -272,7 +272,7 @@ export default function RegisterPage() {
 
 ---
 
-### Step 4: Supabase `profiles` table (run in Supabase, not in code)
+### Step 4: Supabase `user_data` table (run in Supabase, not in code)
 
 **Where:** Supabase Dashboard → your project → **SQL Editor** → New query.
 
@@ -281,7 +281,7 @@ export default function RegisterPage() {
 **Run this SQL once:**
 
 ```sql
-create table if not exists public.profiles (
+create table if not exists public.user_data (
   id uuid primary key default gen_random_uuid(),
   display_name text not null,
   email text,
@@ -290,14 +290,14 @@ create table if not exists public.profiles (
   updated_at timestamptz default now()
 );
 
-alter table public.profiles enable row level security;
+alter table public.user_data enable row level security;
 
-create policy "Allow all for profiles"
-  on public.profiles for all
+create policy "Allow all for user_data"
+  on public.user_data for all
   using (true) with check (true);
 ```
 
-**Check:** In Supabase **Table Editor**, you should see a `profiles` table with columns `id`, `display_name`, `email`, `username`, `created_at`, `updated_at`.
+**Check:** In Supabase **Table Editor**, you should see a `user_data` table with columns `id`, `display_name`, `email`, `username`, `created_at`, `updated_at`.
 
 ---
 
@@ -308,7 +308,7 @@ create policy "Allow all for profiles"
 **What this does:** This file holds all server-side logic for the auth/profile area (Member 4 only). It uses the same Supabase client as the rest of the app (`getSupabase()`). No auth check yet.
 
 - **`createProfile(formData)`**  
-  Reads `display_name`, `email`, and `username` from the form, trims them, and inserts one row into `profiles`. If the insert fails (e.g. duplicate username), the error is thrown and the form can show it. On success it calls `redirect("/pulse/" + username)` so the user is sent to their new pulse page. In Next.js, `redirect()` throws, so the function does not return after a successful redirect.
+  Reads `display_name`, `email`, and `username` from the form, trims them, and inserts one row into `user_data`. If the insert fails (e.g. duplicate username), the error is thrown and the form can show it. On success it calls `redirect("/pulse/" + username)` so the user is sent to their new pulse page. In Next.js, `redirect()` throws, so the function does not return after a successful redirect.
 
 - **`getProfileByUsername(username)`**  
   Fetches the profile whose `username` matches. Uses `.maybeSingle()` so that if no row exists we get `null` instead of an error. The pulse page uses this to show "Profile not found" or the profile data.
@@ -331,7 +331,7 @@ export async function createProfile(formData: FormData) {
   }
 
   const supabase = getSupabase();
-  const { error } = await supabase.from("profiles").insert({
+  const { error } = await supabase.from("user_data").insert({
     display_name,
     email,
     username,
@@ -345,7 +345,7 @@ export async function createProfile(formData: FormData) {
 export async function getProfileByUsername(username: string) {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("profiles")
+    .from("user_data")
     .select("*")
     .eq("username", username)
     .maybeSingle();
@@ -363,7 +363,7 @@ export async function getProfileByUsername(username: string) {
 
 **File:** `uniflow-web/app/(auth)/profile-setup/page.tsx`
 
-**What this does:** This is the real profile-creation screen. It’s a Server Component with a form. The form’s `action` is `createProfile`, so when the user submits, the browser sends the form data to the server, `createProfile` runs, inserts into `profiles`, and then redirects to `/pulse/username`. The link back to home is for navigation. We do not call `getCurrentUser()` here; that will be added when real auth exists.
+**What this does:** This is the real profile-creation screen. It’s a Server Component with a form. The form’s `action` is `createProfile`, so when the user submits, the browser sends the form data to the server, `createProfile` runs, inserts into `user_data`, and then redirects to `/pulse/username`. The link back to home is for navigation. We do not call `getCurrentUser()` here; that will be added when real auth exists.
 
 **Replace the entire file with:**
 
@@ -412,7 +412,7 @@ export default function ProfileSetupPage() {
 }
 ```
 
-**Check:** Open `/profile-setup`. Fill in display name, email, and username and submit. You should be redirected to `/pulse/your-username`. In Supabase Table Editor, `profiles` should have the new row. If you submit a duplicate username, the action will throw and you’ll see an error (you can add error handling in the form later).
+**Check:** Open `/profile-setup`. Fill in display name, email, and username and submit. You should be redirected to `/pulse/your-username`. In Supabase Table Editor, `user_data` should have the new row. If you submit a duplicate username, the action will throw and you’ll see an error (you can add error handling in the form later).
 
 ---
 
@@ -474,7 +474,7 @@ export default async function PulsePage({
 | 1 | `app/page.tsx` | Home: links to Login and Profile setup |
 | 2 | `app/(auth)/login/page.tsx` | Dummy login + "Continue to profile setup" |
 | 3 | `app/(auth)/register/page.tsx` | Dummy register + link to login |
-| 4 | Supabase SQL | Create `profiles` table |
+| 4 | Supabase SQL | Create `user_data` table |
 | 5 | `app/(auth)/actions.ts` | `createProfile`, `getProfileByUsername` |
 | 6 | `app/(auth)/profile-setup/page.tsx` | Profile form → create → redirect to pulse |
 | 7 | `app/pulse/[username]/page.tsx` | Show profile by username or "not found" |

@@ -18,7 +18,7 @@ export async function createProfile(
   }
 
   const supabase = getSupabase();
-  const { error } = await supabase.from("profiles").insert({
+  const { error } = await supabase.from("user_data").insert({
     display_name,
     email,
     username,
@@ -32,7 +32,7 @@ export async function createProfile(
 export async function getProfileByUsername(username: string) {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("profiles")
+    .from("user_data")
     .select("*")
     .eq("username", username)
     .maybeSingle();

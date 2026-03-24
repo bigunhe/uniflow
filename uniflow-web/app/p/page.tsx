@@ -76,7 +76,7 @@ export default function PublicPortfolioPage() {
     if (!username) return;
     (async () => {
       const { data: prof } = await supabase
-        .from("profiles")
+        .from("user_data")
         .select("*")
         .eq("username", username)
         .single();

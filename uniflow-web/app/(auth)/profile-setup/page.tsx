@@ -36,7 +36,7 @@ export default function ProfileSetupPage() {
     setSaving(true); setError("");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
-    const { error: dbErr } = await supabase.from("profiles").upsert({ id:user.id, display_name:form.displayName.trim(), username:form.username.trim(), avatar_url:avatarUrl, is_mentor:form.isMentor, mentor_subjects:form.mentorSubjects, job_role:form.jobRole, pulse_score:0 });
+    const { error: dbErr } = await supabase.from("user_data").upsert({ id:user.id, display_name:form.displayName.trim(), username:form.username.trim(), avatar_url:avatarUrl, is_mentor:form.isMentor, mentor_subjects:form.mentorSubjects, job_role:form.jobRole, pulse_score:0 });
     if (dbErr) { setError(dbErr.message); setSaving(false); return; }
     router.push("/");
   };

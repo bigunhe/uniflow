@@ -35,9 +35,14 @@ export default function RegisterPage() {
     const err=validate(); if(err){setError(err);return;}
     setError(""); setLoading(true);
     const {data,error:signUpErr} = await supabase.auth.signUp({ email:form.email, password:form.password, options:{ data:{full_name:form.displayName,username:form.username}, emailRedirectTo:`${location.origin}/auth/callback` } });
-    if (signUpErr){setError(signUpErr.message);setLoading(false);return;}
+    if (signUpErr){setError("Could not create account right now. Please try again.");setLoading(false);return;}
     if (data.user) {
-      await supabase.from("profiles").upsert({ id:data.user.id, display_name:form.displayName.trim(), username:form.username.trim(), avatar_url:"", is_mentor:false, mentor_subjects:[], job_role:form.jobRole, university:form.university, year_of_study:form.yearOfStudy, pulse_score:0 });
+      const { error: profileErr } = await supabase.from("user_data").upsert({ id:data.user.id, email:form.email.trim(), display_name:form.displayName.trim(), username:form.username.trim(), avatar_url:"", is_mentor:false, mentor_subjects:[], job_role:form.jobRole, university:form.university, year_of_study:form.yearOfStudy, pulse_score:0 });
+      if (profileErr) {
+        setError("Account created, but profile setup failed. Please sign in and complete profile setup.");
+        setLoading(false);
+        return;
+      }
     }
     setLoading(false);
     setSuccess("Check your email to confirm your account, then log in!");

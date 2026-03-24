@@ -117,7 +117,7 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       // if (!user) { router.push("/login"); return; }
       if (user) {
-        const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        const { data } = await supabase.from("user_data").select("*").eq("id", user.id).single();
         if (data) {
           setProfile(data);
         }
@@ -170,7 +170,7 @@ export default function DashboardPage() {
         pulse_score: previous?.pulse_score ?? 0,
       };
 
-      const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
+      const { error } = await supabase.from("user_data").upsert(payload, { onConflict: "id" });
       if (error) {
         // Revert optimistic toggle when persistence fails.
         setProfile(previous);
