@@ -115,7 +115,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      // if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login"); return; }
       if (user) {
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (data) {
@@ -201,25 +201,23 @@ export default function DashboardPage() {
   const handleNavClick = (id: string) => {
     setActiveNav(id);
     setSidebarOpen(false);
-    if (id === "portfolio" && profile?.username) {
-      router.push(`/p/${profile.username}`);
-    } else if (id === "profile" && profile?.username) {
-      router.push(`/p/${profile.username}`);
-    } else if (id === "profile") {
-      router.push("/profile-setup");
-    } else if (id === "evidence") {
-      router.push("/evidance");
-    } else if (id === "pulse" && profile?.username) {
-      router.push(`/pulse/${profile.username}`);
-    }
+    if      (id === "dashboard")                          router.push("/dashboard");
+    else if (id === "sync")                               router.push("/sync");
+    else if (id === "networking")                         router.push("/networking");
+    else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
+    else if (id === "evidence")                           router.push("/evidance");
+    else if (id === "pulse" && profile?.username)         router.push(`/pulse/${profile.username}`);
+    else if (id === "profile")                            router.push("/profile-setup");
   };
 
   const navItems = [
-    { id:"dashboard", icon:"⚡", label:"Dashboard", route:"/" },
-    { id:"portfolio", icon:"🌐", label:"Portfolio", route:"/p/[username]" },
-    { id:"evidence", icon:"📁", label:"Submit Evidence", route:"/evidance" },
-    { id:"pulse", icon:"📊", label:"Pulse Details", route:"/pulse/[username]" },
-    { id:"profile", icon:"👤", label:"Profile" },
+    { id: "dashboard",  icon: "⚡", label: "Dashboard"       },
+    { id: "sync",       icon: "📦", label: "Sync Module"     },
+    { id: "networking", icon: "🌐", label: "Networking"      },
+    { id: "portfolio",  icon: "🔗", label: "Portfolio"       },
+    { id: "evidence",   icon: "📁", label: "Submit Evidence" },
+    { id: "pulse",      icon: "📊", label: "Pulse Details"   },
+    { id: "profile",    icon: "👤", label: "Profile"         },
   ];
 
   return (
@@ -395,14 +393,14 @@ export default function DashboardPage() {
           {/* Topbar */}
           <div className="topbar">
             <div className="topbar-left">
-              <h1>Welcome back, {profile?.display_name?.split(" ")[0]} 👋</h1>
+              <h1>Welcome back, {profile?.display_name?.split(" ")[0] ?? "there"} 👋</h1>
               <p>Here's your career progress at a glance</p>
             </div>
             <div className="topbar-right">
-              <button className="portfolio-btn" onClick={()=>window.open(`/p/${profile?.username}`,"_blank")}>
+              <button className="portfolio-btn" onClick={()=>profile?.username && router.push(`/p/${profile.username}`)}>
                 🔗 View Portfolio
               </button>
-              <div className="avatar-btn">
+              <div className="avatar-btn" style={{cursor:"pointer"}} onClick={()=>handleNavClick("profile")}>
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" /> : "👤"}
               </div>
             </div>
@@ -465,7 +463,7 @@ export default function DashboardPage() {
                     ? "Submit a project with GitHub evidence to boost your score the most (+40 pts)."
                     : community < 30
                     ? "Help a peer with a study session to earn Community Impact points (+10 pts)."
-                    : "Complete more KPIs in Member 1 to raise Academic Mastery."}
+                    : "Complete more module KPIs in the Learning section to raise Academic Mastery."}
                 </div>
               </div>
             </div>
@@ -515,7 +513,7 @@ export default function DashboardPage() {
 
             {/* Recent activity */}
             <div className="card" style={{animationDelay:".25s"}}>
-              <div className="card-title">Recent Activity</div>
+              <div className="card-title">Recent Activity (sample)</div>
               <div className="activity-list">
                 {MOCK_ACTIVITIES.map((a,i)=>(
                   <div key={i} className="activity-item">
@@ -532,7 +530,7 @@ export default function DashboardPage() {
 
             {/* Badges */}
             <div className="card" style={{animationDelay:".3s"}}>
-              <div className="card-title">Skill Badges</div>
+              <div className="card-title">Skill Badges (sample)</div>
               <div className="badges-grid">
                 {MOCK_BADGES.map((b,i)=>(
                   <div key={i} className={`badge-item ${b.earned?"earned":""}`}>

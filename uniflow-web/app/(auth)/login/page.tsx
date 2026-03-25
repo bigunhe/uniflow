@@ -6,14 +6,37 @@ import { useState } from "react";
 export default function LoginPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [magicLoading, setMagicLoading] = useState(false);
+  const [magicSent, setMagicSent] = useState(false);
+  const [magicError, setMagicError] = useState("");
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${location.origin}/callback` },
     });
     setLoading(false);
+  };
+
+  const handleMagicLink = async () => {
+    if (!email.trim()) {
+      setMagicError("Please enter your email address.");
+      return;
+    }
+    setMagicLoading(true);
+    setMagicError("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${location.origin}/callback` },
+    });
+    setMagicLoading(false);
+    if (error) {
+      setMagicError(error.message);
+    } else {
+      setMagicSent(true);
+    }
   };
 
   return (
@@ -64,6 +87,20 @@ export default function LoginPage() {
         .info-text strong{color:rgba(255,255,255,.6);font-weight:500;}
         .terms{margin-top:32px;font-size:11px;color:rgba(255,255,255,.2);text-align:center;line-height:1.6;}
         .terms a{color:rgba(0,210,180,.6);text-decoration:none;}
+        .email-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px;}
+        .email-input:focus{border-color:rgba(0,210,180,.45);background:rgba(0,210,180,.04);}
+        .email-input::placeholder{color:rgba(255,255,255,.2);}
+        .btn-magic{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .18s,transform .18s;}
+        .btn-magic:hover:not(:disabled){opacity:.88;transform:translateY(-1px);}
+        .btn-magic:disabled{opacity:.55;cursor:not-allowed;}
+        .magic-error{font-size:13px;color:#fca5a5;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px;margin-top:8px;text-align:center;}
+        .magic-sent{text-align:center;padding:24px 0;}
+        .magic-sent-icon{font-size:40px;margin-bottom:12px;}
+        .magic-sent-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;}
+        .magic-sent-sub{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;}
+        .magic-sent-email{color:#00d2b4;font-weight:500;}
+        .magic-sent-retry{margin-top:16px;font-size:12px;color:rgba(255,255,255,.2);}
+        .magic-sent-retry button{background:none;border:none;color:rgba(0,210,180,.6);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;text-decoration:underline;}
         @media(max-width:768px){.login-root{flex-direction:column;}.left-panel{padding:48px 32px 32px;}.right-panel{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,.07);padding:40px 32px;}}
       `}</style>
 
@@ -97,7 +134,41 @@ export default function LoginPage() {
             )}
             {loading ? "Connecting…" : "Continue with Google"}
           </button>
-          <div className="divider"><div className="divider-line" /><span className="divider-text">what you get</span><div className="divider-line" /></div>
+          <div className="divider"><div className="divider-line" /><span className="divider-text">or sign in with email</span><div className="divider-line" /></div>
+
+          {magicSent ? (
+            <div className="magic-sent">
+              <div className="magic-sent-icon">📬</div>
+              <div className="magic-sent-title">Check your inbox</div>
+              <div className="magic-sent-sub">
+                We sent a sign-in link to<br />
+                <span className="magic-sent-email">{email}</span>
+              </div>
+              <div className="magic-sent-retry">
+                Wrong address?{" "}
+                <button onClick={() => { setMagicSent(false); setEmail(""); }}>Try again</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <input
+                className="email-input"
+                type="email"
+                placeholder="your@university.edu"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setMagicError(""); }}
+                onKeyDown={e => e.key === "Enter" && handleMagicLink()}
+              />
+              <button className="btn-magic" onClick={handleMagicLink} disabled={magicLoading}>
+                {magicLoading
+                  ? <><span className="spinner" style={{borderColor:"rgba(255,255,255,.3)",borderTopColor:"#fff"}} />Sending…</>
+                  : "✉ Send Magic Link"}
+              </button>
+              {magicError && <div className="magic-error">{magicError}</div>}
+            </>
+          )}
+
+          <div className="divider" style={{marginTop:24}}><div className="divider-line" /><span className="divider-text">what you get</span><div className="divider-line" /></div>
           <div className="info-list">
             <div className="info-item"><div className="info-icon">📊</div><div className="info-text"><strong>Employability Pulse Score</strong> — a live 0–100 metric that grows as you learn and build.</div></div>
             <div className="info-item"><div className="info-icon">🔗</div><div className="info-text"><strong>Public Portfolio URL</strong> — share uniflow.lk/p/you on LinkedIn with verified proof of skills.</div></div>
