@@ -7,11 +7,13 @@ import { useEffect, useState } from "react";
 type Profile = {
   display_name: string;
   username: string;
-  avatar_url: string;
   is_mentor: boolean;
   job_role: string;
   pulse_score: number;
   mentor_subjects: string[];
+  learning_subjects: string[];
+  academic_year: string;
+  specialization: string;
 };
 
 type Activity = { label: string; time: string; points: number; icon: string };
@@ -107,6 +109,7 @@ export default function DashboardPage() {
   const supabase = createClient();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [mentorUpdating, setMentorUpdating] = useState(false);
   const [mentorError, setMentorError] = useState<string | null>(null);
@@ -115,8 +118,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      // if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login"); return; }
       if (user) {
+        setAvatarUrl(user.user_metadata?.avatar_url ?? "");
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (data) {
           setProfile(data);
@@ -151,11 +155,13 @@ export default function DashboardPage() {
           : {
               display_name: user.user_metadata?.display_name ?? "Member",
               username: user.user_metadata?.username ?? user.email?.split("@")[0] ?? "member",
-              avatar_url: user.user_metadata?.avatar_url ?? "",
               is_mentor: next,
               job_role: "Student",
               pulse_score: 0,
               mentor_subjects: [],
+              learning_subjects: [],
+              academic_year: "",
+              specialization: "",
             }
       );
 
@@ -164,7 +170,6 @@ export default function DashboardPage() {
         is_mentor: next,
         display_name: previous?.display_name ?? user.user_metadata?.display_name ?? "Member",
         username: previous?.username ?? user.user_metadata?.username ?? user.email?.split("@")[0] ?? `member-${user.id.slice(0, 8)}`,
-        avatar_url: previous?.avatar_url ?? user.user_metadata?.avatar_url ?? "",
         mentor_subjects: previous?.mentor_subjects ?? [],
         job_role: previous?.job_role ?? "Student",
         pulse_score: previous?.pulse_score ?? 0,
@@ -201,25 +206,23 @@ export default function DashboardPage() {
   const handleNavClick = (id: string) => {
     setActiveNav(id);
     setSidebarOpen(false);
-    if (id === "portfolio" && profile?.username) {
-      router.push(`/p/${profile.username}`);
-    } else if (id === "profile" && profile?.username) {
-      router.push(`/p/${profile.username}`);
-    } else if (id === "profile") {
-      router.push("/profile-setup");
-    } else if (id === "evidence") {
-      router.push("/evidance");
-    } else if (id === "pulse" && profile?.username) {
-      router.push(`/pulse/${profile.username}`);
-    }
+    if      (id === "dashboard")                          router.push("/dashboard");
+    else if (id === "sync")                               router.push("/sync");
+    else if (id === "networking")                         router.push("/networking");
+    else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
+    else if (id === "evidence")                           router.push("/evidance");
+    else if (id === "pulse" && profile?.username)         router.push(`/pulse/${profile.username}`);
+    else if (id === "profile")                            router.push("/profile-setup");
   };
 
   const navItems = [
-    { id:"dashboard", icon:"⚡", label:"Dashboard", route:"/" },
-    { id:"portfolio", icon:"🌐", label:"Portfolio", route:"/p/[username]" },
-    { id:"evidence", icon:"📁", label:"Submit Evidence", route:"/evidance" },
-    { id:"pulse", icon:"📊", label:"Pulse Details", route:"/pulse/[username]" },
-    { id:"profile", icon:"👤", label:"Profile" },
+    { id: "dashboard",  icon: "⚡", label: "Dashboard"       },
+    { id: "sync",       icon: "📚", label: "Learning"        },
+    { id: "networking", icon: "🌐", label: "Community"       },
+    { id: "portfolio",  icon: "🔗", label: "Portfolio"       },
+    { id: "evidence",   icon: "📁", label: "Submit Evidence" },
+    { id: "pulse",      icon: "📊", label: "Pulse Details"   },
+    { id: "profile",    icon: "👤", label: "Profile"         },
   ];
 
   return (
@@ -376,7 +379,7 @@ export default function DashboardPage() {
             {/* User row */}
             <button className="profile-btn" onClick={()=>handleNavClick("profile")} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:8, background:"transparent", border:"1px solid rgba(255,255,255,.08)", borderRadius:"8px", cursor:"pointer", transition:"all .18s", width:"100%" }}>
               <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", background:"#1a2030", flexShrink:0 }}>
-                {profile?.avatar_url ? <img src={profile.avatar_url} alt="av" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:14}}>👤</span>}
+                {avatarUrl ? <img src={avatarUrl} alt="av" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:14}}>👤</span>}
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:13, fontWeight:500, color:"rgba(255,255,255,.7)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{profile?.display_name}</div>
@@ -395,15 +398,15 @@ export default function DashboardPage() {
           {/* Topbar */}
           <div className="topbar">
             <div className="topbar-left">
-              <h1>Welcome back, {profile?.display_name?.split(" ")[0]} 👋</h1>
+              <h1>Welcome back, {profile?.display_name?.split(" ")[0] ?? "there"} 👋</h1>
               <p>Here's your career progress at a glance</p>
             </div>
             <div className="topbar-right">
-              <button className="portfolio-btn" onClick={()=>window.open(`/p/${profile?.username}`,"_blank")}>
+              <button className="portfolio-btn" onClick={()=>profile?.username && router.push(`/p/${profile.username}`)}>
                 🔗 View Portfolio
               </button>
-              <div className="avatar-btn">
-                {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" /> : "👤"}
+              <div className="avatar-btn" style={{cursor:"pointer"}} onClick={()=>handleNavClick("profile")}>
+                {avatarUrl ? <img src={avatarUrl} alt="avatar" /> : "👤"}
               </div>
             </div>
           </div>
@@ -465,7 +468,7 @@ export default function DashboardPage() {
                     ? "Submit a project with GitHub evidence to boost your score the most (+40 pts)."
                     : community < 30
                     ? "Help a peer with a study session to earn Community Impact points (+10 pts)."
-                    : "Complete more KPIs in Member 1 to raise Academic Mastery."}
+                    : "Complete more module KPIs in the Learning section to raise Academic Mastery."}
                 </div>
               </div>
             </div>
@@ -515,7 +518,7 @@ export default function DashboardPage() {
 
             {/* Recent activity */}
             <div className="card" style={{animationDelay:".25s"}}>
-              <div className="card-title">Recent Activity</div>
+              <div className="card-title">Recent Activity (sample)</div>
               <div className="activity-list">
                 {MOCK_ACTIVITIES.map((a,i)=>(
                   <div key={i} className="activity-item">
@@ -532,7 +535,7 @@ export default function DashboardPage() {
 
             {/* Badges */}
             <div className="card" style={{animationDelay:".3s"}}>
-              <div className="card-title">Skill Badges</div>
+              <div className="card-title">Skill Badges (sample)</div>
               <div className="badges-grid">
                 {MOCK_BADGES.map((b,i)=>(
                   <div key={i} className={`badge-item ${b.earned?"earned":""}`}>
