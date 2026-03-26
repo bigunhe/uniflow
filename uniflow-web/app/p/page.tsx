@@ -1,127 +1,104 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const SUBJECTS = [
+  "Mathematics","Physics","Chemistry","Biology","Computer Science",
+  "Data Science","Web Development","Machine Learning","Networking",
+  "Cybersecurity","Database Systems","Software Engineering","UI/UX Design",
+  "Statistics","Economics",
+];
+
+const JOB_ROLES = [
+  "Software Engineer","Data Analyst","Data Scientist","Frontend Developer",
+  "Backend Developer","Full Stack Developer","DevOps Engineer","UI/UX Designer",
+  "Cybersecurity Analyst","Machine Learning Engineer","Product Manager",
+  "Business Analyst","Network Engineer","Cloud Engineer","Mobile Developer",
+];
+
+const YEARS = ["1st Year","2nd Year","3rd Year","4th Year","Postgraduate"];
+
 type Profile = {
-  id: string;
   display_name: string;
   username: string;
   avatar_url: string;
+  email: string;
   is_mentor: boolean;
-  job_role: string;
-  pulse_score: number;
   mentor_subjects: string[];
-  university?: string;
-  year_of_study?: string;
+  job_role: string;
+  university: string;
+  year_of_study: string;
+  pulse_score: number;
 };
 
-type Submission = {
-  id: string;
-  module_id: string;
-  github_url: string;
-  live_url?: string;
-  screenshot_url: string;
-  reflection: string;
-  challenges?: string;
-  learned?: string;
-  created_at: string;
-};
-
-const MOCK_BADGES = [
-  { label: "Database Architect", icon: "🗄️" },
-  { label: "API Builder", icon: "⚡" },
-  { label: "Community Helper", icon: "🤝" },
-];
-
-function PulseArc({ score }: { score: number }) {
-  const size = 160;
-  const sw = 8;
-  const r = (size - sw) / 2;
-  const circ = 2 * Math.PI * r;
-  const [anim, setAnim] = useState(0);
-  useEffect(() => { const t = setTimeout(() => setAnim(score), 400); return () => clearTimeout(t); }, [score]);
-  const dash = (anim / 100) * circ;
-  const color = score < 30 ? "#f59e0b" : score < 60 ? "#3b82f6" : "#00d2b4";
-  return (
-    <div style={{ position:"relative", width:size, height:size }}>
-      <svg width={size} height={size} style={{ transform:"rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth={sw} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw}
-          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-          style={{ transition:"stroke-dasharray 1.4s cubic-bezier(.4,0,.2,1)", filter:`drop-shadow(0 0 8px ${color})` }} />
-      </svg>
-      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ fontSize:30, fontWeight:800, fontFamily:"'Syne',sans-serif", color:"#fff", letterSpacing:"-.04em", lineHeight:1 }}>{anim}</div>
-        <div style={{ fontSize:9, color:"rgba(255,255,255,.3)", letterSpacing:".1em", textTransform:"uppercase", marginTop:3 }}>Pulse</div>
-      </div>
-    </div>
-  );
-}
-
-export default function PublicPortfolioPage() {
-  const params = useParams();
-  const username = params?.username as string;
+export default function ProfilePage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"info"|"mentor"|"account">("info");
+  const [userId, setUserId] = useState("");
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"projects"|"about">("projects");
 
   useEffect(() => {
-    if (!username) return;
-    (async () => {
-      const { data: prof } = await supabase
-        .from("user_data")
-        .select("*")
-        .eq("username", username)
-        .single();
-
-      if (!prof) { setNotFound(true); setLoading(false); return; }
-      setProfile(prof);
-
-      const { data: subs } = await supabase
-        .from("user_project_submission")
-        .select("*")
-        .eq("user_id", prof.id)
-        .order("created_at", { ascending: false });
-
-      setSubmissions(subs || []);
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { router.push("/login"); return; }
+      setUserId(user.id);
+      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (data) setProfile(data);
       setLoading(false);
-    })();
-  }, [username]);
+    });
+  }, []);
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const set = (k: string, v: string | boolean | string[]) =>
+    setProfile(p => p ? { ...p, [k]: v } : p);
+
+  const toggleSubject = (s: string) => {
+    if (!profile) return;
+    const cur = profile.mentor_subjects || [];
+    const next = cur.includes(s) ? cur.filter(x => x !== s) : cur.length < 5 ? [...cur, s] : cur;
+    set("mentor_subjects", next);
+  };
+
+  const handleSave = async () => {
+    if (!profile) return;
+    if (!profile.display_name.trim()) { setError("Display name is required."); return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(profile.username)) {
+      setError("Username: 3–20 chars, lowercase letters, numbers, underscores only."); return;
+    }
+    setSaving(true); setError("");
+    const { error: dbErr } = await supabase.from("profiles").update({
+      display_name: profile.display_name.trim(),
+      username: profile.username.trim(),
+      is_mentor: profile.is_mentor,
+      mentor_subjects: profile.mentor_subjects,
+      job_role: profile.job_role,
+      university: profile.university,
+      year_of_study: profile.year_of_study,
+    }).eq("id", userId);
+    setSaving(false);
+    if (dbErr) { setError(dbErr.message); return; }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const copyPortfolioLink = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/p/${profile?.username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const score = profile?.pulse_score ?? 0;
-  const scoreLabel = score < 30 ? "Starting Out" : score < 60 ? "Growing" : score < 80 ? "Strong" : "Elite";
-  const scoreColor = score < 30 ? "#f59e0b" : score < 60 ? "#3b82f6" : "#00d2b4";
-
   if (loading) return (
-    <div style={{ minHeight:"100vh", background:"var(--app-bg-gradient)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:40, height:40, borderRadius:"50%", border:"3px solid rgba(0,210,180,.2)", borderTopColor:"#00d2b4", animation:"spin .8s linear infinite" }} />
+    <div style={{ minHeight:"100vh",background:"var(--app-bg-gradient)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+      <div style={{ width:40,height:40,borderRadius:"50%",border:"3px solid rgba(0,210,180,.2)",borderTopColor:"#00d2b4",animation:"spin .8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
-  );
-
-  if (notFound) return (
-    <>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}`}</style>
-      <div style={{ minHeight:"100vh", background:"var(--app-bg-gradient)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif", gap:16 }}>
-        <div style={{ fontSize:56 }}>🔍</div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:"#fff" }}>Portfolio not found</h1>
-        <p style={{ fontSize:14, color:"rgba(255,255,255,.35)" }}>No student with the username <strong style={{color:"rgba(255,255,255,.6)"}}>@{username}</strong> exists.</p>
-        <a href="/" style={{ marginTop:8, padding:"10px 22px", borderRadius:10, background:"rgba(0,210,180,.1)", border:"1px solid rgba(0,210,180,.25)", color:"#00d2b4", fontSize:14, textDecoration:"none" }}>← Back to UniFlow</a>
-      </div>
-    </>
   );
 
   return (
@@ -130,271 +107,345 @@ export default function PublicPortfolioPage() {
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 
-        body{background:var(--app-bg-gradient);}
-        .root{min-height:100vh;background:var(--app-bg-gradient);font-family:'DM Sans',sans-serif;color:#fff;}
-        .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.03) 1px,transparent 1px);background-size:48px 48px;z-index:0;}
-        .bg-glow{position:fixed;pointer-events:none;border-radius:50%;filter:blur(120px);z-index:0;}
-        .g1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,210,180,.10) 0%,transparent 70%);top:-200px;right:-100px;}
-        .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.09) 0%,transparent 70%);bottom:-100px;left:-100px;}
+        .root{min-height:100vh;background:#080c14;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;padding:40px 16px 80px;position:relative;overflow:hidden;}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.03) 1px,transparent 1px);background-size:48px 48px;}
+        .bg-glow{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;}
+        .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,210,180,.11) 0%,transparent 70%);top:-160px;left:-100px;}
+        .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.09) 0%,transparent 70%);bottom:-100px;right:-80px;}
 
-        /* Nav */
-        .nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);background:rgba(8,12,20,.8);border-bottom:1px solid rgba(255,255,255,.06);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;}
-        .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
-        .logo-mark{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#fff;}
-        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#fff;}
-        .logo-name span{color:#00d2b4;}
-        .nav-right{display:flex;align-items:center;gap:10px;}
-        .share-btn{display:flex;align-items:center;gap:7px;padding:7px 16px;border-radius:9px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);color:#00d2b4;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;}
-        .share-btn:hover{background:rgba(0,210,180,.18);}
-        .verified-chip{padding:5px 12px;border-radius:99px;background:rgba(0,210,180,.08);border:1px solid rgba(0,210,180,.2);font-size:11px;font-weight:600;color:#00d2b4;letter-spacing:.05em;}
+        /* Topbar */
+        .topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;position:relative;z-index:1;}
+        .back-btn{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s;text-decoration:none;}
+        .back-btn:hover{background:rgba(255,255,255,.09);color:rgba(255,255,255,.8);}
+        .page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;}
 
-        /* Hero */
-        .hero{max-width:900px;margin:0 auto;padding:56px 32px 40px;display:flex;align-items:flex-start;gap:40px;position:relative;z-index:1;animation:fadeUp .5s ease both;}
-        .hero-avatar{width:96px;height:96px;border-radius:50%;border:3px solid rgba(0,210,180,.35);overflow:hidden;background:#1a2030;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:36px;}
-        .hero-avatar img{width:100%;height:100%;object-fit:cover;}
-        .hero-info{flex:1;}
-        .hero-name{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fff;letter-spacing:-.04em;margin-bottom:4px;}
-        .hero-role{font-size:15px;color:rgba(255,255,255,.4);margin-bottom:12px;}
-        .hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
-        .meta-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.45);}
-        .mentor-badge{background:rgba(0,210,180,.08);border-color:rgba(0,210,180,.2);color:#00d2b4;}
-        .hero-pulse{flex-shrink:0;}
+        /* Avatar hero */
+        .avatar-hero{width:100%;max-width:680px;display:flex;align-items:center;gap:24px;padding:28px 32px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:24px;margin-bottom:20px;position:relative;z-index:1;animation:fadeUp .4s ease both;}
+        .avatar-circle{width:80px;height:80px;border-radius:50%;border:3px solid rgba(0,210,180,.35);overflow:hidden;background:#1a2030;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+        .avatar-circle img{width:100%;height:100%;object-fit:cover;}
+        .avatar-info{flex:1;}
+        .avatar-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:4px;}
+        .avatar-role{font-size:14px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+        .portfolio-link-row{display:flex;align-items:center;gap:10px;}
+        .portfolio-url{font-size:13px;color:rgba(0,210,180,.7);font-family:'DM Sans',sans-serif;}
+        .copy-btn{padding:5px 14px;border-radius:8px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);color:#00d2b4;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;}
+        .copy-btn:hover{background:rgba(0,210,180,.18);}
+        .pulse-badge{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:12px;background:rgba(0,210,180,.08);border:1px solid rgba(0,210,180,.2);}
+        .pulse-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#00d2b4;letter-spacing:-.04em;}
+        .pulse-lbl{font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;}
 
         /* Tabs */
-        .tabs-wrap{max-width:900px;margin:0 auto;padding:0 32px;position:relative;z-index:1;border-bottom:1px solid rgba(255,255,255,.07);}
-        .tabs{display:flex;gap:0;}
-        .tab{padding:14px 20px;font-size:14px;font-weight:500;color:rgba(255,255,255,.3);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;margin-bottom:-1px;}
-        .tab:hover{color:rgba(255,255,255,.6);}
-        .tab.active{color:#fff;border-bottom-color:#00d2b4;}
+        .tabs-wrap{width:100%;max-width:680px;display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:5px;position:relative;z-index:1;}
+        .tab-btn{flex:1;padding:10px;border-radius:10px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:rgba(255,255,255,.35);cursor:pointer;transition:all .2s;}
+        .tab-btn.active{background:rgba(0,210,180,.12);color:#00d2b4;border:1px solid rgba(0,210,180,.2);}
+        .tab-btn:hover:not(.active){background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);}
 
-        /* Content */
-        .content{max-width:900px;margin:0 auto;padding:36px 32px 64px;position:relative;z-index:1;}
+        /* Card */
+        .card{width:100%;max-width:680px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:32px;position:relative;z-index:1;animation:fadeUp .4s ease both;}
+        .card-section{margin-bottom:28px;}
+        .card-section:last-child{margin-bottom:0;}
+        .section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+        .section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
 
-        /* Projects grid */
-        .projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
-        .project-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;transition:border-color .18s,transform .18s;animation:fadeUp .4s ease both;}
-        .project-card:hover{border-color:rgba(0,210,180,.25);transform:translateY(-3px);}
-        .project-img{width:100%;height:160px;object-fit:cover;background:rgba(255,255,255,.03);}
-        .project-img-placeholder{width:100%;height:160px;background:linear-gradient(135deg,rgba(0,210,180,.07),rgba(99,102,241,.07));display:flex;align-items:center;justify-content:center;font-size:40px;}
-        .project-body{padding:18px;}
-        .project-subject{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,210,180,.7);margin-bottom:6px;}
-        .project-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;}
-        .project-reflection{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-        .project-links{display:flex;gap:8px;}
-        .proj-link{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:12px;color:rgba(255,255,255,.5);text-decoration:none;transition:all .18s;}
-        .proj-link:hover{background:rgba(255,255,255,.09);color:rgba(255,255,255,.8);}
-        .proj-link.github{background:rgba(0,210,180,.08);border-color:rgba(0,210,180,.2);color:#00d2b4;}
+        /* Fields */
+        .field{margin-bottom:16px;}
+        .field label{display:block;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:8px;}
+        .field input,.field select,.field textarea{width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;color:#fff;outline:none;transition:border-color .2s,background .2s;}
+        .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(0,210,180,.45);background:rgba(0,210,180,.04);}
+        .field input::placeholder,.field textarea::placeholder{color:rgba(255,255,255,.18);}
+        .field select option{background:#131928;color:#fff;}
+        .field select{appearance:none;cursor:pointer;}
+        .select-wrap{position:relative;}
+        .select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);pointer-events:none;font-size:12px;}
+        .prefix-wrap{position:relative;}
+        .prefix-txt{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(255,255,255,.25);pointer-events:none;}
+        .prefix-wrap input{padding-left:130px;}
+        .row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        .field-hint{font-size:11px;color:rgba(255,255,255,.2);margin-top:5px;}
 
-        /* Empty state */
-        .empty{text-align:center;padding:60px 20px;}
-        .empty-icon{font-size:48px;margin-bottom:16px;opacity:.4;}
-        .empty-text{font-size:14px;color:rgba(255,255,255,.25);}
+        /* Mentor toggle */
+        .mentor-card{display:flex;align-items:center;gap:16px;padding:16px 20px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;cursor:pointer;transition:all .2s;margin-bottom:20px;}
+        .mentor-card.on{background:rgba(0,210,180,.06);border-color:rgba(0,210,180,.3);}
+        .mentor-icon{width:42px;height:42px;border-radius:11px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+        .mentor-copy{flex:1;}
+        .mentor-copy strong{display:block;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);margin-bottom:2px;}
+        .mentor-copy span{font-size:12px;color:rgba(255,255,255,.3);}
+        .tog{width:42px;height:24px;border-radius:99px;background:rgba(255,255,255,.12);position:relative;flex-shrink:0;transition:background .2s;}
+        .tog.on{background:linear-gradient(90deg,#00d2b4,#6366f1);}
+        .tog::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .22s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+        .tog.on::after{transform:translateX(18px);}
 
-        /* Badges */
-        .badges-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}
-        .badge{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:rgba(0,210,180,.07);border:1px solid rgba(0,210,180,.18);}
-        .badge-icon{font-size:18px;}
-        .badge-label{font-size:13px;font-weight:500;color:rgba(255,255,255,.6);}
-        .badge-verified{font-size:10px;color:#00d2b4;font-weight:600;letter-spacing:.05em;}
+        /* Subjects */
+        .subjects-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+        .subj-pill{padding:6px 14px;border-radius:99px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);background:transparent;font-family:'DM Sans',sans-serif;transition:all .18s;}
+        .subj-pill:hover{border-color:rgba(0,210,180,.35);color:rgba(255,255,255,.7);}
+        .subj-pill.sel{background:rgba(0,210,180,.12);border-color:rgba(0,210,180,.5);color:#00d2b4;}
+        .subj-count{font-size:11px;color:rgba(255,255,255,.25);margin-bottom:0;}
 
-        /* About */
-        .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-        .about-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;}
-        .about-card-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:14px;}
-        .pillar-row{display:flex;flex-direction:column;gap:12px;}
-        .pillar-item{display:flex;flex-direction:column;gap:5px;}
-        .pillar-meta{display:flex;justify-content:space-between;font-size:12px;}
-        .pillar-name{color:rgba(255,255,255,.4);}
-        .pillar-val{font-weight:600;color:rgba(255,255,255,.6);}
-        .pillar-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;}
-        .pillar-fill{height:100%;border-radius:99px;}
-        .subj-list{display:flex;flex-wrap:wrap;gap:7px;}
-        .subj-tag{padding:5px 12px;border-radius:99px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);font-size:12px;color:rgba(165,168,255,.7);}
+        /* Danger zone */
+        .danger-card{padding:18px 20px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+        .danger-text strong{display:block;font-size:14px;font-weight:500;color:rgba(255,255,255,.7);margin-bottom:3px;}
+        .danger-text span{font-size:12px;color:rgba(255,255,255,.3);}
+        .danger-btn{padding:9px 18px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .18s;}
+        .danger-btn:hover{background:rgba(239,68,68,.18);}
 
-        /* Footer */
-        .port-footer{max-width:900px;margin:0 auto;padding:24px 32px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
-        .port-footer-text{font-size:12px;color:rgba(255,255,255,.2);}
-        .port-footer-text a{color:rgba(0,210,180,.5);text-decoration:none;}
+        /* Error / Success */
+        .error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:11px 14px;font-size:13px;color:#fca5a5;margin-bottom:16px;}
+        .success-toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:12px 24px;background:rgba(0,210,180,.15);border:1px solid rgba(0,210,180,.4);border-radius:14px;font-size:14px;font-weight:500;color:#00d2b4;z-index:100;animation:popIn .3s ease both;backdrop-filter:blur(16px);}
 
-        @media(max-width:640px){
-          .hero{flex-direction:column;gap:24px;padding:32px 20px 28px;}
-          .hero-pulse{align-self:flex-start;}
-          .content{padding:24px 20px 48px;}
-          .about-grid{grid-template-columns:1fr;}
-          .tabs-wrap{padding:0 20px;}
-          .nav{padding:0 20px;}
-        }
+        /* Save button */
+        .save-row{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);}
+        .btn-cancel{padding:11px 22px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;transition:all .18s;}
+        .btn-cancel:hover{background:rgba(255,255,255,.09);}
+        .btn-save{padding:11px 28px;border-radius:11px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .18s,transform .18s;display:flex;align-items:center;gap:8px;}
+        .btn-save:hover:not(:disabled){opacity:.88;transform:translateY(-1px);}
+        .btn-save:disabled{opacity:.5;cursor:not-allowed;}
+        .spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spin .7s linear infinite;}
+
+        /* Light theme alignment with rest of site */
+        .root{background:var(--app-bg-gradient) !important;}
+        .topbar .page-title{color:#0f3460 !important;}
+        .back-btn{background:rgba(255,255,255,.8) !important;border:1px solid rgba(67,96,151,.2) !important;color:#1f3260 !important;}
+        .back-btn:hover{background:#ffffff !important;color:#0f3460 !important;}
+        .avatar-hero,.tabs-wrap,.card{background:rgba(255,255,255,.88) !important;border:1px solid rgba(67,96,151,.18) !important;box-shadow:0 12px 30px rgba(35,62,109,.08);}
+        .avatar-name{color:#0f3460 !important;}
+        .avatar-role,.portfolio-url,.pulse-lbl{color:#2e4563 !important;}
+        .tab-btn{color:#2e4563 !important;font-weight:600;}
+        .tab-btn.active{background:rgba(0,210,180,.12) !important;color:#00bfa5 !important;border:1px solid rgba(0,210,180,.26) !important;}
+        .section-label{color:#1b2d4d !important;}
+        .section-label::after{background:rgba(67,96,151,.18) !important;}
+        .field label,.field-hint,.subj-count{color:#2e4563 !important;}
+        .field input,.field select,.field textarea{background:#ffffff !important;border:1px solid rgba(67,96,151,.24) !important;color:#0f3460 !important;}
+        .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(0,210,180,.55) !important;background:#ffffff !important;box-shadow:0 0 0 3px rgba(0,210,180,.1);}
+        .field input::placeholder,.field textarea::placeholder,.prefix-txt{color:#4a6fa0 !important;}
+        .field select option{background:#ffffff !important;color:#0f3460 !important;}
+        .select-wrap::after{color:#2e4563 !important;}
+        .mentor-card{background:rgba(255,255,255,.8) !important;border:1px solid rgba(67,96,151,.18) !important;}
+        .mentor-copy strong{color:#0f3460 !important;}
+        .mentor-copy span{color:#2e4563 !important;}
+        .subj-pill{background:#f8fbff !important;border:1px solid rgba(67,96,151,.2) !important;color:#1f3260 !important;}
+        .subj-pill.sel{background:rgba(0,210,180,.12) !important;border-color:rgba(0,210,180,.5) !important;color:#00bfa5 !important;}
+        .danger-card{background:#fff7f7 !important;border:1px solid rgba(239,68,68,.24) !important;}
+        .danger-text strong{color:#b42318 !important;}
+        .danger-text span{color:#c2410c !important;}
+        .error-box{background:#ffe6e6 !important;border:1.5px solid #ff6b6b !important;color:#c92a2a !important;}
+        .save-row{border-top:1px solid rgba(67,96,151,.16) !important;}
+        .btn-cancel{background:rgba(67,96,151,.08) !important;border:1px solid rgba(67,96,151,.22) !important;color:#1f3260 !important;}
+        .btn-cancel:hover{background:rgba(67,96,151,.16) !important;}
+        .success-toast{background:#e6f9f7 !important;border:1px solid #1ab394 !important;color:#0a6c5e !important;}
+
+        @media(max-width:600px){.row-2{grid-template-columns:1fr;}.avatar-hero{flex-direction:column;align-items:flex-start;}.card{padding:22px 16px;}}
       `}</style>
 
       <div className="root">
         <div className="bg-grid" /><div className="bg-glow g1" /><div className="bg-glow g2" />
 
-        {/* Nav */}
-        <nav className="nav">
-          <a href="/" className="nav-logo">
-            <div className="logo-mark">U</div>
-            <div className="logo-name">Uni<span>Flow</span></div>
-          </a>
-          <div className="nav-right">
-            <span className="verified-chip">✓ Verified Portfolio</span>
-            <button className="share-btn" onClick={copyLink}>
-              {copied ? "✓ Copied!" : "🔗 Share"}
-            </button>
-          </div>
-        </nav>
+        {/* Topbar */}
+        <div className="topbar">
+          <a href="/dashboard" className="back-btn">← Dashboard</a>
+          <div className="page-title">My Profile</div>
+          <div style={{width:100}} />
+        </div>
 
-        {/* Hero */}
-        <div className="hero">
-          <div className="hero-avatar">
-            {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt={profile.display_name} />
-              : "👤"}
+        {/* Avatar Hero */}
+        <div className="avatar-hero">
+          <div className="avatar-circle">
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" /> : "👤"}
           </div>
-          <div className="hero-info">
-            <h1 className="hero-name">{profile?.display_name}</h1>
-            <div className="hero-role">{profile?.job_role || "Student"}</div>
-            <div className="hero-meta">
-              <span className="meta-chip">@{profile?.username}</span>
-              {profile?.university && <span className="meta-chip">🎓 {profile.university}</span>}
-              {profile?.year_of_study && <span className="meta-chip">📅 {profile.year_of_study}</span>}
-              {profile?.is_mentor && <span className="meta-chip mentor-badge">🎓 Available to Mentor</span>}
-            </div>
-            {/* Badges row */}
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-              {MOCK_BADGES.map((b,i) => (
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 10px", borderRadius:99, background:"rgba(0,210,180,.08)", border:"1px solid rgba(0,210,180,.18)", fontSize:12, color:"rgba(255,255,255,.55)" }}>
-                  <span>{b.icon}</span><span>{b.label}</span>
-                </div>
-              ))}
+          <div className="avatar-info">
+            <div className="avatar-name">{profile?.display_name || "Your Name"}</div>
+            <div className="avatar-role">{profile?.job_role || "Student"} · {profile?.university || "University"}</div>
+            <div className="portfolio-link-row">
+              <span className="portfolio-url">uniflow.lk/p/{profile?.username}</span>
+              <button className="copy-btn" onClick={copyPortfolioLink}>
+                {copied ? "✓ Copied!" : "Copy Link"}
+              </button>
+              <a href={`/p/${profile?.username}`} target="_blank" style={{fontSize:12,color:"#00bfa5",textDecoration:"none",fontWeight:600}}>
+                View →
+              </a>
             </div>
           </div>
-          <div className="hero-pulse">
-            <PulseArc score={score} />
-            <div style={{ textAlign:"center", marginTop:8 }}>
-              <span style={{ fontSize:11, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor, fontWeight:600, letterSpacing:".05em" }}>
-                {scoreLabel}
-              </span>
+          <div className="pulse-badge">
+            <div>
+              <div className="pulse-num">{profile?.pulse_score ?? 0}</div>
+              <div className="pulse-lbl">Pulse Score</div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="tabs-wrap">
-          <div className="tabs">
-            <div className={`tab ${activeTab==="projects"?"active":""}`} onClick={()=>setActiveTab("projects")}>
-              📁 Projects ({submissions.length})
-            </div>
-            <div className={`tab ${activeTab==="about"?"active":""}`} onClick={()=>setActiveTab("about")}>
-              📊 About & Score
-            </div>
-          </div>
+          {[
+            { id:"info", icon:"👤", label:"Personal Info" },
+            { id:"mentor", icon:"🎓", label:"Mentor & Skills" },
+            { id:"account", icon:"⚙️", label:"Account" },
+          ].map(t => (
+            <button key={t.id} className={`tab-btn ${activeTab===t.id?"active":""}`} onClick={()=>setActiveTab(t.id as any)}>
+              {t.icon} {t.label}
+            </button>
+          ))}
         </div>
 
-        {/* Content */}
-        <div className="content">
+        <div className="card">
 
-          {activeTab === "projects" && (
-            submissions.length === 0 ? (
-              <div className="empty">
-                <div className="empty-icon">📂</div>
-                <div className="empty-text">No project submissions yet.</div>
+          {/* ── TAB 1: Personal Info ── */}
+          {activeTab === "info" && (
+            <>
+              <div className="card-section">
+                <div className="section-label">Basic Info</div>
+                <div className="field">
+                  <label>Display Name</label>
+                  <input type="text" placeholder="Your full name" value={profile?.display_name || ""} onChange={e=>set("display_name",e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>Username · Public Portfolio URL</label>
+                  <div className="prefix-wrap">
+                    <span className="prefix-txt">uniflow.lk/p/</span>
+                    <input type="text" placeholder="your_username" value={profile?.username || ""} onChange={e=>set("username",e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,""))} />
+                  </div>
+                  <div className="field-hint">3–20 chars · lowercase letters, numbers, underscores</div>
+                </div>
               </div>
-            ) : (
-              <div className="projects-grid">
-                {submissions.map((s, i) => (
-                  <div key={s.id} className="project-card" style={{ animationDelay:`${i*0.07}s` }}>
-                    {s.screenshot_url
-                      ? <img src={s.screenshot_url} className="project-img" alt="screenshot" />
-                      : <div className="project-img-placeholder">🖼️</div>}
-                    <div className="project-body">
-                      <div className="project-subject">{s.module_id}</div>
-                      <div className="project-title">Project Evidence</div>
-                      <div className="project-reflection">{s.reflection}</div>
-                      <div className="project-links">
-                        <a href={s.github_url} target="_blank" rel="noreferrer" className="proj-link github">
-                          <span>⚡</span> GitHub
-                        </a>
-                        {s.live_url && (
-                          <a href={s.live_url} target="_blank" rel="noreferrer" className="proj-link">
-                            <span>🔗</span> Live Demo
-                          </a>
-                        )}
-                      </div>
+
+              <div className="card-section">
+                <div className="section-label">Academic Info</div>
+                <div className="field">
+                  <label>University / Institute</label>
+                  <input type="text" placeholder="e.g. University of Moratuwa" value={profile?.university || ""} onChange={e=>set("university",e.target.value)} />
+                </div>
+                <div className="row-2">
+                  <div className="field">
+                    <label>Year of Study</label>
+                    <div className="select-wrap">
+                      <select value={profile?.year_of_study || ""} onChange={e=>set("year_of_study",e.target.value)}>
+                        <option value="">Select year…</option>
+                        {YEARS.map(y=><option key={y} value={y}>{y}</option>)}
+                      </select>
                     </div>
                   </div>
-                ))}
-              </div>
-            )
-          )}
-
-          {activeTab === "about" && (
-            <>
-              {/* Score pillars */}
-              <div className="about-grid" style={{ marginBottom:24 }}>
-                <div className="about-card">
-                  <div className="about-card-title">Pulse Score Breakdown</div>
-                  <div className="pillar-row">
-                    {[
-                      { label:"Academic Mastery", val:Math.min(100,Math.round(score*0.3*3.33)), color:"#00d2b4", weight:"30%" },
-                      { label:"Practical Projects", val:Math.min(100,Math.round(score*0.4*2.5)), color:"#6366f1", weight:"40%" },
-                      { label:"Community Impact", val:Math.min(100,Math.round(score*0.3*3.33)), color:"#f59e0b", weight:"30%" },
-                    ].map(p => (
-                      <div key={p.label} className="pillar-item">
-                        <div className="pillar-meta">
-                          <span className="pillar-name">{p.label} <span style={{color:"rgba(255,255,255,.2)",fontSize:10}}>({p.weight})</span></span>
-                          <span className="pillar-val">{p.val}%</span>
-                        </div>
-                        <div className="pillar-bar">
-                          <div className="pillar-fill" style={{ width:`${p.val}%`, background:p.color, boxShadow:`0 0 8px ${p.color}66` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="about-card">
-                  <div className="about-card-title">Verified Badges</div>
-                  <div className="badges-row" style={{ marginBottom:0 }}>
-                    {MOCK_BADGES.map((b,i) => (
-                      <div key={i} className="badge">
-                        <span className="badge-icon">{b.icon}</span>
-                        <div>
-                          <div className="badge-label">{b.label}</div>
-                          <div className="badge-verified">VERIFIED ✓</div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="field">
+                    <label>Target Job Role</label>
+                    <div className="select-wrap">
+                      <select value={profile?.job_role || ""} onChange={e=>set("job_role",e.target.value)}>
+                        <option value="">Select role…</option>
+                        {JOB_ROLES.map(r=><option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Mentor subjects */}
-              {profile?.is_mentor && (profile?.mentor_subjects ?? []).length > 0 && (
-                <div className="about-card" style={{ marginBottom:24 }}>
-                  <div className="about-card-title">Available to Mentor In</div>
-                  <div className="subj-list">
-                    {profile.mentor_subjects.map(s => (
-                      <span key={s} className="subj-tag">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="port-footer">
-          <div className="port-footer-text">
-            Powered by <a href="/">UniFlow</a> · Verified evidence-based portfolio
-          </div>
-          <div className="port-footer-text">
-            uniflow.lk/p/{profile?.username}
-          </div>
+          {/* ── TAB 2: Mentor & Skills ── */}
+          {activeTab === "mentor" && (
+            <>
+              <div className="card-section">
+                <div className="section-label">Mentor Mode</div>
+                <div className={`mentor-card ${profile?.is_mentor?"on":""}`} onClick={()=>set("is_mentor",!profile?.is_mentor)}>
+                  <div className="mentor-icon">🎓</div>
+                  <div className="mentor-copy">
+                    <strong>Available to Mentor</strong>
+                    <span>{profile?.is_mentor ? "You are visible to peers who need help" : "Turn on to help peers and earn Community Impact points"}</span>
+                  </div>
+                  <div className={`tog ${profile?.is_mentor?"on":""}`} />
+                </div>
+
+                {profile?.is_mentor && (
+                  <div style={{padding:"14px 16px",background:"rgba(0,210,180,.05)",borderRadius:12,border:"1px solid rgba(0,210,180,.12)",marginBottom:20}}>
+                    <div style={{fontSize:12,color:"#00bfa5",fontWeight:600,marginBottom:4}}>Mentor mode is ON</div>
+                    <div style={{fontSize:12,color:"#2e4563"}}>Peers can now find and request sessions with you. Each successful session adds to your Pulse Score.</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="card-section">
+                <div className="section-label">Strong Subjects</div>
+                <div style={{fontSize:13,color:"#2e4563",marginBottom:14}}>
+                  Select up to 5 subjects you're confident in. These appear on your public portfolio.
+                </div>
+                <div className="subjects-grid">
+                  {SUBJECTS.map(s=>(
+                    <button key={s} className={`subj-pill ${(profile?.mentor_subjects||[]).includes(s)?"sel":""}`} onClick={()=>toggleSubject(s)}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div className="subj-count">{(profile?.mentor_subjects||[]).length}/5 selected</div>
+              </div>
+            </>
+          )}
+
+          {/* ── TAB 3: Account ── */}
+          {activeTab === "account" && (
+            <>
+              <div className="card-section">
+                <div className="section-label">Account Details</div>
+                <div className="field">
+                  <label>Email Address</label>
+                  <input type="email" value={profile?.email || ""} disabled style={{opacity:.5,cursor:"not-allowed"}} />
+                  <div className="field-hint">Email cannot be changed. It is linked to your Google account.</div>
+                </div>
+                <div style={{padding:"14px 16px",background:"rgba(67,96,151,.06)",borderRadius:12,border:"1px solid rgba(67,96,151,.18)",marginBottom:8}}>
+                  <div style={{fontSize:13,fontWeight:600,color:"#1f3260",marginBottom:4}}>Pulse Score</div>
+                  <div style={{fontSize:28,fontWeight:800,fontFamily:"'Syne',sans-serif",color:"#00d2b4",letterSpacing:"-.04em"}}>{profile?.pulse_score ?? 0}<span style={{fontSize:14,color:"#2e4563",fontFamily:"'DM Sans',sans-serif",fontWeight:500,marginLeft:6}}>/ 100</span></div>
+                  <div style={{fontSize:12,color:"#2e4563",marginTop:4}}>Complete KPIs, submit projects, and mentor peers to increase your score.</div>
+                </div>
+              </div>
+
+              <div className="card-section">
+                <div className="section-label">Portfolio</div>
+                <div style={{padding:"16px 20px",background:"rgba(67,96,151,.06)",borderRadius:14,border:"1px solid rgba(67,96,151,.18)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:600,color:"#1f3260",marginBottom:4}}>Your public portfolio</div>
+                    <div style={{fontSize:13,color:"#00bfa5",fontFamily:"'DM Sans',sans-serif"}}>uniflow.lk/p/{profile?.username}</div>
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    <button className="copy-btn" onClick={copyPortfolioLink}>{copied?"✓ Copied!":"Copy Link"}</button>
+                    <a href={`/p/${profile?.username}`} target="_blank" style={{padding:"5px 14px",borderRadius:8,background:"rgba(67,96,151,.1)",border:"1px solid rgba(67,96,151,.2)",color:"#1f3260",fontSize:12,fontWeight:600,textDecoration:"none"}}>View →</a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-section">
+                <div className="section-label">Danger Zone</div>
+                <div className="danger-card">
+                  <div className="danger-text">
+                    <strong>Sign out of UniFlow</strong>
+                    <span>You will be redirected to the login page.</span>
+                  </div>
+                  <button className="danger-btn" onClick={async()=>{await supabase.auth.signOut();router.push("/login");}}>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Error */}
+          {error && <div className="error-box">{error}</div>}
+
+          {/* Save row — hidden on account tab */}
+          {activeTab !== "account" && (
+            <div className="save-row">
+              <button className="btn-cancel" onClick={()=>router.push("/dashboard")}>Cancel</button>
+              <button className="btn-save" onClick={handleSave} disabled={saving}>
+                {saving ? <><span className="spinner"/>Saving…</> : "Save Changes ✓"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Success toast */}
+      {saved && (
+        <div className="success-toast">
+          ✓ Profile updated successfully!
+        </div>
+      )}
     </>
   );
 }

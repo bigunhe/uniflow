@@ -112,7 +112,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="right-panel">
-          <a className="card-label" href="/register">Get started free</a>
+          <a className="card-label" href="/register">SignUp free</a>
           <h2 className="card-heading">Welcome to UniFlow</h2>
           <p className="card-sub">Enter your email and we&apos;ll send a secure magic link. No password, no OAuth setup.</p>
           {error ? <div className="feedback feedback-error">{error}</div> : null}

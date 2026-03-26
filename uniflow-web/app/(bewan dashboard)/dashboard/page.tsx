@@ -219,11 +219,10 @@ export default function DashboardPage() {
   };
 
   const navItems = [
-    { id:"dashboard", icon:"⚡", label:"Dashboard", route:"/" },
-    { id:"portfolio", icon:"🌐", label:"Portfolio", route:"/p/[username]" },
-    { id:"evidence", icon:"📁", label:"Submit Evidence", route:"/evidance" },
-    { id:"pulse", icon:"📊", label:"Pulse Details", route:"/pulse/[username]" },
-    { id:"profile", icon:"👤", label:"Profile" },
+    { id:"dashboard", icon:"⚡", label:"Dashboard", href:"/dashboard" },
+    { id:"portfolio", icon:"🌐", label:"Portfolio",  href:`/p/${profile?.username}` },
+    { id:"evidence",  icon:"📁", label:"Submit Evidence", href:"/evidence" },
+    { id:"pulse",     icon:"📊", label:"Pulse Details", href:"/pulse" },
   ];
 
   return (
@@ -370,7 +369,7 @@ export default function DashboardPage() {
           <div className="nav-section-label">Menu</div>
           {navItems.map(n=>(
             <div key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
-              onClick={()=>handleNavClick(n.id)}>
+              onClick={n.id === "profile" ? () => router.push("/profile") : () => handleNavClick(n.id)}>
               <span className="nav-icon">{n.icon}</span>
               <span>{n.label}</span>
             </div>
