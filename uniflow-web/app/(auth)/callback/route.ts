@@ -25,20 +25,6 @@ export async function GET(request: NextRequest) {
     );
 
     await supabase.auth.exchangeCodeForSession(code);
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        return NextResponse.redirect(`${requestUrl.origin}/profile-setup`);
-      }
-    }
   }
 
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
