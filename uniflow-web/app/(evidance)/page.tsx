@@ -40,10 +40,8 @@ export default function SubmitEvidencePage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => {
-      // if (!user) { router.push("/login"); return; }
-      if (user) {
-        setUserId(user.id);
-      }
+      if (!user) { router.push("/login"); return; }
+      setUserId(user.id);
     });
   }, [router, supabase]);
 
@@ -80,12 +78,36 @@ export default function SubmitEvidencePage() {
     const e = validate(); if (e) { setError(e); return; }
     setSaving(true); setError("");
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setSaving(false);
+      setError("Your session expired. Please log in again.");
+      router.push("/login");
+      return;
+    }
+
+    const activeUserId = user.id;
+    if (userId !== activeUserId) setUserId(activeUserId);
+
+    const { data: profileRow, error: profileCheckErr } = await supabase
+      .from("user_data")
+      .select("id")
+      .eq("id", activeUserId)
+      .maybeSingle();
+
+    if (profileCheckErr || !profileRow) {
+      setSaving(false);
+      setError("Please complete your profile setup first, then submit evidence.");
+      router.push("/profile-setup");
+      return;
+    }
+
     let screenshotUrl = "";
 
     // Upload screenshot to Supabase Storage if available
     if (form.screenshotFile) {
       const ext = form.screenshotFile.name.split(".").pop();
-      const path = `${userId}/${Date.now()}.${ext}`;
+      const path = `${activeUserId}/${Date.now()}.${ext}`;
       const { data: uploadData, error: uploadErr } = await supabase.storage
         .from("project-screenshots")
         .upload(path, form.screenshotFile, { upsert: true });
@@ -95,8 +117,8 @@ export default function SubmitEvidencePage() {
       }
     }
 
-    const { error: dbErr } = await supabase.from("project_submissions").insert({
-      user_id: userId,
+    const { error: dbErr } = await supabase.from("user_project_submission").insert({
+      user_id: activeUserId,
       module_id: form.moduleId,
       github_url: form.githubUrl,
       live_url: form.liveUrl,
@@ -106,13 +128,25 @@ export default function SubmitEvidencePage() {
       learned: form.learned,
     });
 
-    if (dbErr) { setError(dbErr.message); setSaving(false); return; }
+    if (dbErr) {
+      const isFkErr = /foreign key|project_submissions_user_id_fkey|user_project_submission.*fkey/i.test(dbErr.message || "");
+      const isRlsErr = /row-level security|violates row-level security policy/i.test(dbErr.message || "");
+      setError(
+        isRlsErr
+          ? "Submission blocked by database policy. Run docs/USER-PROJECT-SUBMISSION.sql in Supabase SQL Editor, then try again."
+          : isFkErr
+          ? "Profile link missing. Please finish profile setup and try again."
+          : dbErr.message
+      );
+      setSaving(false);
+      return;
+    }
 
     // Recalculate pulse score (increment project weight)
-    const { data: profile } = await supabase.from("user_data").select("pulse_score").eq("id", userId).single();
+    const { data: profile } = await supabase.from("user_data").select("pulse_score").eq("id", activeUserId).single();
     if (profile) {
       const newScore = Math.min(100, (profile.pulse_score || 0) + 15);
-      await supabase.from("user_data").update({ pulse_score: newScore }).eq("id", userId);
+      await supabase.from("user_data").update({ pulse_score: newScore }).eq("id", activeUserId);
     }
 
     setSaving(false);
@@ -262,15 +296,15 @@ export default function SubmitEvidencePage() {
         {/* Step bar */}
         <div className="step-bar">
           {steps.map((s, i) => (
-            <>
-              <div key={s.n} className="step-node">
+            <div key={s.n} style={{ display: "contents" }}>
+              <div className="step-node">
                 <div className={`step-circle ${step > s.n ? "done" : step === s.n ? "active" : ""}`}>
                   {step > s.n ? "✓" : s.n}
                 </div>
                 <span className="step-name">{s.label}</span>
               </div>
               {i < steps.length - 1 && <div className={`step-line ${step > s.n ? "done" : ""}`} />}
-            </>
+            </div>
           ))}
         </div>
 

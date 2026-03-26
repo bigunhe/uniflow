@@ -85,7 +85,7 @@ export default function PublicPortfolioPage() {
       setProfile(prof);
 
       const { data: subs } = await supabase
-        .from("project_submissions")
+        .from("user_project_submission")
         .select("*")
         .eq("user_id", prof.id)
         .order("created_at", { ascending: false });

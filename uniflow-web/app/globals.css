@@ -35,9 +35,9 @@
     --app-surface: rgba(255, 255, 255, 0.7);
     --app-surface-strong: rgba(255, 255, 255, 0.92);
     --app-border: rgba(75, 104, 154, 0.16);
-    --app-text-strong: #17233a;
-    --app-text: #2e4167;
-    --app-text-soft: #5a6f97;
+    --app-text-strong: #0a1428;
+    --app-text: #1b2d4d;
+    --app-text-soft: #2e4563;
     --app-link: #3f5cff;
     --app-focus: #6d84ff;
   }
@@ -137,7 +137,7 @@
   .input-wrap input::placeholder,
   .field input::placeholder,
   .field textarea::placeholder {
-    color: rgba(72, 94, 135, 0.58) !important;
+    color: rgba(46, 69, 99, 0.68) !important;
   }
 
   .hero-sub,
