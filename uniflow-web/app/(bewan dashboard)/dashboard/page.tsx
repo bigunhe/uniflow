@@ -115,6 +115,7 @@ export default function DashboardPage() {
   const [mentorError, setMentorError] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedNav, setExpandedNav] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -207,7 +208,7 @@ export default function DashboardPage() {
     setActiveNav(id);
     setSidebarOpen(false);
     if      (id === "dashboard")                          router.push("/dashboard");
-    else if (id === "sync")                               router.push("/sync");
+    else if (id === "sync")                               router.push("/learning");
     else if (id === "networking")                         router.push("/networking");
     else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
     else if (id === "evidence")                           router.push("/evidance");
@@ -216,14 +217,22 @@ export default function DashboardPage() {
   };
 
   const navItems = [
-    { id: "dashboard",  icon: "⚡", label: "Dashboard"       },
-    { id: "sync",       icon: "📚", label: "Learning"        },
-    { id: "networking", icon: "🌐", label: "Community"       },
-    { id: "portfolio",  icon: "🔗", label: "Portfolio"       },
-    { id: "evidence",   icon: "📁", label: "Submit Evidence" },
-    { id: "pulse",      icon: "📊", label: "Pulse Details"   },
-    { id: "profile",    icon: "👤", label: "Profile"         },
+    { id: "dashboard",  icon: "⚡", label: "Dashboard",       hasChildren: false },
+    { id: "sync",       icon: "📚", label: "Learning",        hasChildren: true  },
+    { id: "networking", icon: "🌐", label: "Community",       hasChildren: false },
+    { id: "portfolio",  icon: "🔗", label: "Portfolio",       hasChildren: false },
+    { id: "evidence",   icon: "📁", label: "Submit Evidence", hasChildren: false },
+    { id: "pulse",      icon: "📊", label: "Pulse Details",   hasChildren: false },
+    { id: "profile",    icon: "👤", label: "Profile",         hasChildren: false },
   ];
+
+  const navSubItems: Record<string, { id: string; label: string; href: string }[]> = {
+    sync: [
+      { id: "module-insights",  label: "Module Insights",  href: "/learning"          },
+      { id: "applied-projects", label: "Applied Projects", href: "/learning/projects" },
+      { id: "sync-files",       label: "Sync Files",       href: "/sync"              },
+    ],
+  };
 
   return (
     <>
@@ -328,6 +337,18 @@ export default function DashboardPage() {
         .cta-btn{padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .18s,transform .18s;}
         .cta-btn:hover{opacity:.88;transform:translateY(-1px);}
 
+        /* Sidebar accordion */
+        .nav-item-row{display:flex;align-items:center;border-radius:10px;margin-bottom:2px;overflow:hidden;}
+        .nav-chevron{width:24px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.25);font-size:10px;flex-shrink:0;transition:color .18s,transform .18s;border-left:1px solid rgba(255,255,255,.06);}
+        .nav-chevron:hover{color:rgba(255,255,255,.6);}
+        .nav-chevron.open{transform:rotate(90deg);color:rgba(0,210,180,.6);}
+        .nav-sub{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+        .nav-sub.open{max-height:200px;}
+        .nav-sub-item{display:flex;align-items:center;gap:10px;padding:7px 12px 7px 44px;font-size:13px;color:rgba(255,255,255,.35);cursor:pointer;border-radius:8px;transition:all .15s;margin-bottom:1px;}
+        .nav-sub-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.65);}
+        .nav-sub-item.active{color:#00d2b4;background:rgba(0,210,180,.07);}
+        .nav-sub-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.6;}
+
         /* Hamburger for mobile */
         .hamburger{display:none;position:fixed;top:16px;left:16px;z-index:20;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:pointer;align-items:center;justify-content:center;font-size:18px;color:#fff;}
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9;}
@@ -368,10 +389,50 @@ export default function DashboardPage() {
 
           <div className="nav-section-label">Menu</div>
           {navItems.map(n=>(
-            <div key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
-              onClick={()=>handleNavClick(n.id)}>
-              <span className="nav-icon">{n.icon}</span>
-              <span>{n.label}</span>
+            <div key={n.id}>
+              {/* Nav item row (label + optional chevron) */}
+              <div className="nav-item-row">
+                <div
+                  className={`nav-item ${activeNav===n.id?"active":""}`}
+                  style={{ flex:1, borderRadius: n.hasChildren ? "10px 0 0 10px" : "10px", marginBottom:0 }}
+                  onClick={()=>handleNavClick(n.id)}
+                >
+                  <span className="nav-icon">{n.icon}</span>
+                  <span>{n.label}</span>
+                </div>
+                {n.hasChildren && (
+                  <div
+                    className={`nav-chevron ${expandedNav===n.id?"open":""} ${activeNav===n.id?"active":""}`}
+                    style={{ background: activeNav===n.id ? "rgba(0,210,180,.1)" : "transparent", borderRadius:"0 10px 10px 0" }}
+                    onClick={(e)=>{
+                      e.stopPropagation();
+                      setExpandedNav(prev => prev===n.id ? null : n.id);
+                    }}
+                  >
+                    ›
+                  </div>
+                )}
+              </div>
+
+              {/* Sub items */}
+              {n.hasChildren && navSubItems[n.id] && (
+                <div className={`nav-sub ${expandedNav===n.id?"open":""}`}>
+                  {navSubItems[n.id].map(sub=>(
+                    <div
+                      key={sub.id}
+                      className={`nav-sub-item ${activeNav===sub.id?"active":""}`}
+                      onClick={()=>{
+                        setActiveNav(sub.id);
+                        setSidebarOpen(false);
+                        router.push(sub.href);
+                      }}
+                    >
+                      <span className="nav-sub-dot" />
+                      {sub.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 
