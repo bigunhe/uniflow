@@ -5,6 +5,9 @@ import { mockAppliedProjects } from "@/lib/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectCard } from "@/components/learning/ProjectCard";
 import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], weight: ["600", "700", "800"] });
 
 const YEARS = ["Year 1", "Year 2", "Year 3", "Year 4"] as const;
 
@@ -32,7 +35,7 @@ export default function AppliedProjectsPage() {
             <Layers className="h-3 w-3" />
             Applied Projects
           </div>
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
+          <h1 className={`${inter.className} mb-2 text-3xl font-bold tracking-tight text-white`}>
             Applied Projects
           </h1>
           <p className="max-w-lg text-sm text-white/40">

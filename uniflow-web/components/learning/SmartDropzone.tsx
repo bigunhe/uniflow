@@ -241,7 +241,7 @@ export function SmartDropzone() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         @keyframes uniflow-spin { to { transform: rotate(360deg); } }
         @keyframes uniflow-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
         .uniflow-dropzone-wrap * { box-sizing: border-box; }
@@ -299,7 +299,7 @@ export function SmartDropzone() {
           </div>
           <h1
             style={{
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "'Inter', sans-serif",
               fontSize: 32,
               fontWeight: 800,
               color: "#fff",
@@ -370,7 +370,7 @@ export function SmartDropzone() {
               <div style={{ textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "'Syne', sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: 20,
                     fontWeight: 700,
                     color: isDragActive ? "#00d2b4" : "rgba(255,255,255,0.85)",

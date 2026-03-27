@@ -16,6 +16,9 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { listLearningModules } from "@/lib/learning/sync";
 import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], weight: ["600", "700", "800"] });
 
 type UiModule = {
   moduleId: string;
@@ -117,7 +120,7 @@ export default function LearningHubPage() {
               <Zap className="h-3 w-3" />
               Learning Hub
             </div>
-            <h1 className="font-[Syne,sans-serif] text-3xl font-bold tracking-tight text-white">
+            <h1 className={`${inter.className} text-3xl font-bold tracking-tight text-white`}>
               Your Modules
             </h1>
             <p className="mt-1.5 text-sm text-white/40">
@@ -139,7 +142,7 @@ export default function LearningHubPage() {
         {isEmpty && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-24 text-center">
             <LibraryBig className="mb-5 h-14 w-14 text-white/15" strokeWidth={1} />
-            <h2 className="mb-2 text-lg font-semibold text-white/60">
+            <h2 className={`${inter.className} mb-2 text-lg font-semibold text-white/60`}>
               No modules synced yet
             </h2>
             <p className="mb-8 max-w-sm text-sm text-white/30">

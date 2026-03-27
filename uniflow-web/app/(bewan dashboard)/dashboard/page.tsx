@@ -71,7 +71,7 @@ function PulseRing({ score }: { score: number }) {
       </svg>
       {/* Center content */}
       <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ fontSize: 42, fontWeight: 800, fontFamily:"'Syne',sans-serif", color: "#fff", letterSpacing: "-0.04em", lineHeight:1 }}>
+        <div style={{ fontSize: 42, fontWeight: 800, fontFamily:"'Inter',sans-serif", color: "#fff", letterSpacing: "-0.04em", lineHeight:1 }}>
           {animated}
         </div>
         <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform:"uppercase", marginTop: 4 }}>
@@ -246,7 +246,7 @@ export default function DashboardPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         body{background:#080c14;}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -261,8 +261,8 @@ export default function DashboardPage() {
         /* Sidebar */
         .sidebar{width:240px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;padding:28px 16px;position:fixed;top:0;left:0;height:100vh;z-index:10;transition:transform .3s;}
         .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:40px;}
-        .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
-        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#fff;}
+        .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
+        .logo-name{font-family:'Inter',sans-serif;font-weight:700;font-size:17px;color:#fff;}
         .logo-name span{color:#00d2b4;}
         .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:0 12px;margin-bottom:8px;}
         .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(255,255,255,.4);transition:all .18s;margin-bottom:2px;border:1px solid transparent;}
@@ -277,7 +277,7 @@ export default function DashboardPage() {
         /* Main */
         .main{flex:1;margin-left:240px;padding:32px 32px 48px;position:relative;z-index:1;}
         .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
-        .topbar-left h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;}
+        .topbar-left h1{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;}
         .topbar-left p{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px;}
         .topbar-right{display:flex;align-items:center;gap:12px;}
         .portfolio-btn{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);color:#00d2b4;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;}
@@ -291,7 +291,7 @@ export default function DashboardPage() {
 
         /* Cards */
         .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:24px;animation:fadeUp .5s ease both;}
-        .card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
+        .card-title{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
 
         /* Pulse card */
         .pulse-card{display:flex;flex-direction:column;align-items:center;gap:20px;min-width:264px;}
@@ -341,7 +341,7 @@ export default function DashboardPage() {
 
         /* Submit evidence CTA */
         .cta-card{background:linear-gradient(135deg,rgba(0,210,180,.1),rgba(99,102,241,.1));border:1px solid rgba(0,210,180,.2);border-radius:20px;padding:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;animation:fadeUp .5s ease both;}
-        .cta-text h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
+        .cta-text h3{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
         .cta-text p{font-size:13px;color:rgba(255,255,255,.4);}
         .cta-btn{padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .18s,transform .18s;}
         .cta-btn:hover{opacity:.88;transform:translateY(-1px);}
