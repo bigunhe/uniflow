@@ -26,6 +26,12 @@
 - Upload duplicate names in ZIP -> sync completes without crashing.
 - Simulate partial upload failure -> warning toast appears with partial sync message.
 
+## Navigation + readability checks
+- On `/learning`, `/sync`, `/learning/[moduleId]`, and `/learning/projects`, confirm compact back + hamburger menu is visible.
+- Open drawer menu and jump between feature pages; confirm no visual overlap/clutter.
+- Repeatedly click the same nav destination and verify browser Back does not loop through duplicate entries.
+- Confirm heading typography is more readable (Inter) on learning/sync/dashboard surfaces.
+
 ## Viva talking points
 - Real files are persisted in Supabase Storage per user path: `userId/moduleCode/fileName`.
 - Metadata is persisted in DB (`learning_modules`, `learning_files`) with RLS.
