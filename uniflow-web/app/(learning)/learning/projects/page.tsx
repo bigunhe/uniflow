@@ -41,7 +41,7 @@ export default function AppliedProjectsPage() {
             Applied Projects
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
-            Build Something Real
+            Applied Projects
           </h1>
           <p className="max-w-lg text-sm text-white/40">
             Cross-disciplinary weekend sprints. No tutorials. Read the docs and
