@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft, Brain, Search, Target, FileText } from "lucide-react";
-import { mockModuleInsights } from "@/lib/mockData";
+import { mockModuleInsights, type ModuleInsight } from "@/lib/mockData";
 import { SearchVectorItem } from "@/components/learning/SearchVectorItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -9,16 +11,123 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { createClient } from "@/lib/supabase/client";
+import {
+  getLearningModuleByCode,
+  listLearningFiles,
+  normalizeModuleCode,
+  type LearningFileRow,
+  type LearningModuleRow,
+} from "@/lib/learning/sync";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-interface Props {
-  params: Promise<{ moduleId: string }>;
+const placeholderInsight = (moduleCode: string): ModuleInsight => ({
+  moduleId: moduleCode,
+  moduleName: "Custom Synced Module",
+  resourceCount: 0,
+  coreModels: [
+    {
+      id: "model-custom-1",
+      headline: "Start with one big idea from this module",
+      analogy:
+        "Treat this as a blank whiteboard. Pick one concept from your uploaded files and explain it in your own words before checking notes.",
+    },
+  ],
+  searchVectors: [
+    "What is the single concept from this module that appears easy in class but fails in real systems, and why?",
+    "If I had to teach this topic to a junior in 10 minutes, what examples would I use and what misconceptions must I prevent?",
+  ],
+  knowledgeGaps: [
+    "Can I explain the main concept from this module without opening slides?",
+    "Can I solve one practical problem from this module end-to-end with no hints?",
+  ],
+  files: [],
+});
+
+function buildFileSummary(file: LearningFileRow): string {
+  const type = file.mime_type?.split("/").pop()?.toUpperCase() ?? "FILE";
+  const kb = Math.max(1, Math.round(file.size_bytes / 1024));
+  return `${type} • ${kb} KB • Uploaded ${new Date(
+    file.uploaded_at
+  ).toLocaleString()}. AI summary will be generated in a future release.`;
 }
 
-export default async function DeepDiveRadarPage({ params }: Props) {
-  const { moduleId } = await params;
-  const insight = mockModuleInsights[moduleId];
+export default function DeepDiveRadarPage() {
+  const supabase = createClient();
+  const router = useRouter();
+  const params = useParams<{ moduleId: string }>();
+  const moduleCode = normalizeModuleCode(params.moduleId ?? "");
+  const [loading, setLoading] = useState(true);
+  const [moduleRow, setModuleRow] = useState<LearningModuleRow | null>(null);
+  const [fileRows, setFileRows] = useState<LearningFileRow[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  if (!insight) {
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      if (!moduleCode) return;
+      try {
+        setLoadError(null);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+
+        const moduleData = await getLearningModuleByCode(
+          supabase,
+          user.id,
+          moduleCode
+        );
+        const files = moduleData
+          ? await listLearningFiles(supabase, user.id, moduleData.id)
+          : [];
+
+        if (!active) return;
+        setModuleRow(moduleData);
+        setFileRows(files);
+      } catch (error) {
+        if (!active) return;
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Could not load module data."
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [moduleCode, router, supabase]);
+
+  const insight = useMemo(() => {
+    return mockModuleInsights[moduleCode] ?? placeholderInsight(moduleCode);
+  }, [moduleCode]);
+
+  const headerModuleCode = moduleRow?.module_code ?? insight.moduleId;
+  const headerModuleName = moduleRow?.module_name ?? insight.moduleName;
+  const headerResourceCount =
+    moduleRow?.resource_count ?? Math.max(insight.resourceCount, fileRows.length);
+
+  const displayFiles =
+    fileRows.length > 0
+      ? fileRows.map((file) => ({
+          id: file.id,
+          fileName: file.original_name,
+          isDense: true,
+          summary: buildFileSummary(file),
+        }))
+      : insight.files;
+
+  if (!loading && !moduleRow && !mockModuleInsights[moduleCode]) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#080c14] text-white">
         <p className="mb-4 text-lg text-white/40">Module not found.</p>
@@ -60,14 +169,17 @@ export default async function DeepDiveRadarPage({ params }: Props) {
         {/* Hero header */}
         <div className="mb-10">
           <div className="mb-2 font-mono text-sm font-semibold text-[#00d2b4]">
-            {insight.moduleId}
+            {headerModuleCode}
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
-            {insight.moduleName}
+            {headerModuleName}
           </h1>
           <p className="text-sm text-white/35">
-            AI Discovery Active&nbsp;·&nbsp;{insight.resourceCount} Resources Analyzed
+            AI Discovery Active&nbsp;·&nbsp;{headerResourceCount} Resources Analyzed
           </p>
+          {loadError && (
+            <p className="mt-2 text-xs text-amber-300/80">{loadError}</p>
+          )}
         </div>
 
         {/* ── Section 1: Core Mental Models ─────────────────────────── */}
@@ -142,7 +254,7 @@ export default async function DeepDiveRadarPage({ params }: Props) {
             </h2>
           </div>
           <Accordion type="multiple" className="rounded-xl border border-white/8 bg-white/[0.02] px-4">
-            {insight.files.map((file) => (
+            {displayFiles.map((file) => (
               <AccordionItem key={file.id} value={file.id}>
                 <AccordionTrigger className="text-left text-sm">
                   <span className="flex items-center gap-2">
