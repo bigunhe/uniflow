@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Brain, Search, Target, FileText } from "lucide-react";
+import { Brain, Search, Target, FileText } from "lucide-react";
 import { mockModuleInsights, type ModuleInsight } from "@/lib/mockData";
 import { SearchVectorItem } from "@/components/learning/SearchVectorItem";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/learning/sync";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 
 const placeholderInsight = (moduleCode: string): ModuleInsight => ({
   moduleId: moduleCode,
@@ -156,15 +157,7 @@ export default function DeepDiveRadarPage() {
       <div className="pointer-events-none fixed bottom-[-150px] right-[-150px] h-[400px] w-[400px] rounded-full bg-indigo-500/5 blur-[120px]" />
 
       <div className="relative mx-auto max-w-3xl px-6 py-12">
-
-        {/* Back link */}
-        <Link
-          href="/learning"
-          className="mb-8 inline-flex items-center gap-1.5 text-sm text-white/35 transition-colors hover:text-white/70"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Modules
-        </Link>
+        <FeatureTopbar backHref="/learning" backLabel="Modules" title="Module Radar" />
 
         {/* Hero header */}
         <div className="mb-10">

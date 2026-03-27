@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
 import { mockAppliedProjects } from "@/lib/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectCard } from "@/components/learning/ProjectCard";
+import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 
 const YEARS = ["Year 1", "Year 2", "Year 3", "Year 4"] as const;
 
@@ -24,15 +24,7 @@ export default function AppliedProjectsPage() {
       <div className="pointer-events-none fixed bottom-[-150px] right-[-150px] h-[400px] w-[400px] rounded-full bg-indigo-500/5 blur-[120px]" />
 
       <div className="relative mx-auto max-w-5xl px-6 py-12">
-
-        {/* Back link */}
-        <Link
-          href="/learning"
-          className="mb-8 inline-flex items-center gap-1.5 text-sm text-white/35 transition-colors hover:text-white/70"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Modules
-        </Link>
+        <FeatureTopbar backHref="/learning" backLabel="Modules" title="Projects" />
 
         {/* Header */}
         <div className="mb-10">

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { listLearningModules } from "@/lib/learning/sync";
+import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 
 type UiModule = {
   moduleId: string;
@@ -92,6 +93,23 @@ export default function LearningHubPage() {
       <div className="pointer-events-none fixed bottom-[-150px] right-[-150px] h-[400px] w-[400px] rounded-full bg-indigo-500/6 blur-[120px]" />
 
       <div className="relative mx-auto max-w-5xl px-6 py-12">
+        <FeatureTopbar
+          backHref="/dashboard"
+          backLabel="Dashboard"
+          title="Learning"
+          rightSlot={
+            <Link href="/sync">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/15 bg-white/5 text-white/60 hover:border-[#00d2b4]/40 hover:bg-[#00d2b4]/10 hover:text-[#00d2b4]"
+              >
+                + Sync New Module
+              </Button>
+            </Link>
+          }
+        />
+
         {/* Header */}
         <div className="mb-10 flex items-start justify-between">
           <div>
@@ -115,15 +133,6 @@ export default function LearningHubPage() {
               </p>
             )}
           </div>
-          <Link href="/sync">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-white/15 bg-white/5 text-white/60 hover:border-[#00d2b4]/40 hover:bg-[#00d2b4]/10 hover:text-[#00d2b4]"
-            >
-              + Sync New Module
-            </Button>
-          </Link>
         </div>
 
         {/* Empty state */}

@@ -4,6 +4,7 @@ import { SmartDropzone } from "@/components/learning/SmartDropzone";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 
 export default function SyncPage() {
   const supabase = createClient();
@@ -49,7 +50,7 @@ export default function SyncPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           padding: "40px 16px",
           position: "relative",
           overflow: "hidden",
@@ -105,8 +106,17 @@ export default function SyncPage() {
             zIndex: 1,
             width: "100%",
             animation: "fadeUp 0.5s ease both",
+            maxWidth: 960,
+            marginTop: 12,
           }}
         >
+          <div style={{ padding: "0 12px 20px" }}>
+            <FeatureTopbar
+              backHref="/learning"
+              backLabel="Learning"
+              title="Sync Files"
+            />
+          </div>
           <SmartDropzone />
         </div>
       </div>
