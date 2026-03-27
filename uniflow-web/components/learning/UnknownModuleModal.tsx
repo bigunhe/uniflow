@@ -13,24 +13,31 @@ import { Button } from "@/components/ui/button";
 
 interface UnknownModuleModalProps {
   open: boolean;
-  onConfirm: (moduleCode: string, moduleName: string) => void;
+  moduleCode: string;
+  onConfirm: (moduleName: string) => Promise<void> | void;
+  onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-export function UnknownModuleModal({ open, onConfirm }: UnknownModuleModalProps) {
-  const [moduleCode, setModuleCode] = useState("");
+export function UnknownModuleModal({
+  open,
+  moduleCode,
+  onConfirm,
+  onCancel,
+  isSubmitting = false,
+}: UnknownModuleModalProps) {
   const [moduleName, setModuleName] = useState("");
 
   const canSubmit = moduleCode.trim().length > 0 && moduleName.trim().length > 0;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
-    onConfirm(moduleCode.trim().toUpperCase(), moduleName.trim());
-    setModuleCode("");
+    await onConfirm(moduleName.trim());
     setModuleName("");
   };
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <DialogContent
         style={{
           background: "#0d1117",
@@ -88,8 +95,8 @@ export function UnknownModuleModal({ open, onConfirm }: UnknownModuleModalProps)
               marginTop: 8,
             }}
           >
-            We couldn&apos;t automatically detect the module from the file name.
-            Please enter the details below to continue.
+            We detected the module code from your ZIP name. Enter the module name
+            so we can create the card and continue syncing files.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,12 +113,12 @@ export function UnknownModuleModal({ open, onConfirm }: UnknownModuleModalProps)
                 marginBottom: 8,
               }}
             >
-              Module Code *
+              Module Code (detected)
             </label>
             <Input
               placeholder="e.g. IT3010"
               value={moduleCode}
-              onChange={(e) => setModuleCode(e.target.value.toUpperCase())}
+              readOnly
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -121,6 +128,7 @@ export function UnknownModuleModal({ open, onConfirm }: UnknownModuleModalProps)
                 padding: "11px 14px",
                 height: "auto",
                 fontFamily: "'DM Sans', sans-serif",
+                opacity: 0.8,
               }}
             />
           </div>
@@ -157,28 +165,53 @@ export function UnknownModuleModal({ open, onConfirm }: UnknownModuleModalProps)
           </div>
         </div>
 
-        <div style={{ marginTop: 28 }}>
+        <div style={{ marginTop: 28, display: "flex", gap: 10 }}>
           <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
+            onClick={onCancel}
+            disabled={isSubmitting}
+            variant="outline"
             style={{
-              width: "100%",
+              flex: 1,
               padding: "13px 24px",
               height: "auto",
               borderRadius: 12,
-              background: canSubmit
-                ? "linear-gradient(135deg,#00d2b4,#6366f1)"
-                : "rgba(255,255,255,0.06)",
-              border: canSubmit ? "none" : "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.03)",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 15,
               fontWeight: 500,
-              color: canSubmit ? "#fff" : "rgba(255,255,255,0.3)",
-              cursor: canSubmit ? "pointer" : "not-allowed",
+              color: "rgba(255,255,255,0.7)",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit || isSubmitting}
+            style={{
+              flex: 1.2,
+              padding: "13px 24px",
+              height: "auto",
+              borderRadius: 12,
+              background: canSubmit && !isSubmitting
+                ? "linear-gradient(135deg,#00d2b4,#6366f1)"
+                : "rgba(255,255,255,0.06)",
+              border:
+                canSubmit && !isSubmitting
+                  ? "none"
+                  : "1px solid rgba(255,255,255,0.1)",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              fontWeight: 500,
+              color:
+                canSubmit && !isSubmitting ? "#fff" : "rgba(255,255,255,0.3)",
+              cursor:
+                canSubmit && !isSubmitting ? "pointer" : "not-allowed",
               transition: "all 0.18s",
             }}
           >
-            Save &amp; Continue →
+            {isSubmitting ? "Saving..." : "Save & Continue →"}
           </Button>
         </div>
       </DialogContent>

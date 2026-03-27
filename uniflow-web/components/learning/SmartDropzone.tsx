@@ -1,67 +1,171 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, type CSSProperties } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { UnknownModuleModal } from "./UnknownModuleModal";
+import { createClient } from "@/lib/supabase/client";
+import {
+  extractModuleCodeFromZipName,
+  getLearningModuleByCode,
+  syncLearningModuleUpload,
+  type ExtractedZipFile,
+} from "@/lib/learning/sync";
 
 type DropzoneStatus = "idle" | "processing";
 
-const MODULE_CODE_REGEX = /^([A-Z0-9]+)_UniFlow_Sync\.zip$/i;
-
 export function SmartDropzone() {
+  const supabase = createClient();
   const router = useRouter();
   const [status, setStatus] = useState<DropzoneStatus>("idle");
   const [modalOpen, setModalOpen] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [detectedModuleCode, setDetectedModuleCode] = useState("");
+  const [pendingSyncFiles, setPendingSyncFiles] = useState<ExtractedZipFile[]>([]);
   const [extractedFiles, setExtractedFiles] = useState<string[]>([]);
 
+  const guessMimeType = (fileName: string): string => {
+    const lower = fileName.toLowerCase();
+    if (lower.endsWith(".pdf")) return "application/pdf";
+    if (lower.endsWith(".ppt")) return "application/vnd.ms-powerpoint";
+    if (lower.endsWith(".pptx")) {
+      return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    }
+    if (lower.endsWith(".doc")) return "application/msword";
+    if (lower.endsWith(".docx")) {
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    }
+    if (lower.endsWith(".txt")) return "text/plain";
+    if (lower.endsWith(".csv")) return "text/csv";
+    if (lower.endsWith(".md")) return "text/markdown";
+    return "application/octet-stream";
+  };
+
+  const extractZipFiles = async (file: File): Promise<ExtractedZipFile[]> => {
+    const zip = new JSZip();
+    const loaded = await zip.loadAsync(file);
+    const files: ExtractedZipFile[] = [];
+
+    for (const entry of Object.values(loaded.files)) {
+      if (
+        entry.dir ||
+        entry.name.includes("__MACOSX") ||
+        entry.name.includes(".DS_Store")
+      ) {
+        continue;
+      }
+
+      const fileName = entry.name.split("/").pop();
+      if (!fileName) continue;
+
+      const blob = await entry.async("blob");
+      files.push({
+        relativePath: entry.name,
+        fileName,
+        blob,
+        mimeType: guessMimeType(fileName),
+      });
+    }
+
+    return files;
+  };
+
   const processZip = useCallback(
-    async (file: File, moduleId: string) => {
+    async (moduleCode: string, moduleName: string, files: ExtractedZipFile[]) => {
       setStatus("processing");
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      const zip = new JSZip();
-      const loaded = await zip.loadAsync(file);
-
-      const files: string[] = [];
-      loaded.forEach((relativePath, entry) => {
-        if (
-          entry.dir ||
-          relativePath.includes("__MACOSX") ||
-          relativePath.includes(".DS_Store")
-        ) {
+        if (!user) {
+          toast.error("Please log in first to sync files.");
+          router.push("/login");
           return;
         }
-        const fileName = relativePath.split("/").pop();
-        if (fileName) files.push(fileName);
-      });
 
-      setExtractedFiles(files);
+        const result = await syncLearningModuleUpload({
+          supabase,
+          userId: user.id,
+          moduleCode,
+          moduleName,
+          files,
+        });
 
-      setTimeout(() => {
-        router.push(`/${moduleId}`);
-      }, 1500);
+        setExtractedFiles(files.map((entry) => entry.fileName));
+        toast.success(
+          `Synced ${result.uploadedCount} file${result.uploadedCount === 1 ? "" : "s"} to ${result.module.module_code}.`
+        );
+
+        router.push(`/learning/${result.module.module_code}`);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Could not sync files right now."
+        );
+      } finally {
+        setStatus("idle");
+      }
     },
-    [router]
+    [router, supabase]
   );
 
   const onDropAccepted = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
-      const match = file.name.match(MODULE_CODE_REGEX);
+      const moduleCode = extractModuleCodeFromZipName(file.name);
 
-      if (match) {
-        const moduleId = match[1].toUpperCase();
-        await processZip(file, moduleId);
-      } else {
-        setPendingFile(file);
+      if (!moduleCode || moduleCode.length < 6) {
+        toast.error("Could not detect module code from zip name.");
+        return;
+      }
+
+      setDetectedModuleCode(moduleCode);
+
+      try {
+        const files = await extractZipFiles(file);
+        if (!files.length) {
+          toast.error("No valid files found inside the ZIP.");
+          return;
+        }
+
+        setExtractedFiles(files.map((entry) => entry.fileName));
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          toast.error("Please log in first to sync files.");
+          router.push("/login");
+          return;
+        }
+
+        const existingModule = await getLearningModuleByCode(
+          supabase,
+          user.id,
+          moduleCode
+        );
+
+        if (existingModule) {
+          await processZip(moduleCode, existingModule.module_name, files);
+          return;
+        }
+
+        setPendingSyncFiles(files);
         setModalOpen(true);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to read the ZIP file."
+        );
       }
     },
-    [processZip]
+    [processZip, router, supabase]
   );
 
   const onDropRejected = useCallback(() => {
@@ -78,17 +182,22 @@ export function SmartDropzone() {
     disabled: status === "processing",
   });
 
-  const handleModalConfirm = async (moduleCode: string) => {
+  const handleModalConfirm = async (moduleName: string) => {
+    if (!pendingSyncFiles.length || !detectedModuleCode) return;
     setModalOpen(false);
-    if (pendingFile) {
-      await processZip(pendingFile, moduleCode);
-      setPendingFile(null);
-    }
+    await processZip(detectedModuleCode, moduleName, pendingSyncFiles);
+    setPendingSyncFiles([]);
+  };
+
+  const handleModalCancel = () => {
+    if (status === "processing") return;
+    setModalOpen(false);
+    setPendingSyncFiles([]);
   };
 
   const isProcessing = status === "processing";
 
-  const dropzoneStyle: React.CSSProperties = {
+  const dropzoneStyle: CSSProperties = {
     border: isProcessing
       ? "2px solid rgba(0,210,180,0.3)"
       : isDragActive
@@ -348,7 +457,13 @@ export function SmartDropzone() {
         </div>
       </div>
 
-      <UnknownModuleModal open={modalOpen} onConfirm={handleModalConfirm} />
+      <UnknownModuleModal
+        open={modalOpen}
+        moduleCode={detectedModuleCode}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+        isSubmitting={isProcessing}
+      />
     </>
   );
 }
