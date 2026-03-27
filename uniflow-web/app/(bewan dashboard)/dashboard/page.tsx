@@ -207,7 +207,6 @@ export default function DashboardPage() {
   const handleNavClick = (id: string) => {
     setActiveNav(id);
     setSidebarOpen(false);
-
     const navigateShell = (href: string) => {
       if (typeof window !== "undefined" && window.location.pathname === href) {
         return;

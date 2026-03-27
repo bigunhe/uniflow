@@ -1,10 +1,20 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { callbackUrlWithNext, getSafeNextPath } from "@/lib/auth/safe-next-path";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const nextRaw = searchParams.get("next");
+  const safeNext = useMemo(() => getSafeNextPath(nextRaw), [nextRaw]);
+  const authCallbackUrl = useMemo(
+    () => (typeof window !== "undefined" ? callbackUrlWithNext(window.location.origin, safeNext) : ""),
+    [safeNext]
+  );
+
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [magicLoading, setMagicLoading] = useState(false);
@@ -15,7 +25,7 @@ export default function LoginPage() {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/callback` },
+      options: { redirectTo: authCallbackUrl || `${location.origin}/callback` },
     });
     setLoading(false);
   };
@@ -29,7 +39,7 @@ export default function LoginPage() {
     setMagicError("");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${location.origin}/callback` },
+      options: { emailRedirectTo: authCallbackUrl || `${location.origin}/callback` },
     });
     setMagicLoading(false);
     if (error) {
@@ -122,7 +132,17 @@ export default function LoginPage() {
         <div className="right-panel">
           <a className="card-label" href="/register">Get started free</a>
           <h2 className="card-heading">Welcome to UniFlow</h2>
-          <p className="card-sub">Sign in with your university Google account to start building your verified career portfolio.</p>
+          <p className="card-sub">
+            Sign in with your university Google account to start building your verified career portfolio.
+            {safeNext ? (
+              <>
+                <br />
+                <span style={{ color: "rgba(0,210,180,.55)" }}>
+                  After sign-in you&apos;ll continue to the app.
+                </span>
+              </>
+            ) : null}
+          </p>
           <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
             {loading ? <span className="spinner" /> : (
               <svg width="20" height="20" viewBox="0 0 48 48">
@@ -178,5 +198,19 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ minHeight: "100vh", background: "#080c14", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,.35)", fontFamily: "system-ui,sans-serif" }}>
+          Loading…
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }
