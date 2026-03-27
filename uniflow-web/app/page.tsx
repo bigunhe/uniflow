@@ -7,46 +7,52 @@ import {
   FolderCheck,
   LayoutDashboard,
   ArrowRight,
+  Infinity as InfinityIcon,
+  Puzzle,
 } from "lucide-react";
+import {
+  START_FEATURE_COPY,
+  type StartFeatureId,
+} from "@/lib/start/features";
 
-const sections = [
-  {
-    icon: FolderSync,
-    label: "Sync Module",
-    description: "Import a ZIP from the UniFlow extension",
-    href: "/sync",
-  },
-  {
-    icon: BookOpen,
-    label: "Learning",
-    description: "Browse and track your module progress",
-    href: "/modules",
-  },
-  {
-    icon: Users,
-    label: "Networking",
-    description: "Connect with mentors and alumni",
-    href: "/networking",
-  },
-  {
-    icon: FolderCheck,
-    label: "Evidence",
-    description: "Submit project proof and boost your Pulse",
-    href: "/evidance",
-  },
-  {
-    icon: LayoutDashboard,
-    label: "Dashboard",
-    description: "Your employability overview",
-    href: "/dashboard",
-  },
+const ORDER: StartFeatureId[] = [
+  "sync",
+  "learning",
+  "networking",
+  "evidence",
+  "dashboard",
 ];
 
+const ICONS: Record<StartFeatureId, typeof FolderSync> = {
+  sync: FolderSync,
+  learning: BookOpen,
+  networking: Users,
+  evidence: FolderCheck,
+  dashboard: LayoutDashboard,
+};
+
+const sections = ORDER.map((feature) => ({
+  icon: ICONS[feature],
+  label: START_FEATURE_COPY[feature].shortLabel,
+  description: START_FEATURE_COPY[feature].description,
+  href: `/start/${feature}`,
+}));
+
+const extensionEntry = {
+  icon: Puzzle,
+  label: "Chrome Extension",
+  description:
+    "Start here: install UniFlow Sync and export CourseWeb files in one click.",
+  href: "/extension",
+};
+
 export default function HubPage() {
+  const ExtensionIcon = extensionEntry.icon;
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         .hub-root {
@@ -70,7 +76,6 @@ export default function HubPage() {
           z-index: 0;
         }
 
-        /* Header */
         .hub-header {
           position: relative;
           z-index: 1;
@@ -94,21 +99,17 @@ export default function HubPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Syne', sans-serif;
-          font-weight: 800;
-          font-size: 13px;
-          color: #fff;
           flex-shrink: 0;
         }
         .hub-logo-name {
-          font-family: 'Syne', sans-serif;
+          font-family: 'Inter', sans-serif;
           font-weight: 700;
           font-size: 16px;
           color: #fff;
+          letter-spacing: -0.02em;
         }
         .hub-logo-name span { color: #00d2b4; }
 
-        /* Main content */
         .hub-main {
           flex: 1;
           position: relative;
@@ -120,7 +121,6 @@ export default function HubPage() {
           padding: 60px 24px 80px;
         }
 
-        /* Hero */
         .hub-hero {
           text-align: center;
           margin-bottom: 52px;
@@ -135,7 +135,7 @@ export default function HubPage() {
           margin-bottom: 16px;
         }
         .hub-title {
-          font-family: 'Syne', sans-serif;
+          font-family: 'Inter', sans-serif;
           font-size: 38px;
           font-weight: 800;
           color: #fff;
@@ -145,12 +145,14 @@ export default function HubPage() {
         }
         .hub-subtitle {
           font-size: 15px;
-          color: rgba(255,255,255,0.3);
+          color: rgba(255,255,255,0.38);
           line-height: 1.6;
           font-weight: 300;
+          max-width: 420px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
-        /* Nav list */
         .hub-nav {
           width: 100%;
           max-width: 520px;
@@ -204,9 +206,10 @@ export default function HubPage() {
           min-width: 0;
         }
         .hub-card-label {
+          font-family: 'Inter', sans-serif;
           font-size: 14px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.85);
+          font-weight: 600;
+          color: rgba(255,255,255,0.88);
           margin-bottom: 2px;
         }
         .hub-card-desc {
@@ -221,8 +224,24 @@ export default function HubPage() {
           opacity: 0.6;
           transition: color 0.16s, opacity 0.16s;
         }
+        .hub-start-card {
+          background: linear-gradient(90deg, rgba(0,210,180,.12), rgba(99,102,241,.1));
+          border-left-color: #00d2b4;
+        }
+        .hub-start-chip {
+          position: absolute;
+          top: 8px;
+          right: 12px;
+          font-size: 10px;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          color: rgba(0,210,180,.95);
+          border: 1px solid rgba(0,210,180,.4);
+          border-radius: 999px;
+          padding: 2px 8px;
+          background: rgba(0,210,180,.08);
+        }
 
-        /* Footer */
         .hub-footer {
           position: relative;
           z-index: 1;
@@ -243,11 +262,14 @@ export default function HubPage() {
       <div className="hub-root">
         <div className="hub-grid" />
 
-        {/* Header */}
         <header className="hub-header">
           <Link href="/" className="hub-logo">
-            <div className="hub-logo-mark">U</div>
-            <div className="hub-logo-name">Uni<span>Flow</span></div>
+            <div className="hub-logo-mark" aria-hidden>
+              <InfinityIcon size={17} color="#fff" strokeWidth={2.35} />
+            </div>
+            <div className="hub-logo-name">
+              Uni<span>Flow</span>
+            </div>
           </Link>
           <Button
             asChild
@@ -263,20 +285,26 @@ export default function HubPage() {
           </Button>
         </header>
 
-        {/* Main */}
         <main className="hub-main">
-
-          {/* Hero */}
           <div className="hub-hero">
-            <div className="hub-eyebrow">University Career OS</div>
+            <div className="hub-eyebrow">Install extension first · then sync and learn faster</div>
             <h1 className="hub-title">UniFlow</h1>
             <p className="hub-subtitle">
-              Everything you need to track, prove, and grow your career — in one place.
+              Start by installing UniFlow Sync, then import CourseWeb files into your learning
+              hub, build evidence, and grow career-ready skills.
             </p>
           </div>
 
-          {/* Navigation cards */}
           <nav className="hub-nav">
+            <Link href={extensionEntry.href} className="hub-card hub-start-card">
+              <span className="hub-start-chip">Start Here</span>
+              <ExtensionIcon className="hub-card-icon" size={18} strokeWidth={1.5} />
+              <div className="hub-card-body">
+                <div className="hub-card-label">{extensionEntry.label}</div>
+                <div className="hub-card-desc">{extensionEntry.description}</div>
+              </div>
+              <ArrowRight className="hub-card-arrow" size={15} strokeWidth={1.5} />
+            </Link>
             {sections.map(({ icon: Icon, label, description, href }) => (
               <Link key={href} href={href} className="hub-card">
                 <Icon className="hub-card-icon" size={18} strokeWidth={1.5} />
@@ -290,7 +318,6 @@ export default function HubPage() {
           </nav>
         </main>
 
-        {/* Footer */}
         <footer className="hub-footer">
           UniFlow &nbsp;·&nbsp; v0.1 &nbsp;·&nbsp; Beta
         </footer>

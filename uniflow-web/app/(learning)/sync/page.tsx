@@ -1,4 +1,5 @@
 import { SmartDropzone } from "@/components/learning/SmartDropzone";
+import Link from "next/link";
 
 export default function SyncPage() {
   return (
@@ -75,6 +76,30 @@ export default function SyncPage() {
           }}
         >
           <SmartDropzone />
+          <div
+            style={{
+              marginTop: 18,
+              textAlign: "center",
+              color: "rgba(255,255,255,0.42)",
+              fontSize: 13,
+              lineHeight: 1.7,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            Do not have the UniFlow Chrome extension yet?{" "}
+            <Link
+              href="/extension"
+              style={{
+                color: "rgba(0,210,180,0.9)",
+                textDecoration: "none",
+                borderBottom: "1px solid rgba(0,210,180,0.35)",
+                paddingBottom: 1,
+              }}
+            >
+              Install it here
+            </Link>
+            .
+          </div>
         </div>
       </div>
     </>
