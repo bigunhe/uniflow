@@ -47,6 +47,7 @@ export function SmartDropzone() {
     const zip = new JSZip();
     const loaded = await zip.loadAsync(file);
     const files: ExtractedZipFile[] = [];
+    const seenNames = new Map<string, number>();
 
     for (const entry of Object.values(loaded.files)) {
       if (
@@ -60,12 +61,21 @@ export function SmartDropzone() {
       const fileName = entry.name.split("/").pop();
       if (!fileName) continue;
 
+      const seen = seenNames.get(fileName) ?? 0;
+      const finalFileName =
+        seen === 0
+          ? fileName
+          : `${fileName.replace(/(\.[^.]*)?$/, "")} (${seen + 1})${
+              fileName.includes(".") ? `.${fileName.split(".").pop()}` : ""
+            }`;
+      seenNames.set(fileName, seen + 1);
+
       const blob = await entry.async("blob");
       files.push({
         relativePath: entry.name,
-        fileName,
+        fileName: finalFileName,
         blob,
-        mimeType: guessMimeType(fileName),
+        mimeType: guessMimeType(finalFileName),
       });
     }
 
@@ -95,9 +105,15 @@ export function SmartDropzone() {
         });
 
         setExtractedFiles(files.map((entry) => entry.fileName));
-        toast.success(
-          `Synced ${result.uploadedCount} file${result.uploadedCount === 1 ? "" : "s"} to ${result.module.module_code}.`
-        );
+        if (result.failedFiles.length > 0) {
+          toast.warning(
+            `Synced ${result.uploadedCount}/${files.length} files. Some files failed to upload.`
+          );
+        } else {
+          toast.success(
+            `Synced ${result.uploadedCount} file${result.uploadedCount === 1 ? "" : "s"} to ${result.module.module_code}.`
+          );
+        }
 
         router.push(`/learning/${result.module.module_code}`);
       } catch (error) {

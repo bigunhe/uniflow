@@ -1,6 +1,39 @@
+"use client";
+
 import { SmartDropzone } from "@/components/learning/SmartDropzone";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SyncPage() {
+  const supabase = createClient();
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!active) return;
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      setAuthChecked(true);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [router, supabase]);
+
+  if (!authChecked) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#080c14", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.6)" }}>
+        Checking your session...
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{`

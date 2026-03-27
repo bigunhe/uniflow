@@ -199,7 +199,11 @@ export async function refreshLearningModuleStats(
 
 export async function syncLearningModuleUpload(
   args: LearningSyncArgs
-): Promise<{ module: LearningModuleRow; uploadedCount: number }> {
+): Promise<{
+  module: LearningModuleRow;
+  uploadedCount: number;
+  failedFiles: string[];
+}> {
   const { supabase, userId, moduleCode, moduleName, files } = args;
 
   if (!files.length) {
@@ -213,23 +217,32 @@ export async function syncLearningModuleUpload(
     moduleName
   );
 
-  for (const file of files) {
-    const { storagePath, sizeBytes, mimeType } = await uploadLearningFile(
-      supabase,
-      userId,
-      module.module_code,
-      file
-    );
+  const failedFiles: string[] = [];
+  let uploadedCount = 0;
 
-    await upsertLearningFileRecord(
-      supabase,
-      module.id,
-      userId,
-      file.fileName,
-      storagePath,
-      sizeBytes,
-      mimeType
-    );
+  for (const file of files) {
+    try {
+      const { storagePath, sizeBytes, mimeType } = await uploadLearningFile(
+        supabase,
+        userId,
+        module.module_code,
+        file
+      );
+
+      await upsertLearningFileRecord(
+        supabase,
+        module.id,
+        userId,
+        file.fileName,
+        storagePath,
+        sizeBytes,
+        mimeType
+      );
+
+      uploadedCount += 1;
+    } catch {
+      failedFiles.push(file.fileName);
+    }
   }
 
   await refreshLearningModuleStats(supabase, module.id, userId);
@@ -241,7 +254,8 @@ export async function syncLearningModuleUpload(
 
   return {
     module: refreshed ?? module,
-    uploadedCount: files.length,
+    uploadedCount,
+    failedFiles,
   };
 }
 
