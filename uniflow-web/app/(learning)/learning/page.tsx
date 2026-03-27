@@ -1,18 +1,80 @@
+"use client";
+
 import Link from "next/link";
 import { LibraryBig, Clock, BookOpen, ArrowRight, Zap } from "lucide-react";
 import { mockSyncedModules } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import { listLearningModules } from "@/lib/learning/sync";
+
+type UiModule = {
+  moduleId: string;
+  moduleName: string;
+  resourceCount: number;
+  lastSynced: string;
+};
 
 export default function LearningHubPage() {
-  const modules = mockSyncedModules;
+  const supabase = createClient();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [realModules, setRealModules] = useState<UiModule[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      try {
+        setLoadError(null);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+
+        const modules = await listLearningModules(supabase, user.id);
+        if (!active) return;
+
+        const mapped: UiModule[] = modules.map((item) => ({
+          moduleId: item.module_code,
+          moduleName: item.module_name,
+          resourceCount: item.resource_count,
+          lastSynced: formatLastSynced(item.last_synced_at),
+        }));
+        setRealModules(mapped);
+      } catch (error) {
+        if (!active) return;
+        setLoadError(
+          error instanceof Error ? error.message : "Could not load modules."
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [router, supabase]);
+
+  const modules = useMemo<UiModule[]>(
+    () => (realModules.length > 0 ? realModules : mockSyncedModules),
+    [realModules]
+  );
   const isEmpty = modules.length === 0;
 
   return (
@@ -41,10 +103,17 @@ export default function LearningHubPage() {
               Your Modules
             </h1>
             <p className="mt-1.5 text-sm text-white/40">
-              {isEmpty
+              {loading
+                ? "Loading your synced modules..."
+                : isEmpty
                 ? "Sync your first module to unlock AI insights."
                 : `${modules.length} module${modules.length > 1 ? "s" : ""} synced — select one to dive in.`}
             </p>
+            {loadError && (
+              <p className="mt-2 text-xs text-amber-300/80">
+                Using fallback modules: {loadError}
+              </p>
+            )}
           </div>
           <Link href="/sync">
             <Button
@@ -77,7 +146,7 @@ export default function LearningHubPage() {
         )}
 
         {/* Module cards grid */}
-        {!isEmpty && (
+        {!loading && !isEmpty && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {modules.map((mod) => (
               <Link
@@ -124,4 +193,19 @@ export default function LearningHubPage() {
       </div>
     </div>
   );
+}
+
+function formatLastSynced(value: string | null): string {
+  if (!value) return "Not synced yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
 }
