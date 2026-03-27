@@ -92,7 +92,7 @@ export function SmartDropzone() {
 
         if (!user) {
           toast.error("Please log in first to sync files.");
-          router.push("/login");
+          router.replace("/login");
           return;
         }
 
@@ -115,7 +115,7 @@ export function SmartDropzone() {
           );
         }
 
-        router.push(`/learning/${result.module.module_code}`);
+        router.replace(`/learning/${result.module.module_code}`);
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -156,7 +156,7 @@ export function SmartDropzone() {
 
         if (!user) {
           toast.error("Please log in first to sync files.");
-          router.push("/login");
+          router.replace("/login");
           return;
         }
 

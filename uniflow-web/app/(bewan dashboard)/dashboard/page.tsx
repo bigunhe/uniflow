@@ -207,13 +207,22 @@ export default function DashboardPage() {
   const handleNavClick = (id: string) => {
     setActiveNav(id);
     setSidebarOpen(false);
-    if      (id === "dashboard")                          router.push("/dashboard");
-    else if (id === "sync")                               router.push("/learning");
-    else if (id === "networking")                         router.push("/networking");
+
+    const navigateShell = (href: string) => {
+      if (typeof window !== "undefined" && window.location.pathname === href) {
+        return;
+      }
+      // Sidebar menu is app-shell navigation; replace avoids back-stack bloat.
+      router.replace(href);
+    };
+
+    if      (id === "dashboard")                          navigateShell("/dashboard");
+    else if (id === "sync")                               navigateShell("/learning");
+    else if (id === "networking")                         navigateShell("/networking");
     else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
-    else if (id === "evidence")                           router.push("/evidance");
+    else if (id === "evidence")                           navigateShell("/evidance");
     else if (id === "pulse" && profile?.username)         router.push(`/pulse/${profile.username}`);
-    else if (id === "profile")                            router.push("/profile-setup");
+    else if (id === "profile")                            navigateShell("/profile-setup");
   };
 
   const navItems = [
@@ -424,7 +433,10 @@ export default function DashboardPage() {
                       onClick={()=>{
                         setActiveNav(sub.id);
                         setSidebarOpen(false);
-                        router.push(sub.href);
+                        if (typeof window !== "undefined" && window.location.pathname === sub.href) {
+                          return;
+                        }
+                        router.replace(sub.href);
                       }}
                     >
                       <span className="nav-sub-dot" />

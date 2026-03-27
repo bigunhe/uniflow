@@ -16,7 +16,7 @@ export default function SyncPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!active) return;
       if (!user) {
-        router.push("/login");
+        router.replace("/login");
         return;
       }
       setAuthChecked(true);
