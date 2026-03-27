@@ -207,7 +207,7 @@ export default function DashboardPage() {
     setActiveNav(id);
     setSidebarOpen(false);
     if      (id === "dashboard")                          router.push("/dashboard");
-    else if (id === "sync")                               router.push("/sync");
+    else if (id === "sync")                               router.push("/modules");
     else if (id === "networking")                         router.push("/networking");
     else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
     else if (id === "evidence")                           router.push("/evidance");
