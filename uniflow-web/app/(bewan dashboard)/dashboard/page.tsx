@@ -217,6 +217,7 @@ export default function DashboardPage() {
 
     if      (id === "dashboard")                          navigateShell("/dashboard");
     else if (id === "sync")                               navigateShell("/learning");
+    else if (id === "projects")                           navigateShell("/projects");
     else if (id === "networking")                         navigateShell("/networking");
     else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
     else if (id === "evidence")                           navigateShell("/evidance");
@@ -227,6 +228,7 @@ export default function DashboardPage() {
   const navItems = [
     { id: "dashboard",  icon: "⚡", label: "Dashboard",       hasChildren: false },
     { id: "sync",       icon: "📚", label: "Learning",        hasChildren: true  },
+    { id: "projects",   icon: "🛠️", label: "Projects",        hasChildren: false },
     { id: "networking", icon: "🌐", label: "Community",       hasChildren: false },
     { id: "portfolio",  icon: "🔗", label: "Portfolio",       hasChildren: false },
     { id: "evidence",   icon: "📁", label: "Submit Evidence", hasChildren: false },
@@ -236,9 +238,8 @@ export default function DashboardPage() {
 
   const navSubItems: Record<string, { id: string; label: string; href: string }[]> = {
     sync: [
-      { id: "module-insights",  label: "Module Insights",  href: "/learning"          },
-      { id: "applied-projects", label: "Applied Projects", href: "/learning/projects" },
-      { id: "sync-files",       label: "Sync Files",       href: "/sync"              },
+      { id: "module-insights", label: "Module Insights", href: "/learning" },
+      { id: "sync-files", label: "Sync Files", href: "/sync" },
     ],
   };
 

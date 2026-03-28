@@ -1,6 +1,7 @@
 export const START_FEATURE_IDS = [
   "sync",
   "learning",
+  "projects",
   "networking",
   "evidence",
   "dashboard",
@@ -45,14 +46,27 @@ export const START_FEATURE_COPY: Record<
   learning: {
     title: "Learning hub",
     shortLabel: "Learning",
-    description: "Module insights, deep dives, and applied projects",
+    description: "Module insights, deep dives, and synced learning files",
     dest: "/learning",
     intro:
-      "Browse synced modules, open deep-dive pages for mental models and search prompts, and explore applied projects that stretch beyond the slides.",
+      "Browse synced modules and open deep-dive pages for mental models and search prompts based on your own lecture content.",
     bullets: [
       "Module cards from your real syncs (plus safe fallbacks when empty)",
       "Per-module “radar” for how to learn beyond the lecture",
-      "Industry-style mini projects to practice the ideas",
+      "Structured prompts to push understanding past memorization",
+    ],
+  },
+  projects: {
+    title: "Projects studio",
+    shortLabel: "Projects",
+    description: "Weekend projects grouped by year with AI guidance",
+    dest: "/projects",
+    intro:
+      "Pick weekend projects based on your year level. Each brief gives broad direction, tools, and outcomes while the AI guide helps you make your own implementation decisions.",
+    bullets: [
+      "Year-wise project buckets from foundation to advanced",
+      "Detailed project page with overview and step-by-step instructions",
+      "Track completed projects and attach verification artifacts",
     ],
   },
   networking: {

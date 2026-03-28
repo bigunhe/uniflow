@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Infinity as InfinityIcon,
   Puzzle,
+  Hammer,
 } from "lucide-react";
 import {
   START_FEATURE_COPY,
@@ -18,6 +19,7 @@ import {
 const ORDER: StartFeatureId[] = [
   "sync",
   "learning",
+  "projects",
   "networking",
   "evidence",
   "dashboard",
@@ -26,6 +28,7 @@ const ORDER: StartFeatureId[] = [
 const ICONS: Record<StartFeatureId, typeof FolderSync> = {
   sync: FolderSync,
   learning: BookOpen,
+  projects: Hammer,
   networking: Users,
   evidence: FolderCheck,
   dashboard: LayoutDashboard,

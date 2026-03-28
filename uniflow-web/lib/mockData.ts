@@ -162,43 +162,679 @@ export const mockModuleInsights: Record<string, ModuleInsight> = {
 
 // ─── Applied Projects ─────────────────────────────────────────────────────────
 
-export const mockAppliedProjects: Record<string, { id: string; title: string; brief: string; modules: string[]; stack: string[] }[]> = {
-  "Year 4": [],
+export type ProjectYear = "Year 1" | "Year 2" | "Year 3" | "Year 4";
+
+export type MockProject = {
+  id: string;
+  year: ProjectYear;
+  title: string;
+  brief: string;
+  weekendEstimate: string;
+  challengeLevel: "Foundation" | "Intermediate" | "Advanced";
+  modules: string[];
+  stack: string[];
+  learningGoals: string[];
+  instructions: string[];
+  deliverables: string[];
+  aiGuideFocus: string[];
+};
+
+export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
+  "Year 4": [
+    {
+      id: "proj-y4-1",
+      year: "Year 4",
+      title: "Resilience Drill: Job Queue Failure Simulator",
+      brief:
+        "Build a small service that simulates delayed jobs and worker crashes. Students learn resilience patterns by introducing retries, dead-letter queues, and backoff.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Advanced",
+      modules: ["Distributed Systems", "Cloud Computing"],
+      stack: ["Node.js", "BullMQ", "Redis", "Docker"],
+      learningGoals: [
+        "Model partial failures in distributed workflows",
+        "Implement retry and dead-letter handling",
+        "Document failure scenarios and mitigation choices",
+      ],
+      instructions: [
+        "Create a producer that pushes jobs with random failure probability.",
+        "Run at least two workers and intentionally crash one worker process.",
+        "Add exponential backoff and a dead-letter queue for repeated failures.",
+        "Write a short incident-style report explaining what failed and why.",
+      ],
+      deliverables: [
+        "GitHub repository with README and run steps",
+        "Sample logs showing retry and dead-letter flow",
+        "Architecture diagram or sequence notes",
+      ],
+      aiGuideFocus: [
+        "Failure injection strategy",
+        "Queue design trade-offs",
+        "Interpreting worker and retry logs",
+      ],
+    },
+    {
+      id: "proj-y4-2",
+      year: "Year 4",
+      title: "AI Ops Copilot for Service Alerts",
+      brief:
+        "Create an assistant that summarizes noisy service alerts and suggests triage actions. Use LLM prompts, runbooks, and confidence scoring to avoid blind automation.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Advanced",
+      modules: ["AI Engineering", "Cloud Operations", "Software Quality"],
+      stack: ["Python", "FastAPI", "OpenAI SDK", "PostgreSQL", "Docker"],
+      learningGoals: [
+        "Design safe AI-assisted ops workflows",
+        "Create structured alert summaries from raw logs",
+        "Establish guardrails for low-confidence responses",
+      ],
+      instructions: [
+        "Ingest synthetic alert payloads and normalize them into a single schema.",
+        "Implement prompt templates that output JSON summaries and next actions.",
+        "Add confidence scoring and fallback behavior when confidence is low.",
+        "Publish a short report comparing AI suggestions with manual triage.",
+      ],
+      deliverables: [
+        "Working API with sample alert dataset",
+        "Prompt design notes and guardrail rules",
+        "Before/after triage quality comparison",
+      ],
+      aiGuideFocus: [
+        "Prompt design for noisy data",
+        "Confidence calibration",
+        "Safe fallback strategies",
+      ],
+    },
+    {
+      id: "proj-y4-3",
+      year: "Year 4",
+      title: "Portfolio-grade CI/CD Platform Starter",
+      brief:
+        "Build a production-style delivery pipeline for a microservice app with tests, image scanning, staged deploys, and rollback checks.",
+      weekendEstimate: "2 weekends",
+      challengeLevel: "Advanced",
+      modules: ["DevOps", "Cloud Computing", "Secure Software Engineering"],
+      stack: ["GitHub Actions", "Docker", "AWS ECS", "Terraform", "Trivy"],
+      learningGoals: [
+        "Implement secure CI/CD from commit to deployment",
+        "Integrate quality and security gates",
+        "Automate rollback verification paths",
+      ],
+      instructions: [
+        "Define pipeline stages for test, build, scan, and deploy.",
+        "Containerize an API service and push versioned images.",
+        "Deploy to staging and production with approval controls.",
+        "Document rollback strategy and run one simulated failure.",
+      ],
+      deliverables: [
+        "IaC repo and CI/CD workflow files",
+        "Pipeline run screenshots and logs",
+        "Rollback demo notes",
+      ],
+      aiGuideFocus: [
+        "Pipeline design trade-offs",
+        "Security gate tuning",
+        "Rollback validation",
+      ],
+    },
+    {
+      id: "proj-y4-4",
+      year: "Year 4",
+      title: "Hybrid Network + Cloud Cost Optimizer",
+      brief:
+        "Analyze traffic patterns across cloud and on-prem style environments, then propose route, autoscaling, and caching strategies to reduce latency and cost.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Advanced",
+      modules: ["Network Design and Management", "Cloud Economics", "Data Analytics"],
+      stack: ["Python", "Pandas", "Jupyter", "AWS Pricing API", "Docker"],
+      learningGoals: [
+        "Correlate traffic behavior with cloud spending",
+        "Design optimization experiments with measurable impact",
+        "Communicate engineering decisions with data",
+      ],
+      instructions: [
+        "Generate or collect network and service usage traces.",
+        "Model baseline cost and latency under current settings.",
+        "Simulate at least three optimization options and compare impact.",
+        "Present final recommendation with assumptions and risk notes.",
+      ],
+      deliverables: [
+        "Notebook or scripts with reproducible analysis",
+        "Decision summary with chosen strategy",
+        "Charts for latency and cost comparison",
+      ],
+      aiGuideFocus: [
+        "Experiment setup",
+        "Cost model assumptions",
+        "Decision narrative quality",
+      ],
+    },
+  ],
   "Year 3": [
     {
       id: "proj-y3-1",
+      year: "Year 3",
       title: "CLI Network Log Analyzer",
       brief:
-        "Don't build another To-Do app. Build a command-line tool that ingests raw network traffic logs, parses the XML, and stores anomalies in a relational database. The output should tell an on-call engineer exactly which host is misbehaving.",
+        "Build a command-line tool that ingests network logs, parses records, and stores anomalies. Output should help an on-call engineer quickly identify misbehaving hosts.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
       modules: ["Network Design", "Database Systems"],
       stack: ["Go", "SQLite", "Prisma ORM"],
+      learningGoals: [
+        "Parse semi-structured log payloads reliably",
+        "Design a compact anomaly storage model",
+        "Produce meaningful terminal-level diagnostics",
+      ],
+      instructions: [
+        "Define a parser contract and reject malformed rows with clear reasons.",
+        "Design anomaly rules (spikes, repeated failures, suspicious hosts).",
+        "Persist flagged records and expose summary queries via CLI commands.",
+        "Add at least 10 sample logs and verify expected anomaly output.",
+      ],
+      deliverables: [
+        "CLI tool with command reference in README",
+        "Sample input logs and expected outputs",
+        "Database schema and anomaly rule explanation",
+      ],
+      aiGuideFocus: [
+        "Parser edge cases",
+        "Anomaly threshold design",
+        "CLI usability improvements",
+      ],
     },
     {
       id: "proj-y3-2",
+      year: "Year 3",
       title: "Subnet Calculator Daemon",
       brief:
-        "Write a background process that listens for IP addresses on a specific port and returns the broadcast address, network address, and usable host range instantly. No GUI. Make it fast enough to serve 1000 requests per second.",
+        "Implement a background process that receives CIDR values and returns network, broadcast, and host ranges. No GUI required, focus on correctness and throughput.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
       modules: ["Network Design", "Operating Systems"],
       stack: ["Python", "Socket Programming"],
+      learningGoals: [
+        "Apply subnet reasoning without calculators",
+        "Build a long-running process with clean request handling",
+        "Measure throughput and latency under load",
+      ],
+      instructions: [
+        "Open a TCP server and parse requests in CIDR format.",
+        "Return structured responses with network and host range details.",
+        "Add input validation for malformed and unsupported CIDR values.",
+        "Run simple load tests and report requests per second.",
+      ],
+      deliverables: [
+        "Daemon source with test payloads",
+        "Load test script and baseline results",
+        "Short note on bottlenecks and next optimizations",
+      ],
+      aiGuideFocus: [
+        "CIDR math confidence checks",
+        "Socket server structure",
+        "Performance troubleshooting",
+      ],
+    },
+    {
+      id: "proj-y3-3",
+      year: "Year 3",
+      title: "Full-stack Project Tracker with AI Prioritization",
+      brief:
+        "Build a project tracking app with role-based dashboards and an AI helper that prioritizes backlog items using project context.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Advanced",
+      modules: ["Programming Application Frameworks", "Database Systems"],
+      stack: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "OpenAI SDK"],
+      learningGoals: [
+        "Build multi-role workflows with clean app architecture",
+        "Model relational task data for querying and reporting",
+        "Integrate AI responsibly for recommendation use-cases",
+      ],
+      instructions: [
+        "Create auth-aware dashboards for student and team-lead views.",
+        "Design backlog/task schema with status history.",
+        "Add AI endpoint that returns ranked tasks with short reasoning.",
+        "Measure recommendation usefulness with 10 sample scenarios.",
+      ],
+      deliverables: [
+        "Working full-stack app and seed data",
+        "AI prompt and scoring logic notes",
+        "Short validation report for ranking quality",
+      ],
+      aiGuideFocus: [
+        "Schema design for task history",
+        "Prompt output validation",
+        "Frontend state and data flow",
+      ],
+    },
+    {
+      id: "proj-y3-4",
+      year: "Year 3",
+      title: "Automated Lab Environment Provisioner",
+      brief:
+        "Develop a tool that provisions repeatable local lab environments for networking and backend tests using Docker Compose templates.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
+      modules: ["Automation", "Network Design and Management", "Operating Systems"],
+      stack: ["Python", "Docker Compose", "Bash", "YAML"],
+      learningGoals: [
+        "Automate reproducible developer environments",
+        "Parameterize infrastructure templates",
+        "Reduce setup friction across team members",
+      ],
+      instructions: [
+        "Create template-based compose files for 2-3 lab setups.",
+        "Add CLI commands to spin up and tear down environments.",
+        "Generate environment summaries with open ports and services.",
+        "Benchmark setup time before and after automation.",
+      ],
+      deliverables: [
+        "Provisioning CLI with sample templates",
+        "Usage docs and troubleshooting notes",
+        "Environment setup benchmark results",
+      ],
+      aiGuideFocus: [
+        "Template modularity",
+        "CLI ergonomics",
+        "Common Docker networking mistakes",
+      ],
+    },
+    {
+      id: "proj-y3-5",
+      year: "Year 3",
+      title: "MLOps Starter: Defect Classification Pipeline",
+      brief:
+        "Build a simple image defect classifier pipeline with dataset versioning, model training, evaluation, and a minimal serving endpoint.",
+      weekendEstimate: "2 weekends",
+      challengeLevel: "Advanced",
+      modules: ["Python for AI", "Software Engineering", "Automation"],
+      stack: ["Python", "PyTorch", "FastAPI", "DVC", "Docker"],
+      learningGoals: [
+        "Understand end-to-end ML workflow fundamentals",
+        "Version data and models for reproducibility",
+        "Serve predictions through an API interface",
+      ],
+      instructions: [
+        "Prepare or generate a small labeled image dataset.",
+        "Train a baseline model and capture evaluation metrics.",
+        "Track dataset/model versions and training configs.",
+        "Expose a prediction API and test with sample images.",
+      ],
+      deliverables: [
+        "Training scripts and dataset notes",
+        "Model metrics and confusion matrix output",
+        "Inference API with example requests",
+      ],
+      aiGuideFocus: [
+        "Model baseline choices",
+        "Data leakage checks",
+        "Evaluation metric interpretation",
+      ],
+    },
+    {
+      id: "proj-y3-6",
+      year: "Year 3",
+      title: "Cloud-ready Event Booking Platform",
+      brief:
+        "Design a scalable event booking backend with queue-based notifications, caching, and deployment-ready container setup.",
+      weekendEstimate: "2 weekends",
+      challengeLevel: "Advanced",
+      modules: ["Programming Application Frameworks", "Cloud Computing", "Database Systems"],
+      stack: ["NestJS", "PostgreSQL", "Redis", "Docker", "GitHub Actions"],
+      learningGoals: [
+        "Design scalable booking workflows",
+        "Use queues and caches to handle traffic bursts",
+        "Prepare deployment artifacts for portfolio demos",
+      ],
+      instructions: [
+        "Implement booking lifecycle with concurrency-safe seat handling.",
+        "Add notification workers using queued jobs.",
+        "Cache high-traffic read endpoints and track cache hit ratios.",
+        "Create a CI pipeline for tests and container image builds.",
+      ],
+      deliverables: [
+        "Service code and architecture notes",
+        "Queue and cache behavior evidence",
+        "CI pipeline run proof",
+      ],
+      aiGuideFocus: [
+        "Concurrency and race condition handling",
+        "Queue + cache patterns",
+        "Deployment readiness checks",
+      ],
     },
   ],
   "Year 2": [
     {
       id: "proj-y2-1",
+      year: "Year 2",
       title: "Custom Memory Allocator",
       brief:
-        "Override standard malloc/free in C to understand how the heap actually works before you rely on modern garbage-collected languages. Implement a simple free-list allocator and measure fragmentation under different allocation patterns.",
+        "Override basic heap allocation in C with a free-list allocator. Compare fragmentation and allocation behavior under different usage patterns.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
       modules: ["Data Structures", "Computer Architecture"],
       stack: ["C", "Valgrind", "Make"],
+      learningGoals: [
+        "Understand heap layout and fragmentation trade-offs",
+        "Implement a minimal allocator lifecycle",
+        "Evaluate allocator behavior with repeatable experiments",
+      ],
+      instructions: [
+        "Implement basic malloc/free behavior with a free-list strategy.",
+        "Track block metadata and coalescing behavior.",
+        "Run allocation workloads with varied block sizes.",
+        "Measure fragmentation and explain observed trends.",
+      ],
+      deliverables: [
+        "Allocator implementation and test harness",
+        "Experiment report with fragmentation metrics",
+        "README with constraints and known limitations",
+      ],
+      aiGuideFocus: [
+        "Allocator correctness checks",
+        "Coalescing and splitting logic",
+        "Profiling memory behavior",
+      ],
     },
     {
       id: "proj-y2-2",
+      year: "Year 2",
       title: "Mini Relational Database Engine",
       brief:
-        "Build a toy database that can parse and execute basic SQL (SELECT, INSERT, CREATE TABLE) against an in-memory store. The goal is to understand what a query planner actually does before you trust one blindly.",
+        "Create a toy SQL engine that supports a small subset of queries in-memory. The aim is to understand parser, planner, and execution basics.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
       modules: ["Database Systems", "Data Structures"],
       stack: ["Python", "PLY (Parser)"],
+      learningGoals: [
+        "Map SQL syntax into structured query representation",
+        "Implement a tiny execution path for core commands",
+        "Reason about planning and execution limitations",
+      ],
+      instructions: [
+        "Support CREATE TABLE, INSERT, and SELECT with simple predicates.",
+        "Build parser rules and map them to execution functions.",
+        "Store rows in-memory and return deterministic query results.",
+        "Document unsupported SQL features clearly.",
+      ],
+      deliverables: [
+        "Engine code with sample query scripts",
+        "Parser grammar notes",
+        "Known limitations and extension roadmap",
+      ],
+      aiGuideFocus: [
+        "Grammar and token pitfalls",
+        "Execution strategy for simple queries",
+        "Testing parser and query behavior",
+      ],
+    },
+    {
+      id: "proj-y2-3",
+      year: "Year 2",
+      title: "Framework Fundamentals: Student Portal",
+      brief:
+        "Build a basic student portal with authentication, profile page, and module list to practice framework conventions and reusable components.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
+      modules: ["Programming Application Frameworks"],
+      stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
+      learningGoals: [
+        "Understand component-driven UI structure",
+        "Implement route-level page organization",
+        "Handle basic form state and validation",
+      ],
+      instructions: [
+        "Create pages for login, profile, and module listing.",
+        "Build reusable UI components for cards and forms.",
+        "Add client-side validation and helpful errors.",
+        "Document the component hierarchy and state choices.",
+      ],
+      deliverables: [
+        "Portal app with responsive pages",
+        "Component usage guide",
+        "Validation edge-case notes",
+      ],
+      aiGuideFocus: [
+        "Component decomposition",
+        "Form validation patterns",
+        "Folder structure practices",
+      ],
+    },
+    {
+      id: "proj-y2-4",
+      year: "Year 2",
+      title: "Automation Bot: Timetable Reminder Engine",
+      brief:
+        "Create a bot that reads timetable data and sends reminders for upcoming sessions and assignment deadlines.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
+      modules: ["Automation", "Programming Fundamentals"],
+      stack: ["Python", "Schedule", "SMTP", "SQLite"],
+      learningGoals: [
+        "Automate recurring workflows reliably",
+        "Work with date/time logic and scheduling",
+        "Store and query reminder history",
+      ],
+      instructions: [
+        "Define timetable schema and import sample records.",
+        "Implement reminder scheduler with configurable frequency.",
+        "Send email notifications and log delivery outcomes.",
+        "Handle timezone assumptions in README.",
+      ],
+      deliverables: [
+        "Automation script and scheduler config",
+        "Sample reminder logs",
+        "Timezone and deployment notes",
+      ],
+      aiGuideFocus: [
+        "Scheduler reliability",
+        "Date/time bugs",
+        "Notification retry behavior",
+      ],
+    },
+    {
+      id: "proj-y2-5",
+      year: "Year 2",
+      title: "Network Monitoring Mini Dashboard",
+      brief:
+        "Build a lightweight dashboard that pings configured hosts and visualizes uptime trends for a small lab network.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
+      modules: ["Network Design and Management", "Programming Application Frameworks"],
+      stack: ["Python", "Flask", "SQLite", "Chart.js"],
+      learningGoals: [
+        "Collect and store simple telemetry",
+        "Visualize operational metrics clearly",
+        "Reason about false positives in monitoring",
+      ],
+      instructions: [
+        "Implement periodic host checks and status recording.",
+        "Store response times and success/failure status.",
+        "Render uptime and latency charts in a basic UI.",
+        "Add alerts for repeated failures.",
+      ],
+      deliverables: [
+        "Monitoring app with sample data",
+        "Dashboards/screenshots",
+        "Alert threshold rationale",
+      ],
+      aiGuideFocus: [
+        "Monitoring signal quality",
+        "Visualization clarity",
+        "Threshold tuning",
+      ],
+    },
+    {
+      id: "proj-y2-6",
+      year: "Year 2",
+      title: "Python AI: Smart FAQ Assistant",
+      brief:
+        "Build a retrieval-based FAQ assistant for course policies and module notes that answers common questions with cited sources.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Intermediate",
+      modules: ["Python for AI", "Database Systems"],
+      stack: ["Python", "FastAPI", "FAISS", "OpenAI SDK"],
+      learningGoals: [
+        "Implement simple retrieval-augmented answering",
+        "Attach source references to AI responses",
+        "Measure answer quality on a small benchmark set",
+      ],
+      instructions: [
+        "Prepare FAQ and policy documents for indexing.",
+        "Build vector retrieval and answer generation pipeline.",
+        "Return top sources with every answer.",
+        "Evaluate answers using a fixed test question set.",
+      ],
+      deliverables: [
+        "Running API with retrieval module",
+        "Evaluation sheet for 20 questions",
+        "Prompt and chunking strategy notes",
+      ],
+      aiGuideFocus: [
+        "Chunking and retrieval quality",
+        "Prompt grounding",
+        "Source citation consistency",
+      ],
     },
   ],
-  "Year 1": [],
+  "Year 1": [
+    {
+      id: "proj-y1-1",
+      year: "Year 1",
+      title: "Campus Task API",
+      brief:
+        "Build a lightweight REST API for student task planning. Focus on clean routes, basic validation, and API fundamentals rather than advanced architecture.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
+      modules: ["Programming Fundamentals"],
+      stack: ["Node.js", "Express", "Postman"],
+      learningGoals: [
+        "Design basic REST resources and routes",
+        "Implement server-side validation and error responses",
+        "Practice API testing workflows",
+      ],
+      instructions: [
+        "Create CRUD routes for tasks with status and due date fields.",
+        "Validate incoming payloads and return clear errors.",
+        "Add a simple filter by status and due date.",
+        "Test all endpoints with Postman collections.",
+      ],
+      deliverables: [
+        "API source with setup guide",
+        "Postman collection export",
+        "Sample request/response documentation",
+      ],
+      aiGuideFocus: [
+        "Route design best practices",
+        "Validation rule design",
+        "Debugging API responses",
+      ],
+    },
+    {
+      id: "proj-y1-2",
+      year: "Year 1",
+      title: "Data Tracker CLI",
+      brief:
+        "Create a simple CLI application to manage personal study records with add, list, edit, and export commands.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
+      modules: ["Programming Fundamentals"],
+      stack: ["Python", "argparse", "CSV"],
+      learningGoals: [
+        "Practice modular code design in a CLI app",
+        "Handle file I/O safely",
+        "Design simple command interfaces",
+      ],
+      instructions: [
+        "Define data schema for study records.",
+        "Implement command handlers for CRUD-style operations.",
+        "Add export command to CSV.",
+        "Write usage examples for every command.",
+      ],
+      deliverables: [
+        "CLI source code and sample dataset",
+        "Command usage guide",
+        "Basic test checklist",
+      ],
+      aiGuideFocus: [
+        "CLI UX clarity",
+        "Input validation",
+        "Code organization",
+      ],
+    },
+    {
+      id: "proj-y1-3",
+      year: "Year 1",
+      title: "Intro Database CRUD App",
+      brief:
+        "Build a beginner-friendly CRUD web app to understand relational data basics and database-backed pages.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
+      modules: ["Database Systems", "Programming Application Frameworks"],
+      stack: ["Node.js", "Express", "SQLite", "EJS"],
+      learningGoals: [
+        "Connect UI actions to database operations",
+        "Use SQL safely for insert/update/delete workflows",
+        "Understand schema constraints and validation",
+      ],
+      instructions: [
+        "Create a database schema for a simple inventory or notes app.",
+        "Implement pages to create, view, update, and delete entries.",
+        "Add validation for required fields.",
+        "Handle common DB errors with clear messages.",
+      ],
+      deliverables: [
+        "Running CRUD app",
+        "SQL schema file",
+        "Demo screenshots",
+      ],
+      aiGuideFocus: [
+        "Schema design basics",
+        "SQL query debugging",
+        "Validation and user feedback",
+      ],
+    },
+    {
+      id: "proj-y1-4",
+      year: "Year 1",
+      title: "Automation Starter: File Organizer",
+      brief:
+        "Write an automation script that organizes downloaded files into folders by type and date with configurable rules.",
+      weekendEstimate: "1 weekend",
+      challengeLevel: "Foundation",
+      modules: ["Automation", "Operating Systems"],
+      stack: ["Python", "pathlib", "watchdog"],
+      learningGoals: [
+        "Understand filesystem operations safely",
+        "Automate repetitive manual tasks",
+        "Create configurable rule-driven behavior",
+      ],
+      instructions: [
+        "Scan a target directory and classify file types.",
+        "Move files into organized folder structures.",
+        "Add a dry-run mode before actual moves.",
+        "Support custom rules via a small config file.",
+      ],
+      deliverables: [
+        "Organizer script with config examples",
+        "Before/after sample outputs",
+        "Safety notes for file operations",
+      ],
+      aiGuideFocus: [
+        "Filesystem safety checks",
+        "Rule parsing",
+        "Cross-platform path handling",
+      ],
+    },
+  ],
 };
+
+export const mockProjectsById: Record<string, MockProject> = Object.values(
+  mockAppliedProjects
+)
+  .flat()
+  .reduce<Record<string, MockProject>>((acc, project) => {
+    acc[project.id] = project;
+    return acc;
+  }, {});

@@ -14,8 +14,8 @@ type NavItem = {
 const FEATURE_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Learning Hub", href: "/learning" },
+  { label: "Projects", href: "/projects" },
   { label: "Sync Files", href: "/sync" },
-  { label: "Applied Projects", href: "/learning/projects" },
   { label: "Community", href: "/networking" },
   { label: "Submit Evidence", href: "/evidance" },
   { label: "Profile", href: "/profile-setup" },
@@ -39,10 +39,7 @@ export function FeatureTopbar({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
+    // Always honor explicit back destination to keep section navigation predictable.
     router.replace(backHref);
   };
 
