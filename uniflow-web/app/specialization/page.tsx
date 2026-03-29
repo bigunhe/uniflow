@@ -15,16 +15,10 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type SpecializationKey =
-  | "SE"
-  | "IM"
-  | "DS"
-  | "CS"
-  | "CSNE"
-  | "IT"
-  | "ISE"
-  | "CYBER";
+import {
+  getSpecializationSlugForKey,
+  type SpecializationKey,
+} from "@/lib/specializationRolesContent";
 
 type Specialization = {
   key: SpecializationKey;
@@ -141,7 +135,7 @@ export default function SpecializationPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
               <span className="text-[14px]">FP</span>
             </span>
-            <span className="text-lg sm:text-xl">FuturePath Hub</span>
+            <span className="text-lg sm:text-xl">UniFlow</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-700">
@@ -179,7 +173,7 @@ export default function SpecializationPage() {
         </h1>
 
         <p className="mx-auto mt-4 max-w-2xl text-center text-sm leading-relaxed text-slate-600 sm:text-base">
-          Selecting a specialization allows FuturePath Hub to tailor your learning
+          Selecting a specialization allows UniFlow to tailor your learning
           resources, connect you with specialized mentors, and highlight the most
           relevant career opportunities in the tech industry.
         </p>
@@ -217,16 +211,16 @@ export default function SpecializationPage() {
             const itemBg = active ? "bg-white" : "bg-white";
 
             return (
-              <button
+              <Link
                 key={s.key}
-                type="button"
+                href={`/specializations/${getSpecializationSlugForKey(s.key)}`}
                 onClick={() => setSelected(s.key)}
                 className={cn(
-                  "group text-left rounded-[18px] border p-6 shadow-sm transition",
+                  "group block text-left rounded-[18px] border p-6 shadow-sm transition",
                   borderClass,
                   itemBg
                 )}
-                aria-pressed={active}
+                aria-current={active ? "true" : undefined}
               >
                 <div
                   className={cn(
@@ -243,7 +237,7 @@ export default function SpecializationPage() {
                 <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
                   {s.description}
                 </p>
-              </button>
+              </Link>
             );
           })}
         </section>
@@ -260,8 +254,9 @@ export default function SpecializationPage() {
             <button
               type="button"
               onClick={() => {
-                // Continue to mentors selection after picking specialization.
-                router.push("/networking/mentors");
+                router.push(
+                  `/specializations/${getSpecializationSlugForKey(selected)}`
+                );
               }}
               className="w-full rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-105 sm:w-auto"
             >
@@ -287,7 +282,7 @@ export default function SpecializationPage() {
 
       <footer className="border-t border-slate-200/70 bg-white/70 py-6">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-center text-xs text-slate-500 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
-          <div>© 2024 FuturePath Hub. Empowering the next generation of tech leaders.</div>
+          <div>© 2024 UniFlow. Empowering the next generation of tech leaders.</div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
             <Link href="#" className="hover:text-indigo-700">
               Privacy Policy

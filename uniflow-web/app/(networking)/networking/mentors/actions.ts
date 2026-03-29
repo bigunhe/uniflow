@@ -6,12 +6,23 @@ import { getSupabaseIfConfigured } from "@/lib/supabase";
 export async function getMentors() {
   const supabase = getSupabaseIfConfigured();
   if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("mentors")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data ?? [];
+  try {
+    const { data, error } = await supabase
+      .from("mentors")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    // If Supabase auth is invalid (wrong API key), Supabase returns an error.
+    // Don't crash the whole page; just show an empty mentor list.
+    if (error) {
+      console.error("[mentors] Failed to load mentors:", error);
+      return [];
+    }
+    return data ?? [];
+  } catch (err) {
+    console.error("[mentors] Unexpected error loading mentors:", err);
+    return [];
+  }
 }
 
 export async function createMentor(formData: FormData) {
@@ -21,7 +32,10 @@ export async function createMentor(formData: FormData) {
 
   const supabase = getSupabaseIfConfigured();
   if (!supabase) return;
-  await supabase.from("mentors").insert({ name: name.trim(), email: email?.trim() || null });
+  await supabase.from("mentors").insert({
+    name: name.trim(),
+    email: email?.trim() || null,
+  });
   revalidatePath("/networking/mentors");
 }
 
