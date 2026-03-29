@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseIfConfigured } from "@/lib/supabase";
 
 export type CreateProfileState = { error?: string };
 
@@ -17,7 +17,13 @@ export async function createProfile(
     return { error: "Display name and username are required." };
   }
 
-  const supabase = getSupabase();
+  const supabase = getSupabaseIfConfigured();
+  if (!supabase) {
+    return {
+      error:
+        "Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in uniflow-web/.env.local.",
+    };
+  }
   const { error } = await supabase.from("profiles").insert({
     display_name,
     email,
@@ -30,7 +36,8 @@ export async function createProfile(
 }
 
 export async function getProfileByUsername(username: string) {
-  const supabase = getSupabase();
+  const supabase = getSupabaseIfConfigured();
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
