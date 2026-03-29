@@ -2,57 +2,180 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { mentorButtonClassName } from "./MentorButton";
+import { usePathname, useRouter } from "next/navigation";
+import { mentorButtonClassName, MentorButton } from "./MentorButton";
 import { getUserRoleProfile, clearUserRoleProfile } from "./userRoleProfile";
 
-const navItems = [
+const studentNavItems = [
   { label: "Home", href: "/networking/mentors/home" },
   { label: "Mentors", href: "/networking/mentors/mentor-discovery" },
-  { label: "Messages", href: "/networking/mentors/messages" },
   { label: "AI Assistant", href: "/networking/mentors/ai-assistant" },
-  { label: "Dashboard", href: "/networking/mentors/mentor-dashboard" },
+  { label: "Messages", href: "/networking/mentors/messages" },
+];
+
+const mentorNavItems = [
+  { label: "Dashboard", href: "/networking/mentors/home" },
+  { label: "Requests", href: "/networking/mentors/request-management" },
+  { label: "Sessions", href: "/networking/mentors/live-session" },
+  { label: "Feedback", href: "/networking/mentors/tutor-analytics" },
+  { label: "Messages", href: "/networking/mentors/messages" },
+];
+
+const commonNavItems = [
+  { label: "Home", href: "/networking/mentors" },
+  { label: "For Students", href: "/networking/mentors#students" },
+  { label: "For Mentors", href: "/networking/mentors#mentors" },
+  { label: "Pricing", href: "/networking/mentors#pricing" },
+];
+
+const guestNavItems = [
+  { label: "Home", href: "/networking/mentors" },
+  { label: "Get Started", href: "/networking/mentors/start" },
 ];
 
 export function MentorHeader() {
   const router = useRouter();
-  const [profile, setProfile] = useState(getUserRoleProfile());
+  const pathname = usePathname();
+  // Defer reading localStorage until after hydration to avoid SSR/client mismatch.
+  const [profile, setProfile] = useState(() => null);
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    const userProfile = getUserRoleProfile();
-    setProfile(userProfile);
-    if (userProfile) {
-      setFullName(userProfile.fullName);
-    }
-  }, []);
+    const syncProfile = () => {
+      const userProfile = getUserRoleProfile();
+      setProfile(userProfile);
+      setFullName(userProfile?.fullName ?? "");
+    };
+
+    syncProfile();
+    window.addEventListener("storage", syncProfile);
+    window.addEventListener("uniflow-role-profile-updated", syncProfile);
+
+    return () => {
+      window.removeEventListener("storage", syncProfile);
+      window.removeEventListener("uniflow-role-profile-updated", syncProfile);
+    };
+  }, [pathname]);
 
   const handleLogout = () => {
     clearUserRoleProfile();
     router.push("/networking/mentors");
   };
 
+  const navItems = profile
+    ? profile.role === "student"
+      ? studentNavItems
+      : mentorNavItems
+    : guestNavItems;
+
+  const isCommonLanding =
+    pathname === "/networking/mentors" || pathname === "/networking/mentors/start";
+  const isMentorView = !isCommonLanding && profile?.role === "mentor";
+  const isStudentView = !isCommonLanding && profile?.role === "student";
+
+  const activeNavItems = isCommonLanding ? commonNavItems : navItems;
+
+  const subLabel = isCommonLanding
+    ? "Mentor Marketplace"
+    : isMentorView
+      ? "Mentor Hub"
+      : "Student Learning Hub";
+
+  const brandHref = isCommonLanding ? "/networking/mentors" : "/networking/mentors/home";
+
+  const headerClass = isMentorView
+    ? "sticky top-0 z-40 border-b border-slate-200 bg-white/92 backdrop-blur-xl"
+    : "sticky top-0 z-40 border-b border-slate-200 bg-white/92 backdrop-blur-xl";
+
+  const logoClass = isMentorView
+    ? "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-black text-white shadow-[0_8px_20px_rgba(79,70,229,0.35)]"
+    : "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-black text-white shadow-[0_8px_20px_rgba(79,70,229,0.35)]";
+
+  const navLinkClass = "text-sm font-medium text-slate-600 transition-colors hover:text-indigo-600";
+  const navLinkActiveClass = "text-sm font-semibold text-indigo-700";
+
+  const nameChipClass = isMentorView
+    ? "rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-sm text-indigo-700"
+    : "rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-sm text-indigo-700";
+
+  const titleClass = "text-sm font-semibold tracking-tight text-slate-900";
+  const subtitleClass = isMentorView
+    ? "text-xs text-slate-500"
+    : "text-xs text-slate-500";
+
+  if (isCommonLanding) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/networking/mentors" className="inline-flex items-center gap-2.5">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600 text-[10px] font-black text-white">✦</span>
+            <span className="text-sm font-bold tracking-tight text-slate-950">UniFlow</span>
+          </Link>
+
+          <nav className="hidden items-center gap-6 md:flex">
+            {[
+              { label: "Explore", href: "/networking/mentors" },
+              { label: "Pathways", href: "/networking/mentors#students" },
+              { label: "Community", href: "/networking/mentors#mentors" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-xs font-medium text-slate-600 transition-colors hover:text-slate-900"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/networking/mentors/start"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:text-slate-950"
+            >
+              Find a Mentor
+            </Link>
+            <Link
+              href="/networking/mentors/start"
+              className="inline-flex h-8 items-center rounded-lg bg-indigo-600 px-3.5 text-xs font-semibold text-white transition hover:bg-indigo-700"
+            >
+              Join as Mentor
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  const isNavActive = (href: string) => {
+    if (href === "/networking/mentors/home") {
+      return pathname === "/networking/mentors/home";
+    }
+
+    return pathname.startsWith(href);
+  };
+
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+    <header className={headerClass}>
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/networking/mentors/home" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-sm font-bold text-white">
-            UF
+        <Link href={brandHref} className="flex items-center gap-3">
+          <div className={logoClass}>
+            {isMentorView ? "MC" : "UF"}
           </div>
           <div>
-            <p className="text-sm font-semibold tracking-tight text-slate-900">UniFlow Mentors</p>
-            <p className="text-xs text-slate-500">
-              {profile?.role === "mentor" ? "Mentor Suite" : "Student Hub"}
+            <p className={titleClass}>UniFlow Mentors</p>
+            <p className={subtitleClass}>
+              {subLabel}
             </p>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          {navItems.map((item) => (
+          {activeNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+              className={isNavActive(item.href) ? navLinkActiveClass : navLinkClass}
             >
               {item.label}
             </Link>
@@ -60,40 +183,51 @@ export function MentorHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/networking/mentors/messages"
-            className={mentorButtonClassName({ variant: "ghost", size: "sm" })}
-          >
-            Messages
-          </Link>
-          <Link
-            href="/networking/mentors/ai-assistant"
-            className={mentorButtonClassName({ variant: "ghost", size: "sm" })}
-          >
-            AI Assistant
-          </Link>
-          <Link
-            href="/networking/mentors/mentor-discovery"
-            className={mentorButtonClassName({ variant: "ghost", size: "sm" })}
-          >
-            Browse
-          </Link>
-          {profile ? (
+          {isStudentView ? (
             <>
-              <span className="text-sm text-slate-600 px-2">{fullName}</span>
-              <button
-                onClick={handleLogout}
+              <Link
+                href="/networking/mentors/mentor-discovery"
+                className={mentorButtonClassName({ size: "sm" })}
+              >
+                Request Guidance
+              </Link>
+            </>
+          ) : null}
+
+          {isMentorView ? (
+            <>
+              <Link
+                href="/networking/mentors/live-session"
+                className={mentorButtonClassName({ size: "sm" })}
+              >
+                New Session
+              </Link>
+              <Link
+                href="/networking/mentors/request-management"
                 className={mentorButtonClassName({ variant: "secondary", size: "sm" })}
               >
+                Request Queue
+              </Link>
+            </>
+          ) : null}
+
+          {profile ? (
+            <>
+              {fullName ? <span className={nameChipClass}>{fullName}</span> : null}
+              <MentorButton
+                onClick={handleLogout}
+                variant="secondary"
+                size="sm"
+              >
                 Logout
-              </button>
+              </MentorButton>
             </>
           ) : (
             <Link
-              href="/networking/mentors/ava-thompson/booking"
+              href="/networking/mentors/start"
               className={mentorButtonClassName({ size: "sm" })}
             >
-              Book Now
+              Get Started
             </Link>
           )}
         </div>

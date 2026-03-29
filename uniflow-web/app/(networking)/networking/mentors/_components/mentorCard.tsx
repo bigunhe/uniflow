@@ -1,59 +1,73 @@
 import Link from "next/link";
-import { mentorButtonClassName } from "./MentorButton";
 import RequestGuidanceButton from "./RequestGuidanceButton";
 import { MentorProfile } from "./mentorData";
 
 type MentorCardProps = {
   mentor: MentorProfile;
+  onProfileClick?: (mentor: MentorProfile) => void;
 };
 
-export default function MentorCard({ mentor }: MentorCardProps) {
+export default function MentorCard({ mentor, onProfileClick }: MentorCardProps) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="p-6">
-        <div className="mb-5 flex items-start gap-4">
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(37,99,235,0.12)]">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
           <img
             src={mentor.image}
             alt={mentor.name}
-            className="h-16 w-16 rounded-xl object-cover ring-2 ring-slate-100"
+            className="h-14 w-14 rounded-xl object-cover ring-2 ring-slate-100"
           />
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-900">{mentor.name}</h3>
-            <p className="text-sm font-medium text-sky-700">{mentor.expertise}</p>
-            <p className="mt-1 text-xs text-slate-500">
-              {mentor.rating.toFixed(1)} rating ({mentor.reviews} reviews)
-            </p>
+            <h3 className="text-xl font-semibold leading-tight text-slate-900">{mentor.name}</h3>
+            <p className="text-xs text-slate-500">{mentor.expertise}</p>
           </div>
         </div>
 
-        <p className="mb-4 text-sm leading-relaxed text-slate-600">{mentor.bio}</p>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {mentor.highlights.slice(0, 3).map((highlight) => (
-            <span
-              key={highlight}
-              className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
-            >
-              {highlight}
-            </span>
-          ))}
-        </div>
-
-        <div className="mb-5 flex items-center justify-between text-sm">
-          <p className="font-semibold text-slate-800">${mentor.ratePerHour}/hr</p>
-          <p className="text-slate-500">{mentor.availability}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href={`/networking/mentors/${mentor.slug}`}
-            className={mentorButtonClassName({ variant: "secondary" })}
-          >
-            View Profile
-          </Link>
-          <RequestGuidanceButton mentorSlug={mentor.slug} mentorName={mentor.name} />
+        <div className="text-right">
+          <p className="text-sm font-semibold text-amber-600">★ {mentor.rating.toFixed(1)}</p>
+          <p className="text-[11px] font-medium text-slate-500">{mentor.reviews} reviews</p>
         </div>
       </div>
+
+      <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-slate-600">{mentor.bio}</p>
+
+      <div className="mb-5 flex flex-wrap gap-1.5">
+        {mentor.highlights.slice(0, 3).map((highlight) => (
+          <span
+            key={highlight}
+            className="rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-blue-700"
+          >
+            #{highlight.replace(/\s+/g, "")}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        {onProfileClick ? (
+          <button
+            type="button"
+            onClick={() => onProfileClick(mentor)}
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+          >
+            Profile
+          </button>
+        ) : (
+          <Link
+            href={`/networking/mentors/${mentor.slug}`}
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+          >
+            Profile
+          </Link>
+        )}
+        <RequestGuidanceButton
+          mentorSlug={mentor.slug}
+          mentorName={mentor.name}
+          initialLabel="Book Now"
+          hideHelperText
+        />
+      </div>
+
+      <p className="mt-3 text-xs text-slate-500">{mentor.availability}</p>
     </article>
   );
 }

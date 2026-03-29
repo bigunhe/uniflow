@@ -22,9 +22,9 @@ export default function MentorDetailsPage({ params }: MentorDetailsPageProps) {
     <div className="space-y-8">
       <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="col-span-12 lg:col-span-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Mentor Profile</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Mentor Profile</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{mentor.name}</h1>
-          <p className="mt-2 text-base font-medium text-sky-700">{mentor.expertise}</p>
+          <p className="mt-2 text-base font-medium text-indigo-700">{mentor.expertise}</p>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">{mentor.about}</p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -76,7 +76,7 @@ export default function MentorDetailsPage({ params }: MentorDetailsPageProps) {
             <p className="mt-2 text-sm text-slate-600">{related.bio}</p>
             <Link
               href={`/networking/mentors/${related.slug}`}
-              className="mt-4 inline-flex text-sm font-semibold text-sky-700 hover:text-sky-800"
+              className="mt-4 inline-flex text-sm font-semibold text-indigo-700 hover:text-indigo-800"
             >
               View profile
             </Link>

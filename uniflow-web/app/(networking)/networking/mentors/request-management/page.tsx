@@ -16,7 +16,7 @@ function statusBadge(status: GuidanceRequest["status"]) {
     return "bg-rose-100 text-rose-700";
   }
 
-  return "bg-amber-100 text-amber-700";
+  return "bg-indigo-100 text-indigo-700";
 }
 
 export default function RequestManagementPage() {
@@ -46,7 +46,7 @@ export default function RequestManagementPage() {
         <p className="mt-2 text-sm text-slate-600">
           Accept or reject student guidance requests. Accepting a request activates Messages for both parties.
         </p>
-        <p className="mt-4 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+        <p className="mt-4 inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
           {pendingCount} pending request{pendingCount === 1 ? "" : "s"}
         </p>
       </section>

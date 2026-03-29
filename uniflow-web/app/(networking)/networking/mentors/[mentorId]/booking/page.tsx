@@ -27,7 +27,7 @@ export default function MentorBookingPage({ params }: MentorBookingPageProps) {
         <form className="mt-7 grid grid-cols-12 gap-4">
           <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
             Session Type
-            <select className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-sky-500 focus:ring-2">
+            <select className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-indigo-500 focus:ring-2">
               <option>1:1 Mentorship</option>
               <option>Project Review</option>
               <option>Interview Prep</option>
@@ -36,7 +36,7 @@ export default function MentorBookingPage({ params }: MentorBookingPageProps) {
 
           <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
             Duration
-            <select className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-sky-500 focus:ring-2">
+            <select className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-indigo-500 focus:ring-2">
               <option>60 Minutes</option>
               <option>90 Minutes</option>
               <option>120 Minutes</option>
@@ -47,7 +47,7 @@ export default function MentorBookingPage({ params }: MentorBookingPageProps) {
             Preferred Date
             <input
               type="date"
-              className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-sky-500 focus:ring-2"
+              className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-indigo-500 focus:ring-2"
             />
           </label>
 
@@ -55,7 +55,7 @@ export default function MentorBookingPage({ params }: MentorBookingPageProps) {
             Preferred Time
             <input
               type="time"
-              className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-sky-500 focus:ring-2"
+              className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none ring-indigo-500 focus:ring-2"
             />
           </label>
 
@@ -64,7 +64,7 @@ export default function MentorBookingPage({ params }: MentorBookingPageProps) {
             <textarea
               rows={4}
               placeholder="Share what you want to accomplish in this session"
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-sky-500 focus:ring-2"
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring-2"
             />
           </label>
 

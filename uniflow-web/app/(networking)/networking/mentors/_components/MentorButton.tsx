@@ -20,11 +20,11 @@ export function mentorButtonClassName({
 }) {
   const variantStyles: Record<MentorButtonVariant, string> = {
     primary:
-      "bg-sky-600 text-white hover:bg-sky-700 focus-visible:ring-sky-500 shadow-sm",
+      "bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:from-indigo-500 hover:to-blue-500 focus-visible:ring-indigo-400 shadow-[0_8px_24px_rgba(79,70,229,0.35)]",
     secondary:
-      "bg-white text-slate-900 border border-slate-300 hover:bg-slate-100 focus-visible:ring-slate-400",
+      "bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 focus-visible:ring-indigo-300",
     ghost:
-      "bg-transparent text-slate-700 hover:bg-slate-100 focus-visible:ring-slate-400",
+      "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-indigo-600 focus-visible:ring-indigo-300",
   };
 
   const sizeStyles: Record<MentorButtonSize, string> = {
@@ -34,7 +34,7 @@ export function mentorButtonClassName({
   };
 
   return cn(
-    "inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    "inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     variantStyles[variant],
     sizeStyles[size],
     className,

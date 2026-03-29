@@ -25,22 +25,16 @@ function formatSegment(segment: string) {
 
 export function MentorBreadcrumbs() {
   const pathname = usePathname();
+  const isCommonLanding =
+    pathname === "/networking/mentors" || pathname === "/networking/mentors/start";
 
-  if (!pathname.startsWith("/networking/mentors")) {
+  if (!pathname.startsWith("/networking/mentors") || isCommonLanding) {
     return null;
   }
 
   const pathParts = pathname.split("/").filter(Boolean);
   const mentorRootIndex = pathParts.findIndex((part) => part === "mentors");
   const mentorParts = pathParts.slice(mentorRootIndex + 1);
-
-  if (mentorParts.length === 0) {
-    return (
-      <div className="mb-6 text-sm text-slate-500">
-        <span className="font-medium text-slate-700">Home</span>
-      </div>
-    );
-  }
 
   const crumbs = mentorParts.map((segment, index) => {
     const href = `/networking/mentors/${mentorParts.slice(0, index + 1).join("/")}`;
@@ -53,16 +47,24 @@ export function MentorBreadcrumbs() {
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-      <Link href="/networking/mentors" className="hover:text-slate-800">
+      <Link
+        href="/networking/mentors"
+        className="rounded-full border border-slate-300 bg-white px-2.5 py-1 transition hover:text-slate-800"
+      >
         Home
       </Link>
       {crumbs.map((crumb) => (
         <div key={crumb.href} className="flex items-center gap-2">
-          <span>/</span>
+          <span className="text-slate-400">/</span>
           {crumb.isLast ? (
-            <span className="font-medium text-slate-700">{crumb.label}</span>
+            <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 font-medium text-indigo-800">
+              {crumb.label}
+            </span>
           ) : (
-            <Link href={crumb.href} className="hover:text-slate-800">
+            <Link
+              href={crumb.href}
+              className="rounded-full border border-slate-300 bg-white px-2.5 py-1 transition hover:text-slate-800"
+            >
               {crumb.label}
             </Link>
           )}
