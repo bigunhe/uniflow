@@ -6,9 +6,229 @@ import { CheckCircle2, ExternalLink, Github, ImageIcon } from "lucide-react";
 import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 import { mockProjectsById } from "@/lib/mockData";
 import { readCompletedProjectIds } from "@/lib/projects/localState";
+import { isValidGithubRepoUrl, isValidHttpOrHttpsUrl } from "@/lib/projects/verificationValidators";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+type CompletedProject = (typeof mockProjectsById)[string];
+type FieldKey = "githubRepoUrl" | "screenshotLink" | "reflectionNotes";
+
+function CompletedProjectVerificationCard({ project }: { project: CompletedProject }) {
+  const [githubRepoUrl, setGithubRepoUrl] = useState("");
+  const [screenshotLink, setScreenshotLink] = useState("");
+  const [reflectionNotes, setReflectionNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<FieldKey, string>>({
+    githubRepoUrl: "",
+    screenshotLink: "",
+    reflectionNotes: "",
+  });
+  const [touched, setTouched] = useState<Record<FieldKey, boolean>>({
+    githubRepoUrl: false,
+    screenshotLink: false,
+    reflectionNotes: false,
+  });
+
+  const validateGithubRepoUrl = (value: string): string => {
+    if (!value.trim()) return "GitHub repository link is required.";
+    if (!isValidGithubRepoUrl(value)) {
+      return "Enter a valid GitHub repository URL (e.g. https://github.com/user/repo).";
+    }
+    return "";
+  };
+
+  const validateScreenshotLink = (value: string): string => {
+    if (!value.trim()) return "Screenshot link is required.";
+    if (!isValidHttpOrHttpsUrl(value)) {
+      return "Enter a valid screenshot URL (http or https).";
+    }
+    return "";
+  };
+
+  const validateReflectionNotes = (value: string): string => {
+    if (!value.trim()) return "Please add reflection notes before submitting.";
+    return "";
+  };
+
+  const validateField = (field: FieldKey, value: string, showToast: boolean): string => {
+    let nextError = "";
+    if (field === "githubRepoUrl") nextError = validateGithubRepoUrl(value);
+    if (field === "screenshotLink") nextError = validateScreenshotLink(value);
+    if (field === "reflectionNotes") nextError = validateReflectionNotes(value);
+
+    setErrors((prev) => ({ ...prev, [field]: nextError }));
+    if (showToast && nextError) {
+      toast.error(nextError, { id: `${project.id}-${field}-validation` });
+    }
+    return nextError;
+  };
+
+  const validateForm = (): boolean => {
+    const githubError = validateGithubRepoUrl(githubRepoUrl);
+    const screenshotError = validateScreenshotLink(screenshotLink);
+    const reflectionError = validateReflectionNotes(reflectionNotes);
+
+    const nextErrors: Record<FieldKey, string> = {
+      githubRepoUrl: githubError,
+      screenshotLink: screenshotError,
+      reflectionNotes: reflectionError,
+    };
+
+    setTouched({
+      githubRepoUrl: true,
+      screenshotLink: true,
+      reflectionNotes: true,
+    });
+    setErrors(nextErrors);
+
+    const firstError = githubError || screenshotError || reflectionError;
+    if (firstError) {
+      toast.error(firstError);
+      return false;
+    }
+    return true;
+  };
+
+  const handleFakeSubmit = async () => {
+    if (!validateForm() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    toast.success("Mock verification submitted. Demo mode only - no data was saved.");
+    setIsSubmitting(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <Badge variant="outline">{project.year}</Badge>
+        <span className="inline-flex items-center gap-1 text-xs text-[#00d2b4]">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Completed
+        </span>
+      </div>
+      <h2 className="text-lg font-semibold">{project.title}</h2>
+      <p className="mt-2 text-sm text-white/50">{project.brief}</p>
+
+      <div className="mt-4 space-y-3">
+        <div>
+          <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
+            GitHub Repository
+          </label>
+          <Input
+            value={githubRepoUrl}
+            onChange={(event) => {
+              const value = event.target.value;
+              setGithubRepoUrl(value);
+              if (touched.githubRepoUrl) {
+                validateField("githubRepoUrl", value, false);
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, githubRepoUrl: true }));
+              validateField("githubRepoUrl", githubRepoUrl, true);
+            }}
+            aria-invalid={Boolean(errors.githubRepoUrl)}
+            placeholder="https://github.com/username/project-repo"
+            className={`border-white/15 bg-[#0b111b] text-white placeholder:text-white/25 ${
+              errors.githubRepoUrl ? "border-red-400/70 focus-visible:ring-red-400/40" : ""
+            }`}
+          />
+          {errors.githubRepoUrl && touched.githubRepoUrl && (
+            <p className="mt-1 text-xs text-red-300">{errors.githubRepoUrl}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
+            Screenshot Links
+          </label>
+          <Input
+            value={screenshotLink}
+            onChange={(event) => {
+              const value = event.target.value;
+              setScreenshotLink(value);
+              if (touched.screenshotLink) {
+                validateField("screenshotLink", value, false);
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, screenshotLink: true }));
+              validateField("screenshotLink", screenshotLink, true);
+            }}
+            aria-invalid={Boolean(errors.screenshotLink)}
+            placeholder="https://drive.google.com/... or image URL"
+            className={`border-white/15 bg-[#0b111b] text-white placeholder:text-white/25 ${
+              errors.screenshotLink ? "border-red-400/70 focus-visible:ring-red-400/40" : ""
+            }`}
+          />
+          {errors.screenshotLink && touched.screenshotLink && (
+            <p className="mt-1 text-xs text-red-300">{errors.screenshotLink}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
+            Reflection Notes
+          </label>
+          <textarea
+            value={reflectionNotes}
+            onChange={(event) => {
+              const value = event.target.value;
+              setReflectionNotes(value);
+              if (touched.reflectionNotes) {
+                validateField("reflectionNotes", value, false);
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, reflectionNotes: true }));
+              validateField("reflectionNotes", reflectionNotes, true);
+            }}
+            aria-invalid={Boolean(errors.reflectionNotes)}
+            placeholder="What you built, key challenge, and what you learned."
+            className={`min-h-[92px] w-full rounded-md border border-white/15 bg-[#0b111b] px-3 py-2 text-sm text-white placeholder:text-white/25 focus-visible:outline-none focus-visible:ring-2 ${
+              errors.reflectionNotes
+                ? "border-red-400/70 focus-visible:ring-red-400/40"
+                : "focus-visible:ring-[#00d2b4]/40"
+            }`}
+          />
+          {errors.reflectionNotes && touched.reflectionNotes && (
+            <p className="mt-1 text-xs text-red-300">{errors.reflectionNotes}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <Button
+          onClick={handleFakeSubmit}
+          disabled={isSubmitting}
+          className="flex-1 bg-[#00d2b4] text-[#080c14] hover:bg-[#00d2b4]/85"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Mock Verification"}
+        </Button>
+        <Button asChild variant="outline" className="border-white/15 bg-white/5 text-white/65 hover:border-white/30 hover:text-white">
+          <Link href={`/projects/${project.id}`}>
+            <ExternalLink className="mr-1 h-4 w-4" />
+            Open
+          </Link>
+        </Button>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/35">
+        <span className="inline-flex items-center gap-1">
+          <Github className="h-3.5 w-3.5" />
+          Repo link
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <ImageIcon className="h-3.5 w-3.5" />
+          Screenshot proof
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function CompletedProjectsPage() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
@@ -40,7 +260,7 @@ export default function CompletedProjectsPage() {
           <h1 className="text-xl font-semibold">Track External Project Work</h1>
           <p className="mt-1 text-sm text-white/55">
             Students build projects outside this platform. This page stores their
-            completed list and collects verification artifacts with mock inputs.
+            completed list and validates verification artifacts on the frontend in demo mode.
           </p>
         </div>
 
@@ -57,75 +277,7 @@ export default function CompletedProjectsPage() {
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
             {completedProjects.map((project) => (
-              <div
-                key={project.id}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <Badge variant="outline">{project.year}</Badge>
-                  <span className="inline-flex items-center gap-1 text-xs text-[#00d2b4]">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Completed
-                  </span>
-                </div>
-                <h2 className="text-lg font-semibold">{project.title}</h2>
-                <p className="mt-2 text-sm text-white/50">{project.brief}</p>
-
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
-                      GitHub Repository
-                    </label>
-                    <Input
-                      placeholder="https://github.com/username/project-repo"
-                      className="border-white/15 bg-[#0b111b] text-white placeholder:text-white/25"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
-                      Screenshot Links
-                    </label>
-                    <Input
-                      placeholder="Drive link / image URLs"
-                      className="border-white/15 bg-[#0b111b] text-white placeholder:text-white/25"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-wider text-white/40">
-                      Reflection Notes
-                    </label>
-                    <textarea
-                      placeholder="What you built, key challenge, and what you learned."
-                      className="min-h-[92px] w-full rounded-md border border-white/15 bg-[#0b111b] px-3 py-2 text-sm text-white placeholder:text-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00d2b4]/40"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <Button className="flex-1 bg-[#00d2b4] text-[#080c14] hover:bg-[#00d2b4]/85">
-                    Submit Mock Verification
-                  </Button>
-                  <Button asChild variant="outline" className="border-white/15 bg-white/5 text-white/65 hover:border-white/30 hover:text-white">
-                    <Link href={`/projects/${project.id}`}>
-                      <ExternalLink className="mr-1 h-4 w-4" />
-                      Open
-                    </Link>
-                  </Button>
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/35">
-                  <span className="inline-flex items-center gap-1">
-                    <Github className="h-3.5 w-3.5" />
-                    Repo link
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <ImageIcon className="h-3.5 w-3.5" />
-                    Screenshot proof
-                  </span>
-                </div>
-              </div>
+              <CompletedProjectVerificationCard key={project.id} project={project} />
             ))}
           </div>
         )}
