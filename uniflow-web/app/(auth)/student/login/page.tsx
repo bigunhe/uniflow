@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function StudentLoginPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<'student' | 'mentor'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,20 +16,21 @@ export default function StudentLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push('/uniflow');
+    }, 1000);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
         {/* Left Sidebar */}
-        <div className="bg-gradient-to-br from-green-600 via-green-700 to-emerald-800 text-white p-8 md:p-12 flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-[#4747EB] via-[#7B67D1] to-[#B85393] text-white p-8 md:p-12 flex flex-col justify-between">
           <div>
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-2 mb-12">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-green-600 font-bold text-lg">U</span>
-              </div>
+              <img src="/logo.svg" alt="UniFlow" className="h-10 w-10" />
               <span className="text-2xl font-bold">UniFlow</span>
             </Link>
 
@@ -35,10 +38,9 @@ export default function StudentLoginPage() {
             <h1 className="text-5xl font-bold mb-6 leading-tight">
               Welcome back.
             </h1>
-            <p className="text-green-100 text-lg mb-8">
+            <p className="text-[#E6E1F8] text-lg mb-8">
               Connect with your mentors, continue your learning journey, and accelerate your career growth.
             </p>
-
             {/* Features */}
             <div className="space-y-6">
               <div className="flex gap-4 items-start">
@@ -155,9 +157,9 @@ export default function StudentLoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-green-600 rounded border-gray-300 cursor-pointer"
+                    className="w-4 h-4 text-[#7B67D1] rounded border-gray-300 cursor-pointer"
                   />
-                  <span className="text-sm text-gray-600">Remember me</span>
+                  <span className="text-sm text-gray-100">Remember me</span>
                 </label>
                 <Link href="#" className="text-sm text-green-600 hover:text-green-700 font-semibold">
                   Forgot password?
@@ -168,7 +170,7 @@ export default function StudentLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#4747EB] to-[#7B67D1] hover:from-[#5D5CF4] hover:to-[#8E77DF] disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
                 <ArrowRight size={20} />

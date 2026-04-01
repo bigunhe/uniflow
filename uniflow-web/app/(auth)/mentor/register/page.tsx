@@ -1,30 +1,114 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Mail, Lock, User, BookOpen, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+
+async function handleRegistration(
+  fullName: string,
+  email: string,
+  company: string,
+  jobTitle: string,
+  yearsOfExperience: string,
+  primaryExpertise: string,
+  password: string,
+  confirmPassword: string,
+  userType: 'student' | 'mentor'
+) {
+  // Normalize email
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Validate
+  if (!fullName.trim()) {
+    return { success: false, error: 'Full name is required' };
+  }
+
+  if (!normalizedEmail.includes('@')) {
+    return { success: false, error: 'Invalid email address' };
+  }
+
+  if (!company.trim()) {
+    return { success: false, error: 'Company/Organization is required' };
+  }
+
+  if (!jobTitle.trim()) {
+    return { success: false, error: 'Job title is required' };
+  }
+
+  const years = Number(yearsOfExperience);
+  if (!yearsOfExperience.trim() || Number.isNaN(years) || years < 0) {
+    return { success: false, error: 'Please provide years of experience as a valid non-negative number' };
+  }
+
+  if (!primaryExpertise.trim()) {
+    return { success: false, error: 'Primary area of expertise is required' };
+  }
+
+  if (password.length < 8) {
+    return { success: false, error: 'Password must be at least 8 characters' };
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return { success: false, error: 'Password must contain an uppercase letter' };
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return { success: false, error: 'Password must contain a lowercase letter' };
+  }
+
+  if (!/[0-9]/.test(password)) {
+    return { success: false, error: 'Password must contain a number' };
+  }
+
+  if (password !== confirmPassword) {
+    return { success: false, error: 'Passwords do not match' };
+  }
+
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        password,
+        fullName,
+        company,
+        jobTitle,
+        yearsOfExperience,
+        primaryExpertise,
+        userType,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Registration failed' };
+    }
+
+    return { success: true, message: data.message || 'Account created successfully!' };
+  } catch (error) {
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
 
 export default function MentorRegisterPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<'student' | 'mentor'>('mentor');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    specialization: '',
+    company: '',
+    jobTitle: '',
+    yearsOfExperience: '',
+    primaryExpertise: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-
-  const specializations = [
-    'Software Engineering',
-    'Interactive Media',
-    'Information System Engineering',
-    'Data Science',
-    'Cyber Security',
-    'Network Engineering',
-    'Computer Science',
-  ];
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -36,8 +120,40 @@ export default function MentorRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage(null);
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+
+    const result = await handleRegistration(
+      formData.fullName,
+      formData.email,
+      formData.company,
+      formData.jobTitle,
+      formData.yearsOfExperience,
+      formData.primaryExpertise,
+      formData.password,
+      formData.confirmPassword,
+      userType
+    );
+
+    setIsLoading(false);
+
+    if (result.success) {
+      setMessage({ type: 'success', text: result.message || 'Account created successfully!' });
+      setFormData({
+        fullName: '',
+        email: '',
+        company: '',
+        jobTitle: '',
+        yearsOfExperience: '',
+        primaryExpertise: '',
+        password: '',
+        confirmPassword: '',
+        agreeToTerms: false,
+      });
+      router.push('/uniflow');
+    } else {
+      setMessage({ type: 'error', text: result.error || 'Registration failed' });
+    }
   };
 
   return (
@@ -48,47 +164,30 @@ export default function MentorRegisterPage() {
           <div>
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-2 mb-12">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">U</span>
-              </div>
+              <img src="/logo.svg" alt="UniFlow" className="h-10 w-10" />
               <span className="text-2xl font-bold">UniFlow</span>
             </Link>
 
             {/* Heading */}
             <h1 className="text-5xl font-bold mb-6 leading-tight">
-              Share your expertise.
+              Start your IT journey today.
             </h1>
             <p className="text-blue-100 text-lg mb-8">
-              Join thousands of mentors shaping the next generation. Guide students, share knowledge, and make a real impact.
+              Join over 10,000+ students and mentors in the most advanced IT career guidance ecosystem.
             </p>
 
             {/* Features */}
             <div className="space-y-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <CheckCircle size={24} className="text-white" />
-                </div>
+              <div className="flex gap-4 items-center">
+                <div className="text-3xl flex-shrink-0">✓</div>
                 <div>
-                  <p className="font-semibold text-lg">Help Students Grow</p>
-                  <p className="text-blue-100">Guide the next generation of IT professionals</p>
+                  <p className="font-semibold text-lg">Industry Certified Mentors</p>
                 </div>
               </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <CheckCircle size={24} className="text-white" />
-                </div>
+              <div className="flex gap-4 items-center">
+                <div className="text-3xl flex-shrink-0">🚀</div>
                 <div>
-                  <p className="font-semibold text-lg">Build Your Legacy</p>
-                  <p className="text-blue-100">Create personalized learning paths for mentees</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <CheckCircle size={24} className="text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-lg">Network</p>
-                  <p className="text-blue-100">Connect with mentors and industry leaders</p>
+                  <p className="font-semibold text-lg">Personalized Career Roadmaps</p>
                 </div>
               </div>
             </div>
@@ -111,25 +210,45 @@ export default function MentorRegisterPage() {
             <div className="flex gap-3 mb-8 bg-gray-100 p-1 rounded-lg">
               <button
                 onClick={() => setUserType('student')}
-                className={`flex-1 py-2.5 px-4 rounded-md font-semibold transition ${
+                className={`flex-1 py-2.5 px-4 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
                   userType === 'student'
                     ? 'bg-white text-blue-600 shadow-md'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                👨‍🎓 Student
+                <span className="text-lg">👨‍🎓</span> Student
               </button>
               <button
                 onClick={() => setUserType('mentor')}
-                className={`flex-1 py-2.5 px-4 rounded-md font-semibold transition ${
+                className={`flex-1 py-2.5 px-4 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
                   userType === 'mentor'
                     ? 'bg-white text-blue-600 shadow-md'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                👨‍🏫 Mentor
+                <span className="text-lg">👨‍🏫</span> Mentor
               </button>
             </div>
+
+            {/* Messages */}
+            {message && (
+              <div
+                className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
+                  message.type === 'error'
+                    ? 'bg-red-50 border border-red-200'
+                    : 'bg-green-50 border border-green-200'
+                }`}
+              >
+                {message.type === 'error' ? (
+                  <AlertCircle className="text-red-600 mt-0.5" size={20} />
+                ) : (
+                  <CheckCircle className="text-green-600 mt-0.5" size={20} />
+                )}
+                <p className={message.type === 'error' ? 'text-red-800' : 'text-green-800'}>
+                  {message.text}
+                </p>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -173,27 +292,75 @@ export default function MentorRegisterPage() {
                 </div>
               </div>
 
-              {/* Specialization */}
-              <div>
-                <label htmlFor="specialization" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Specialization
-                </label>
-                <div className="relative">
-                  <BookOpen className="absolute left-4 top-3 text-gray-400" size={20} />
-                  <select
-                    id="specialization"
-                    name="specialization"
-                    value={formData.specialization}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="company" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Company / Organization
+                  </label>
+                  <input
+                    id="company"
+                    name="company"
+                    type="text"
+                    placeholder="FutureTech Inc."
+                    value={formData.company}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition appearance-none bg-gray-50"
+                    className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="jobTitle" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Job Title
+                  </label>
+                  <input
+                    id="jobTitle"
+                    name="jobTitle"
+                    type="text"
+                    placeholder="Senior Product Lead"
+                    value={formData.jobTitle}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="yearsOfExperience" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Years of Experience
+                  </label>
+                  <input
+                    id="yearsOfExperience"
+                    name="yearsOfExperience"
+                    type="number"
+                    min="0"
+                    placeholder="8"
+                    value={formData.yearsOfExperience}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="primaryExpertise" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Primary Area of Expertise
+                  </label>
+                  <select
+                    id="primaryExpertise"
+                    name="primaryExpertise"
+                    value={formData.primaryExpertise}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50"
                     required
                   >
-                    <option value="">Select your field</option>
-                    {specializations.map((spec) => (
-                      <option key={spec} value={spec}>
-                        {spec}
-                      </option>
-                    ))}
+                    <option value="">Select specialization</option>
+                    <option value="software">Software Engineering</option>
+                    <option value="product">Product Management</option>
+                    <option value="data">Data Science</option>
+                    <option value="design">UX/UI Design</option>
+                    <option value="security">Cybersecurity</option>
+                    <option value="cloud">Cloud Architecture</option>
                   </select>
                 </div>
               </div>
@@ -266,7 +433,7 @@ export default function MentorRegisterPage() {
                 disabled={isLoading || !formData.agreeToTerms}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
               >
-                {isLoading ? 'Creating account...' : 'Register Now'}
+                {isLoading ? 'Creating account...' : 'Become a Mentor'}
                 <ArrowRight size={20} />
               </button>
             </form>
@@ -278,181 +445,6 @@ export default function MentorRegisterPage() {
                 Login here
               </Link>
             </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-blue-600 mb-4">
-              <span className="text-white font-bold text-lg">U</span>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Become a Mentor</h1>
-            <p className="text-gray-600">Create your mentor account</p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  placeholder="John Doe"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Specialization */}
-            <div>
-              <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-2">
-                Specialization
-              </label>
-              <div className="relative">
-                <BookOpen className="absolute left-3 top-3 text-gray-400" size={20} />
-                <select
-                  id="specialization"
-                  name="specialization"
-                  value={formData.specialization}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition appearance-none bg-white"
-                  required
-                >
-                  <option value="">Select your specialization</option>
-                  {specializations.map((spec) => (
-                    <option key={spec} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Terms */}
-            <label className="flex items-start">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300 mt-0.5"
-                required
-              />
-              <span className="ml-2 text-sm text-gray-600">
-                I agree to the{' '}
-                <Link href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Privacy Policy
-                </Link>
-              </span>
-            </label>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading || !formData.agreeToTerms}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2.5 px-4 rounded-lg transition flex items-center justify-center gap-2"
-            >
-              {isLoading ? 'Creating account...' : 'Create Account'}
-              <ArrowRight size={18} />
-            </button>
-          </form>
-
-          {/* Footer */}
-          <p className="mt-6 text-center text-gray-600">
-            Already have an account?{' '}
-            <Link href="/mentor/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-              Sign in
-            </Link>
-          </p>
-
-          {/* Role Switch */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-3">Are you a student?</p>
-            <Link
-              href="/student/register"
-              className="block w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium py-2 px-4 rounded-lg border border-blue-200 hover:bg-blue-50 transition"
-            >
-              Switch to Student Registration
-            </Link>
           </div>
         </div>
       </div>
