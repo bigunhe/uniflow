@@ -15,38 +15,32 @@ function LoginPageContent() {
     [safeNext]
   );
 
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [magicLoading, setMagicLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [magicSent, setMagicSent] = useState(false);
   const [magicError, setMagicError] = useState("");
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: authCallbackUrl || `${location.origin}/callback` },
-    });
-    setLoading(false);
-  };
-
   const handleMagicLink = async () => {
-    if (!email.trim()) {
-      setMagicError("Please enter your email address.");
+    const normalized = email.trim().toLowerCase();
+    if (!normalized || !normalized.includes("@")) {
+      setMagicError("Please enter a valid email address.");
       return;
     }
-    setMagicLoading(true);
+    setLoading(true);
     setMagicError("");
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: authCallbackUrl || `${location.origin}/callback` },
+      email: normalized,
+      options: {
+        emailRedirectTo: authCallbackUrl || `${typeof window !== "undefined" ? window.location.origin : ""}/callback`,
+        shouldCreateUser: true,
+      },
     });
-    setMagicLoading(false);
+    setLoading(false);
     if (error) {
-      setMagicError(error.message);
-    } else {
-      setMagicSent(true);
+      setMagicError(error.message || "Unable to send your magic link.");
+      return;
     }
+    setMagicSent(true);
   };
 
   return (
@@ -54,7 +48,7 @@ function LoginPageContent() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        .login-root{min-height:100vh;background:#080c14;display:flex;font-family:'DM Sans',sans-serif;overflow:hidden;position:relative;}
+        .login-root{min-height:100vh;background:var(--app-bg-gradient);display:flex;font-family:'DM Sans',sans-serif;overflow:hidden;position:relative;}
         .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,210,180,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.04) 1px,transparent 1px);background-size:48px 48px;}
         .bg-glow{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
         .glow-1{width:520px;height:520px;background:radial-gradient(circle,rgba(0,210,180,.18) 0%,transparent 70%);top:-120px;left:-120px;animation:drift1 9s ease-in-out infinite alternate;}
@@ -81,12 +75,23 @@ function LoginPageContent() {
         .card-label{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:32px;display:inline-block;text-decoration:none;transition:color .18s,opacity .18s;}
         .card-label:hover,.card-label:focus-visible{color:rgba(0,210,180,.85);opacity:1;outline:none;}
         .card-heading{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.03em;text-align:center;margin-bottom:8px;}
-        .card-sub{font-size:14px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6;margin-bottom:40px;}
-        .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:15px 24px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#1a1a2e;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 24px rgba(0,0,0,.35);}
-        .btn-google:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
-        .btn-google:disabled{opacity:.6;cursor:not-allowed;}
-        .spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.15);border-top-color:#1a1a2e;border-radius:50%;animation:spin .7s linear infinite;}
+        .card-sub{font-size:14px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6;margin-bottom:24px;}
+        .email-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px;}
+        .email-input:focus{border-color:rgba(0,210,180,.45);background:rgba(0,210,180,.04);}
+        .email-input::placeholder{color:rgba(255,255,255,.2);}
+        .btn-magic{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .18s,transform .18s;}
+        .btn-magic:hover:not(:disabled){opacity:.88;transform:translateY(-1px);}
+        .btn-magic:disabled{opacity:.55;cursor:not-allowed;}
+        .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
         @keyframes spin{to{transform:rotate(360deg)}}
+        .magic-error{font-size:13px;color:#fca5a5;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px;margin-bottom:12px;text-align:center;width:100%;}
+        .magic-sent{text-align:center;padding:24px 0;}
+        .magic-sent-icon{font-size:40px;margin-bottom:12px;}
+        .magic-sent-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;}
+        .magic-sent-sub{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;}
+        .magic-sent-email{color:#00d2b4;font-weight:500;}
+        .magic-sent-retry{margin-top:16px;font-size:12px;color:rgba(255,255,255,.2);}
+        .magic-sent-retry button{background:none;border:none;color:rgba(0,210,180,.6);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;text-decoration:underline;}
         .divider{display:flex;align-items:center;gap:12px;width:100%;margin:28px 0;}
         .divider-line{flex:1;height:1px;background:rgba(255,255,255,.08);}
         .divider-text{font-size:12px;color:rgba(255,255,255,.2);}
@@ -97,20 +102,6 @@ function LoginPageContent() {
         .info-text strong{color:rgba(255,255,255,.6);font-weight:500;}
         .terms{margin-top:32px;font-size:11px;color:rgba(255,255,255,.2);text-align:center;line-height:1.6;}
         .terms a{color:rgba(0,210,180,.6);text-decoration:none;}
-        .email-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s;margin-bottom:10px;}
-        .email-input:focus{border-color:rgba(0,210,180,.45);background:rgba(0,210,180,.04);}
-        .email-input::placeholder{color:rgba(255,255,255,.2);}
-        .btn-magic{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .18s,transform .18s;}
-        .btn-magic:hover:not(:disabled){opacity:.88;transform:translateY(-1px);}
-        .btn-magic:disabled{opacity:.55;cursor:not-allowed;}
-        .magic-error{font-size:13px;color:#fca5a5;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px;margin-top:8px;text-align:center;}
-        .magic-sent{text-align:center;padding:24px 0;}
-        .magic-sent-icon{font-size:40px;margin-bottom:12px;}
-        .magic-sent-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;}
-        .magic-sent-sub{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;}
-        .magic-sent-email{color:#00d2b4;font-weight:500;}
-        .magic-sent-retry{margin-top:16px;font-size:12px;color:rgba(255,255,255,.2);}
-        .magic-sent-retry button{background:none;border:none;color:rgba(0,210,180,.6);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;text-decoration:underline;}
         @media(max-width:768px){.login-root{flex-direction:column;}.left-panel{padding:48px 32px 32px;}.right-panel{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,.07);padding:40px 32px;}}
       `}</style>
 
@@ -130,31 +121,17 @@ function LoginPageContent() {
           </div>
         </div>
         <div className="right-panel">
-          <a className="card-label" href="/register">Get started free</a>
+          <a className="card-label" href="/register">Get started</a>
           <h2 className="card-heading">Welcome to UniFlow</h2>
           <p className="card-sub">
-            Sign in with your university Google account to start building your verified career portfolio.
+            Sign in with a secure magic link — no password, no OAuth.
             {safeNext ? (
               <>
                 <br />
-                <span style={{ color: "rgba(0,210,180,.55)" }}>
-                  After sign-in you&apos;ll continue to the app.
-                </span>
+                <span style={{ color: "rgba(0,210,180,.55)" }}>After sign-in you&apos;ll continue where you left off.</span>
               </>
             ) : null}
           </p>
-          <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
-            {loading ? <span className="spinner" /> : (
-              <svg width="20" height="20" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9L37 9.7C33.7 6.8 29.1 5 24 5 12.9 5 4 13.9 4 25s8.9 20 20 20c11 0 19.7-7.7 19.7-20 0-1.3-.1-2.7-.1-4z"/>
-                <path fill="#FF3D00" d="M6.3 15.1l6.6 4.8C14.7 16.1 19 13 24 13c3 0 5.7 1.1 7.8 2.9L37 9.7C33.7 6.8 29.1 5 24 5c-7.7 0-14.3 4.3-17.7 10.1z"/>
-                <path fill="#4CAF50" d="M24 45c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 36.5 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-8H6.4v5.5C9.9 40.7 16.5 45 24 45z"/>
-                <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 6l6.2 5.2C40.9 35.8 44 30.8 44 25c0-1.3-.1-2.7-.4-5z"/>
-              </svg>
-            )}
-            {loading ? "Connecting…" : "Continue with Google"}
-          </button>
-          <div className="divider"><div className="divider-line" /><span className="divider-text">or sign in with email</span><div className="divider-line" /></div>
 
           {magicSent ? (
             <div className="magic-sent">
@@ -162,11 +139,13 @@ function LoginPageContent() {
               <div className="magic-sent-title">Check your inbox</div>
               <div className="magic-sent-sub">
                 We sent a sign-in link to<br />
-                <span className="magic-sent-email">{email}</span>
+                <span className="magic-sent-email">{email.trim().toLowerCase()}</span>
               </div>
               <div className="magic-sent-retry">
                 Wrong address?{" "}
-                <button onClick={() => { setMagicSent(false); setEmail(""); }}>Try again</button>
+                <button type="button" onClick={() => { setMagicSent(false); setEmail(""); setMagicError(""); }}>
+                  Try again
+                </button>
               </div>
             </div>
           ) : (
@@ -178,23 +157,33 @@ function LoginPageContent() {
                 value={email}
                 onChange={e => { setEmail(e.target.value); setMagicError(""); }}
                 onKeyDown={e => e.key === "Enter" && handleMagicLink()}
+                autoComplete="email"
+                disabled={loading}
               />
-              <button className="btn-magic" onClick={handleMagicLink} disabled={magicLoading}>
-                {magicLoading
-                  ? <><span className="spinner" style={{borderColor:"rgba(255,255,255,.3)",borderTopColor:"#fff"}} />Sending…</>
-                  : "✉ Send Magic Link"}
+              <button type="button" className="btn-magic" onClick={handleMagicLink} disabled={loading}>
+                {loading ? (
+                  <>
+                    <span className="spinner" />
+                    Sending…
+                  </>
+                ) : (
+                  "✉ Send magic link"
+                )}
               </button>
-              {magicError && <div className="magic-error">{magicError}</div>}
+              {magicError ? <div className="magic-error">{magicError}</div> : null}
             </>
           )}
 
-          <div className="divider" style={{marginTop:24}}><div className="divider-line" /><span className="divider-text">what you get</span><div className="divider-line" /></div>
+          <div className="divider"><div className="divider-line" /><span className="divider-text">what you get</span><div className="divider-line" /></div>
           <div className="info-list">
             <div className="info-item"><div className="info-icon">📊</div><div className="info-text"><strong>Employability Pulse Score</strong> — a live 0–100 metric that grows as you learn and build.</div></div>
             <div className="info-item"><div className="info-icon">🔗</div><div className="info-text"><strong>Public Portfolio URL</strong> — share uniflow.lk/p/you on LinkedIn with verified proof of skills.</div></div>
             <div className="info-item"><div className="info-icon">🎓</div><div className="info-text"><strong>Mentor Mode</strong> — tutor peers, earn community impact points, get endorsements.</div></div>
           </div>
-          <p className="terms">By signing in you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+          <p className="terms">
+            By signing in you agree to our <a href="/terms-of-service">Terms of Service</a> and{" "}
+            <a href="/privacy-policy">Privacy Policy</a>.
+          </p>
         </div>
       </div>
     </>

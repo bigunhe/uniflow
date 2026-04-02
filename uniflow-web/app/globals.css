@@ -28,7 +28,18 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
+    --app-bg-solid: #e9eff8;
+    --app-bg-soft: #f5f8ff;
+    --app-bg-gradient: radial-gradient(circle at 10% 6%, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0) 42%), radial-gradient(circle at 88% 88%, rgba(180, 204, 255, 0.2) 0%, rgba(180, 204, 255, 0) 44%), linear-gradient(135deg, #d9e5fb 0%, #edf3ff 50%, #f3f7ff 100%);
+    --app-surface: rgba(255, 255, 255, 0.7);
+    --app-surface-strong: rgba(255, 255, 255, 0.92);
+    --app-border: rgba(75, 104, 154, 0.16);
+    --app-text-strong: #0a1428;
+    --app-text: #1b2d4d;
+    --app-text-soft: #2e4563;
+    --app-link: #3f5cff;
+    --app-focus: #6d84ff;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -55,5 +66,107 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%
+  }
+}
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+    background: var(--app-bg-gradient);
+    background-attachment: fixed;
+    color: var(--app-text);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  strong,
+  b {
+    color: var(--app-text-strong) !important;
+  }
+
+  p,
+  span,
+  label,
+  small,
+  li,
+  .card-sub,
+  .hero-sub,
+  .info-text,
+  .terms,
+  .step-desc,
+  .field-hint,
+  .stat-label,
+  .divider-text,
+  .port-footer-text,
+  .empty-text,
+  .project-reflection,
+  .hero-role,
+  .module-title,
+  .act-label,
+  .act-time,
+  .badge-label,
+  .subj-count,
+  .topbar-left p,
+  .check-label,
+  .page-title,
+  .card-label,
+  .card-eyebrow,
+  .about-card-title,
+  .pillar-name,
+  .meta-chip,
+  .tab,
+  .nav-section-label,
+  .login-link {
+    color: var(--app-text-soft) !important;
+  }
+
+  a,
+  .terms a,
+  .login-link a,
+  .port-footer-text a,
+  .card-label:hover,
+  .card-label:focus-visible {
+    color: var(--app-link) !important;
+  }
+
+  .input-wrap input::placeholder,
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: rgba(46, 69, 99, 0.68) !important;
+  }
+
+  .hero-sub,
+  .card-sub,
+  .info-text,
+  .project-reflection,
+  .terms,
+  .field-hint,
+  .step-desc {
+    text-shadow: none;
+  }
+
+  .card,
+  .panel,
+  .glass,
+  .surface {
+    background: var(--app-surface);
+    border-color: var(--app-border);
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--app-text-strong);
+    border-color: var(--app-border);
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--app-focus);
+    outline-offset: 2px;
   }
 }

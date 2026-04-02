@@ -53,18 +53,31 @@ export default function ProfileSetupPage() {
   });
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.push("/login"); return; }
-      const name = user.user_metadata?.full_name || "";
-      setAvatarUrl(user.user_metadata?.avatar_url || "");
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const name = (user.user_metadata?.full_name as string) || "";
+      setAvatarUrl((user.user_metadata?.avatar_url as string) || "");
       setForm(f => ({
         ...f,
         displayName: name,
         email: user.email || "",
         username: name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, ""),
       }));
+
+      const { data: row } = await supabase
+        .from("user_data")
+        .select("onboarding_complete")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (row?.onboarding_complete) {
+        router.replace("/dashboard");
+      }
     });
-  }, []);
+  }, [router, supabase]);
 
   const toggleLearning = (s: string) =>
     setForm(f => ({
@@ -90,24 +103,47 @@ export default function ProfileSetupPage() {
     setSaving(true);
     setError("");
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/login"); return; }
-    const { error: dbErr } = await supabase.from("profiles").upsert({
-      id: user.id,
-      display_name: form.displayName.trim(),
-      username: form.username.trim(),
-      is_mentor: form.isMentor,
-      learning_subjects: form.learningSubjects,
-      mentor_subjects: form.mentorSubjects,
-      job_role: form.jobRole,
-      academic_year: form.academicYear,
-      specialization: form.specialization,
-      pulse_score: 0,
-    });
-    if (dbErr) { setError(dbErr.message); setSaving(false); return; }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const { error: dbErr } = await supabase.from("user_data").upsert(
+      {
+        id: user.id,
+        email: form.email.trim() || user.email,
+        display_name: form.displayName.trim(),
+        username: form.username.trim(),
+        avatar_url: avatarUrl || "",
+        is_mentor: form.isMentor,
+        mentor_subjects: form.mentorSubjects,
+        learning_subjects: form.learningSubjects,
+        job_role: form.jobRole || null,
+        year_of_study: form.academicYear || null,
+        specialization: form.specialization || null,
+        pulse_score: 0,
+        onboarding_complete: true,
+      },
+      { onConflict: "id" }
+    );
+
+    if (dbErr) {
+      const isRls =
+        /row-level security|violates row-level security policy/i.test(dbErr.message || "");
+      setError(
+        isRls
+          ? "Profile save is blocked by database policy. Run the SQL in docs/PROFILES-TABLE.sql in Supabase SQL Editor, then try again."
+          : dbErr.message
+      );
+      setSaving(false);
+      return;
+    }
+
     router.push("/dashboard");
   };
 
-  const canStep1 = form.displayName.trim().length > 0 && /^[a-z0-9_]{3,20}$/.test(form.username);
+  const canStep1 =
+    form.displayName.trim().length > 0 && /^[a-z0-9_]{3,20}$/.test(form.username);
   const canStep2 = form.academicYear !== "" && form.specialization !== "";
 
   return (
@@ -115,14 +151,14 @@ export default function ProfileSetupPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        .root{min-height:100vh;background:#080c14;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;padding:32px 16px;position:relative;overflow:hidden;}
+        .root{min-height:100vh;background:var(--app-bg-gradient);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;padding:32px 16px;position:relative;overflow:hidden;}
         .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.04) 1px,transparent 1px);background-size:48px 48px;}
         .bg-glow{position:fixed;pointer-events:none;border-radius:50%;filter:blur(100px);}
         .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,210,180,.14) 0%,transparent 70%);top:-150px;left:-150px;}
         .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);bottom:-100px;right:-100px;}
         .logo{display:flex;align-items:center;gap:10px;margin-bottom:40px;position:relative;z-index:1;}
         .logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;}
-        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;color:#fff;}
+        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;color:#fff;letter-spacing:-.02em;}
         .logo-name span{color:#00d2b4;}
         .progress-wrap{width:100%;max-width:520px;display:flex;gap:8px;margin-bottom:32px;position:relative;z-index:1;}
         .prog-seg{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;position:relative;}
@@ -135,16 +171,17 @@ export default function ProfileSetupPage() {
         .avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
         .avatar-img{width:60px;height:60px;border-radius:50%;border:2px solid rgba(0,210,180,.4);background:#1a2030;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(255,255,255,.4);overflow:hidden;}
         .avatar-img img{width:100%;height:100%;object-fit:cover;}
-        .avatar-hint{font-size:13px;color:rgba(255,255,255,.3);line-height:1.5;}
+        .avatar-hint{font-size:13px;color:rgba(255,255,255,.35);line-height:1.5;}
         .avatar-hint strong{color:rgba(255,255,255,.55);font-weight:500;}
         .field{margin-bottom:20px;}
         .field label{display:block;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px;}
         .field input{width:100%;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s;}
         .field input:focus{border-color:rgba(0,210,180,.5);background:rgba(0,210,180,.05);}
         .field input::placeholder{color:rgba(255,255,255,.2);}
-        .field-hint{font-size:12px;color:rgba(255,255,255,.22);margin-top:6px;}
+        .field input:disabled{opacity:.7;}
+        .field-hint{font-size:12px;color:rgba(255,255,255,.25);margin-top:6px;}
         .prefix-wrap{position:relative;}
-        .prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:15px;color:rgba(255,255,255,.3);pointer-events:none;}
+        .prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:15px;color:rgba(255,255,255,.35);pointer-events:none;}
         .prefix-wrap input{padding-left:130px;}
         .select-wrap{position:relative;margin-bottom:20px;}
         .select-wrap select{width:100%;padding:13px 16px;appearance:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;cursor:pointer;transition:border-color .2s;}
@@ -156,8 +193,8 @@ export default function ProfileSetupPage() {
         .mentor-toggle-card.active{border-color:rgba(0,210,180,.35);background:rgba(0,210,180,.06);}
         .toggle-icon{width:42px;height:42px;border-radius:11px;flex-shrink:0;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.2);display:flex;align-items:center;justify-content:center;font-size:18px;}
         .toggle-copy{flex:1;}
-        .toggle-copy strong{display:block;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);margin-bottom:2px;}
-        .toggle-copy span{font-size:12px;color:rgba(255,255,255,.3);}
+        .toggle-copy strong{display:block;font-size:14px;font-weight:500;color:rgba(255,255,255,.85);margin-bottom:2px;}
+        .toggle-copy span{font-size:12px;color:rgba(255,255,255,.35);}
         .toggle-switch{width:44px;height:24px;border-radius:99px;background:rgba(255,255,255,.12);position:relative;transition:background .2s;flex-shrink:0;}
         .toggle-switch.on{background:linear-gradient(90deg,#00d2b4,#6366f1);}
         .toggle-switch::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .22s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.3);}
@@ -173,8 +210,8 @@ export default function ProfileSetupPage() {
         .mentor-required-note{font-size:12px;color:rgba(255,180,0,.7);background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.15);border-radius:8px;padding:8px 12px;margin-bottom:16px;}
         .error-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:11px 14px;font-size:13px;color:#fca5a5;margin-bottom:20px;}
         .btn-row{display:flex;gap:12px;}
-        .btn-back{padding:14px 22px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;}
-        .btn-back:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+        .btn-back{padding:14px 22px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:rgba(255,255,255,.6);cursor:pointer;transition:all .18s;}
+        .btn-back:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9);}
         .btn-next{flex:1;padding:14px 24px;border-radius:12px;background:linear-gradient(135deg,#00d2b4,#6366f1);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity .18s,transform .18s;display:flex;align-items:center;justify-content:center;gap:8px;}
         .btn-next:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
         .btn-next:disabled{opacity:.5;cursor:not-allowed;}
@@ -185,7 +222,10 @@ export default function ProfileSetupPage() {
 
       <div className="root">
         <div className="bg-grid" /><div className="bg-glow g1" /><div className="bg-glow g2" />
-        <div className="logo"><div className="logo-mark">U</div><div className="logo-name">Uni<span>Flow</span></div></div>
+        <div className="logo">
+          <div className="logo-mark">U</div>
+          <div className="logo-name">Uni<span>Flow</span></div>
+        </div>
 
         <div className="progress-wrap">
           <div className={`prog-seg ${step >= 1 ? "done" : ""}`} />
@@ -194,104 +234,186 @@ export default function ProfileSetupPage() {
         </div>
 
         <div className="card">
-
-          {/* ── Step 1: Identity ── */}
           {step === 1 && (
             <>
               <div className="step-chip">Step 1 of 3</div>
               <h1 className="card-title">Set up your profile</h1>
               <p className="card-sub">This is how other students and employers will see you on UniFlow.</p>
               <div className="avatar-row">
-                <div className="avatar-img">{avatarUrl ? <img src={avatarUrl} alt="avatar" /> : <span>👤</span>}</div>
-                <div className="avatar-hint"><strong>Profile photo</strong><br />Pulled from your sign-in account automatically.</div>
+                <div className="avatar-img">
+                  {avatarUrl ? <img src={avatarUrl} alt="avatar" /> : <span>👤</span>}
+                </div>
+                <div className="avatar-hint">
+                  <strong>Profile photo</strong>
+                  <br />
+                  From your sign-in account when available.
+                </div>
               </div>
               <div className="field">
                 <label>Display Name</label>
-                <input type="text" placeholder="e.g. Kamal Perera" value={form.displayName} onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))} />
+                <input
+                  type="text"
+                  placeholder="e.g. Kamal Perera"
+                  value={form.displayName}
+                  onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))}
+                />
               </div>
               <div className="field">
                 <label>Email</label>
-                <input type="email" placeholder="you@students.nsbm.ac.lk" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                <div className="field-hint">Used for notifications and account recovery.</div>
+                <input type="email" value={form.email} readOnly disabled />
+                <div className="field-hint">Tied to your magic-link sign-in.</div>
               </div>
               <div className="field">
                 <label>Username</label>
                 <div className="prefix-wrap">
                   <span className="prefix">uniflow.lk/p/</span>
-                  <input type="text" placeholder="kamal_perera" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))} />
+                  <input
+                    type="text"
+                    placeholder="kamal_perera"
+                    value={form.username}
+                    onChange={e =>
+                      setForm(f => ({
+                        ...f,
+                        username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""),
+                      }))
+                    }
+                  />
                 </div>
-                <div className="field-hint">3–20 chars · lowercase letters, numbers, underscores · your public portfolio URL</div>
+                <div className="field-hint">3–20 chars, lowercase, numbers, underscores.</div>
               </div>
               {error && <div className="error-box">{error}</div>}
               <div className="btn-row">
-                <button className="btn-next" disabled={!canStep1} onClick={() => { setError(""); setStep(2); }}>Continue →</button>
+                <button
+                  type="button"
+                  className="btn-next"
+                  disabled={!canStep1}
+                  onClick={() => {
+                    setError("");
+                    setStep(2);
+                  }}
+                >
+                  Continue →
+                </button>
               </div>
             </>
           )}
 
-          {/* ── Step 2: Academic profile ── */}
           {step === 2 && (
             <>
               <div className="step-chip">Step 2 of 3</div>
               <h1 className="card-title">Your academic profile</h1>
-              <p className="card-sub">Helps match you with the right peers, mentors, and opportunities.</p>
+              <p className="card-sub">Helps match you with peers, mentors, and opportunities.</p>
 
               <label className="select-label">Year &amp; Semester</label>
               <div className="select-wrap">
-                <select value={form.academicYear} onChange={e => setForm(f => ({ ...f, academicYear: e.target.value }))}>
+                <select
+                  value={form.academicYear}
+                  onChange={e => setForm(f => ({ ...f, academicYear: e.target.value }))}
+                >
                   <option value="">Select your current year &amp; semester…</option>
-                  {YEAR_SEMESTERS.map(y => <option key={y} value={y}>{y}</option>)}
+                  {YEAR_SEMESTERS.map(y => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
                 </select>
                 <span className="select-arrow">▾</span>
               </div>
 
               <label className="select-label">Specialization</label>
               <div className="select-wrap">
-                <select value={form.specialization} onChange={e => setForm(f => ({ ...f, specialization: e.target.value }))}>
+                <select
+                  value={form.specialization}
+                  onChange={e => setForm(f => ({ ...f, specialization: e.target.value }))}
+                >
                   <option value="">Select your specialization…</option>
-                  {SPECIALIZATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {SPECIALIZATIONS.map(s => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
                 <span className="select-arrow">▾</span>
               </div>
 
-              <label className="select-label">Target Job Role <span className="section-optional">(optional)</span></label>
+              <label className="select-label">
+                Target Job Role <span className="section-optional">(optional)</span>
+              </label>
               <div className="select-wrap">
-                <select value={form.jobRole} onChange={e => setForm(f => ({ ...f, jobRole: e.target.value }))}>
+                <select
+                  value={form.jobRole}
+                  onChange={e => setForm(f => ({ ...f, jobRole: e.target.value }))}
+                >
                   <option value="">Select a target role…</option>
-                  {JOB_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  {JOB_ROLES.map(r => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
                 <span className="select-arrow">▾</span>
               </div>
 
               {error && <div className="error-box">{error}</div>}
               <div className="btn-row">
-                <button className="btn-back" onClick={() => { setError(""); setStep(1); }}>← Back</button>
-                <button className="btn-next" disabled={!canStep2} onClick={() => { setError(""); setStep(3); }}>Continue →</button>
+                <button type="button" className="btn-back" onClick={() => { setError(""); setStep(1); }}>
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  className="btn-next"
+                  disabled={!canStep2}
+                  onClick={() => {
+                    setError("");
+                    setStep(3);
+                  }}
+                >
+                  Continue →
+                </button>
               </div>
             </>
           )}
 
-          {/* ── Step 3: Learning & mentoring ── */}
           {step === 3 && (
             <>
               <div className="step-chip">Step 3 of 3</div>
               <h1 className="card-title">Learning &amp; mentoring</h1>
-              <p className="card-sub">Tell us how you want to grow and contribute to the community.</p>
+              <p className="card-sub">Tell us how you want to grow and contribute.</p>
 
-              <div className={`mentor-toggle-card ${form.isMentor ? "active" : ""}`} onClick={() => setForm(f => ({ ...f, isMentor: !f.isMentor }))}>
+              <div
+                className={`mentor-toggle-card ${form.isMentor ? "active" : ""}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setForm(f => ({ ...f, isMentor: !f.isMentor }))}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setForm(f => ({ ...f, isMentor: !f.isMentor }));
+                  }
+                }}
+              >
                 <div className="toggle-icon">🎓</div>
                 <div className="toggle-copy">
-                  <strong>I want to mentor peers</strong>
-                  <span>Peers can request your help · earn Community Impact points</span>
+                  <strong>Peer mentor (optional)</strong>
+                  <span>Help other students in subjects you excel at</span>
                 </div>
                 <div className={`toggle-switch ${form.isMentor ? "on" : ""}`} />
               </div>
 
               <div className="subj-section">
-                <div className="section-label">What do you want to learn? <span className="section-optional">(optional, up to 5)</span></div>
+                <div className="section-label">
+                  What do you want to learn? <span className="section-optional">(optional, up to 5)</span>
+                </div>
                 <div className="subjects-grid">
                   {SUBJECTS.map(s => (
-                    <button key={s} className={`subj-pill ${form.learningSubjects.includes(s) ? "selected" : ""}`} onClick={() => toggleLearning(s)}>{s}</button>
+                    <button
+                      key={s}
+                      type="button"
+                      className={`subj-pill ${form.learningSubjects.includes(s) ? "selected" : ""}`}
+                      onClick={() => toggleLearning(s)}
+                    >
+                      {s}
+                    </button>
                   ))}
                 </div>
                 <div className="subj-count">{form.learningSubjects.length}/5 selected</div>
@@ -299,13 +421,24 @@ export default function ProfileSetupPage() {
 
               {form.isMentor && (
                 <div className="subj-section">
-                  <div className="section-label">What can you teach? <span className="section-optional">(up to 5)</span></div>
+                  <div className="section-label">
+                    What can you teach? <span className="section-optional">(up to 5)</span>
+                  </div>
                   {form.mentorSubjects.length === 0 && (
-                    <div className="mentor-required-note">Select at least one subject you have excelled at and can teach.</div>
+                    <div className="mentor-required-note">
+                      Select at least one subject you can help others with.
+                    </div>
                   )}
                   <div className="subjects-grid">
                     {SUBJECTS.map(s => (
-                      <button key={s} className={`subj-pill ${form.mentorSubjects.includes(s) ? "selected" : ""}`} onClick={() => toggleMentoring(s)}>{s}</button>
+                      <button
+                        key={s}
+                        type="button"
+                        className={`subj-pill ${form.mentorSubjects.includes(s) ? "selected" : ""}`}
+                        onClick={() => toggleMentoring(s)}
+                      >
+                        {s}
+                      </button>
                     ))}
                   </div>
                   <div className="subj-count">{form.mentorSubjects.length}/5 selected</div>
@@ -314,14 +447,22 @@ export default function ProfileSetupPage() {
 
               {error && <div className="error-box">{error}</div>}
               <div className="btn-row">
-                <button className="btn-back" onClick={() => { setError(""); setStep(2); }}>← Back</button>
-                <button className="btn-next" onClick={handleSave} disabled={saving}>
-                  {saving ? <><span className="spinner" />Saving…</> : "Complete Setup 🚀"}
+                <button type="button" className="btn-back" onClick={() => { setError(""); setStep(2); }}>
+                  ← Back
+                </button>
+                <button type="button" className="btn-next" onClick={handleSave} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <span className="spinner" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Complete setup"
+                  )}
                 </button>
               </div>
             </>
           )}
-
         </div>
       </div>
     </>
