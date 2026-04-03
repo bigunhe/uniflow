@@ -23,14 +23,15 @@ const YEARS = ["1st Year","2nd Year","3rd Year","4th Year","Postgraduate"];
 type Profile = {
   display_name: string;
   username: string;
-  avatar_url: string;
-  email: string;
+  avatar_url: string | null;
+  email: string | null;
   is_mentor: boolean;
   mentor_subjects: string[];
   job_role: string;
   university: string;
   year_of_study: string;
   pulse_score: number;
+  onboarding_complete?: boolean | null;
 };
 
 export default function ProfilePage() {
@@ -45,22 +46,31 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"info"|"mentor"|"account">("info");
   const [userId, setUserId] = useState("");
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [baseline, setBaseline] = useState<Profile | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setUserId(user.id);
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      if (data) setProfile(data);
+      const { data } = await supabase.from("user_data").select("*").eq("id", user.id).maybeSingle();
+      if (!data || !data.onboarding_complete) {
+        router.replace("/profile-setup");
+        setLoading(false);
+        return;
+      }
+      setProfile(data as Profile);
+      setEditing(false);
+      setBaseline(null);
       setLoading(false);
     });
-  }, []);
+  }, [router, supabase]);
 
   const set = (k: string, v: string | boolean | string[]) =>
     setProfile(p => p ? { ...p, [k]: v } : p);
 
   const toggleSubject = (s: string) => {
-    if (!profile) return;
+    if (!profile || !editing) return;
     const cur = profile.mentor_subjects || [];
     const next = cur.includes(s) ? cur.filter(x => x !== s) : cur.length < 5 ? [...cur, s] : cur;
     set("mentor_subjects", next);
@@ -73,7 +83,7 @@ export default function ProfilePage() {
       setError("Username: 3–20 chars, lowercase letters, numbers, underscores only."); return;
     }
     setSaving(true); setError("");
-    const { error: dbErr } = await supabase.from("profiles").update({
+    const { error: dbErr } = await supabase.from("user_data").update({
       display_name: profile.display_name.trim(),
       username: profile.username.trim(),
       is_mentor: profile.is_mentor,
@@ -85,7 +95,23 @@ export default function ProfilePage() {
     setSaving(false);
     if (dbErr) { setError(dbErr.message); return; }
     setSaved(true);
+    setEditing(false);
+    setBaseline(null);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const startEdit = () => {
+    if (!profile) return;
+    setBaseline({ ...profile });
+    setEditing(true);
+    setError("");
+  };
+
+  const cancelEdit = () => {
+    if (baseline) setProfile(baseline);
+    setBaseline(null);
+    setEditing(false);
+    setError("");
   };
 
   const copyPortfolioLink = () => {
@@ -95,7 +121,7 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh",background:"var(--app-bg-gradient)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+    <div style={{ minHeight:"100vh",background:"#080c14",display:"flex",alignItems:"center",justifyContent:"center" }}>
       <div style={{ width:40,height:40,borderRadius:"50%",border:"3px solid rgba(0,210,180,.2)",borderTopColor:"#00d2b4",animation:"spin .8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -182,7 +208,7 @@ export default function ProfilePage() {
         .subjects-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
         .subj-pill{padding:6px 14px;border-radius:99px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);background:transparent;font-family:'DM Sans',sans-serif;transition:all .18s;}
         .subj-pill:hover{border-color:rgba(0,210,180,.35);color:rgba(255,255,255,.7);}
-        .subj-pill.sel{background:rgba(0,210,180,.12);border-color:rgba(0,210,180,.5);color:#00d2b4;}
+        .subj-pill.sel{background:rgba(0,210,180,.12);border-color:rgba(0,210,180,.5);color:#00d2b4;}.subj-pill:disabled{cursor:not-allowed;opacity:.45;}
         .subj-count{font-size:11px;color:rgba(255,255,255,.25);margin-bottom:0;}
 
         /* Danger zone */
@@ -205,49 +231,28 @@ export default function ProfilePage() {
         .btn-save:disabled{opacity:.5;cursor:not-allowed;}
         .spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spin .7s linear infinite;}
 
-        /* Light theme alignment with rest of site */
-        .root{background:var(--app-bg-gradient) !important;}
-        .topbar .page-title{color:#0f3460 !important;}
-        .back-btn{background:rgba(255,255,255,.8) !important;border:1px solid rgba(67,96,151,.2) !important;color:#1f3260 !important;}
-        .back-btn:hover{background:#ffffff !important;color:#0f3460 !important;}
-        .avatar-hero,.tabs-wrap,.card{background:rgba(255,255,255,.88) !important;border:1px solid rgba(67,96,151,.18) !important;box-shadow:0 12px 30px rgba(35,62,109,.08);}
-        .avatar-name{color:#0f3460 !important;}
-        .avatar-role,.portfolio-url,.pulse-lbl{color:#2e4563 !important;}
-        .tab-btn{color:#2e4563 !important;font-weight:600;}
-        .tab-btn.active{background:rgba(0,210,180,.12) !important;color:#00bfa5 !important;border:1px solid rgba(0,210,180,.26) !important;}
-        .section-label{color:#1b2d4d !important;}
-        .section-label::after{background:rgba(67,96,151,.18) !important;}
-        .field label,.field-hint,.subj-count{color:#2e4563 !important;}
-        .field input,.field select,.field textarea{background:#ffffff !important;border:1px solid rgba(67,96,151,.24) !important;color:#0f3460 !important;}
-        .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(0,210,180,.55) !important;background:#ffffff !important;box-shadow:0 0 0 3px rgba(0,210,180,.1);}
-        .field input::placeholder,.field textarea::placeholder,.prefix-txt{color:#4a6fa0 !important;}
-        .field select option{background:#ffffff !important;color:#0f3460 !important;}
-        .select-wrap::after{color:#2e4563 !important;}
-        .mentor-card{background:rgba(255,255,255,.8) !important;border:1px solid rgba(67,96,151,.18) !important;}
-        .mentor-copy strong{color:#0f3460 !important;}
-        .mentor-copy span{color:#2e4563 !important;}
-        .subj-pill{background:#f8fbff !important;border:1px solid rgba(67,96,151,.2) !important;color:#1f3260 !important;}
-        .subj-pill.sel{background:rgba(0,210,180,.12) !important;border-color:rgba(0,210,180,.5) !important;color:#00bfa5 !important;}
-        .danger-card{background:#fff7f7 !important;border:1px solid rgba(239,68,68,.24) !important;}
-        .danger-text strong{color:#b42318 !important;}
-        .danger-text span{color:#c2410c !important;}
-        .error-box{background:#ffe6e6 !important;border:1.5px solid #ff6b6b !important;color:#c92a2a !important;}
-        .save-row{border-top:1px solid rgba(67,96,151,.16) !important;}
-        .btn-cancel{background:rgba(67,96,151,.08) !important;border:1px solid rgba(67,96,151,.22) !important;color:#1f3260 !important;}
-        .btn-cancel:hover{background:rgba(67,96,151,.16) !important;}
-        .success-toast{background:#e6f9f7 !important;border:1px solid #1ab394 !important;color:#0a6c5e !important;}
-
+        .view-field{padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:11px;font-size:14px;color:rgba(255,255,255,.88);min-height:46px;display:flex;align-items:center;}
         @media(max-width:600px){.row-2{grid-template-columns:1fr;}.avatar-hero{flex-direction:column;align-items:flex-start;}.card{padding:22px 16px;}}
       `}</style>
 
-      <div className="root">
+      <div className="root brand-dark-shell">
         <div className="bg-grid" /><div className="bg-glow g1" /><div className="bg-glow g2" />
 
         {/* Topbar */}
         <div className="topbar">
           <a href="/dashboard" className="back-btn">← Dashboard</a>
           <div className="page-title">My Profile</div>
-          <div style={{width:100}} />
+          <div style={{ display:"flex", gap:10, justifyContent:"flex-end", flex:1, maxWidth:300 }}>
+            {!editing ? (
+              <button type="button" className="back-btn" style={{ borderColor:"rgba(0,210,180,.35)", color:"#00d2b4" }} onClick={startEdit}>
+                Edit profile
+              </button>
+            ) : (
+              <button type="button" className="back-btn" onClick={cancelEdit}>
+                Cancel edit
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Avatar Hero */}
@@ -298,15 +303,25 @@ export default function ProfilePage() {
                 <div className="section-label">Basic Info</div>
                 <div className="field">
                   <label>Display Name</label>
-                  <input type="text" placeholder="Your full name" value={profile?.display_name || ""} onChange={e=>set("display_name",e.target.value)} />
+                  {editing ? (
+                    <input type="text" placeholder="Your full name" value={profile?.display_name || ""} onChange={e=>set("display_name",e.target.value)} />
+                  ) : (
+                    <div className="view-field">{profile?.display_name || "—"}</div>
+                  )}
                 </div>
                 <div className="field">
                   <label>Username · Public Portfolio URL</label>
-                  <div className="prefix-wrap">
-                    <span className="prefix-txt">uniflow.lk/p/</span>
-                    <input type="text" placeholder="your_username" value={profile?.username || ""} onChange={e=>set("username",e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,""))} />
-                  </div>
-                  <div className="field-hint">3–20 chars · lowercase letters, numbers, underscores</div>
+                  {editing ? (
+                    <>
+                      <div className="prefix-wrap">
+                        <span className="prefix-txt">uniflow.lk/p/</span>
+                        <input type="text" placeholder="your_username" value={profile?.username || ""} onChange={e=>set("username",e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,""))} />
+                      </div>
+                      <div className="field-hint">3–20 chars · lowercase letters, numbers, underscores</div>
+                    </>
+                  ) : (
+                    <div className="view-field">{typeof window !== "undefined" ? `${window.location.origin}/p/${profile?.username || ""}` : `/p/${profile?.username || ""}`}</div>
+                  )}
                 </div>
               </div>
 
@@ -314,26 +329,38 @@ export default function ProfilePage() {
                 <div className="section-label">Academic Info</div>
                 <div className="field">
                   <label>University / Institute</label>
-                  <input type="text" placeholder="e.g. University of Moratuwa" value={profile?.university || ""} onChange={e=>set("university",e.target.value)} />
+                  {editing ? (
+                    <input type="text" placeholder="e.g. University of Moratuwa" value={profile?.university || ""} onChange={e=>set("university",e.target.value)} />
+                  ) : (
+                    <div className="view-field">{profile?.university || "—"}</div>
+                  )}
                 </div>
                 <div className="row-2">
                   <div className="field">
                     <label>Year of Study</label>
-                    <div className="select-wrap">
-                      <select value={profile?.year_of_study || ""} onChange={e=>set("year_of_study",e.target.value)}>
-                        <option value="">Select year…</option>
-                        {YEARS.map(y=><option key={y} value={y}>{y}</option>)}
-                      </select>
-                    </div>
+                    {editing ? (
+                      <div className="select-wrap">
+                        <select value={profile?.year_of_study || ""} onChange={e=>set("year_of_study",e.target.value)}>
+                          <option value="">Select year…</option>
+                          {YEARS.map(y=><option key={y} value={y}>{y}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="view-field">{profile?.year_of_study || "—"}</div>
+                    )}
                   </div>
                   <div className="field">
                     <label>Target Job Role</label>
-                    <div className="select-wrap">
-                      <select value={profile?.job_role || ""} onChange={e=>set("job_role",e.target.value)}>
-                        <option value="">Select role…</option>
-                        {JOB_ROLES.map(r=><option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </div>
+                    {editing ? (
+                      <div className="select-wrap">
+                        <select value={profile?.job_role || ""} onChange={e=>set("job_role",e.target.value)}>
+                          <option value="">Select role…</option>
+                          {JOB_ROLES.map(r=><option key={r} value={r}>{r}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="view-field">{profile?.job_role || "—"}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -345,7 +372,7 @@ export default function ProfilePage() {
             <>
               <div className="card-section">
                 <div className="section-label">Mentor Mode</div>
-                <div className={`mentor-card ${profile?.is_mentor?"on":""}`} onClick={()=>set("is_mentor",!profile?.is_mentor)}>
+                <div className={`mentor-card ${profile?.is_mentor?"on":""}`} onClick={()=> editing && set("is_mentor",!profile?.is_mentor)} style={{ cursor: editing ? "pointer" : "default", opacity: editing ? 1 : 0.9 }}>
                   <div className="mentor-icon">🎓</div>
                   <div className="mentor-copy">
                     <strong>Available to Mentor</strong>
@@ -355,21 +382,21 @@ export default function ProfilePage() {
                 </div>
 
                 {profile?.is_mentor && (
-                  <div style={{padding:"14px 16px",background:"rgba(0,210,180,.05)",borderRadius:12,border:"1px solid rgba(0,210,180,.12)",marginBottom:20}}>
-                    <div style={{fontSize:12,color:"#00bfa5",fontWeight:600,marginBottom:4}}>Mentor mode is ON</div>
-                    <div style={{fontSize:12,color:"#2e4563"}}>Peers can now find and request sessions with you. Each successful session adds to your Pulse Score.</div>
+                  <div style={{padding:"14px 16px",background:"rgba(0,210,180,.07)",borderRadius:12,border:"1px solid rgba(0,210,180,.2)",marginBottom:20}}>
+                    <div style={{fontSize:12,color:"#00d2b4",fontWeight:600,marginBottom:4}}>Mentor mode is ON</div>
+                    <div style={{fontSize:12,color:"rgba(212,221,232,.85)"}}>Peers can now find and request sessions with you. Each successful session adds to your Pulse Score.</div>
                   </div>
                 )}
               </div>
 
               <div className="card-section">
                 <div className="section-label">Strong Subjects</div>
-                <div style={{fontSize:13,color:"#2e4563",marginBottom:14}}>
+                <div style={{fontSize:13,color:"rgba(212,221,232,.85)",marginBottom:14}}>
                   Select up to 5 subjects you're confident in. These appear on your public portfolio.
                 </div>
                 <div className="subjects-grid">
                   {SUBJECTS.map(s=>(
-                    <button key={s} className={`subj-pill ${(profile?.mentor_subjects||[]).includes(s)?"sel":""}`} onClick={()=>toggleSubject(s)}>
+                    <button key={s} type="button" disabled={!editing} className={`subj-pill ${(profile?.mentor_subjects||[]).includes(s)?"sel":""}`} onClick={()=>toggleSubject(s)} style={{ opacity: editing ? 1 : 0.75 }}>
                       {s}
                     </button>
                   ))}
@@ -389,23 +416,23 @@ export default function ProfilePage() {
                   <input type="email" value={profile?.email || ""} disabled style={{opacity:.5,cursor:"not-allowed"}} />
                   <div className="field-hint">Email cannot be changed. It is linked to your Google account.</div>
                 </div>
-                <div style={{padding:"14px 16px",background:"rgba(67,96,151,.06)",borderRadius:12,border:"1px solid rgba(67,96,151,.18)",marginBottom:8}}>
-                  <div style={{fontSize:13,fontWeight:600,color:"#1f3260",marginBottom:4}}>Pulse Score</div>
-                  <div style={{fontSize:28,fontWeight:800,fontFamily:"'Syne',sans-serif",color:"#00d2b4",letterSpacing:"-.04em"}}>{profile?.pulse_score ?? 0}<span style={{fontSize:14,color:"#2e4563",fontFamily:"'DM Sans',sans-serif",fontWeight:500,marginLeft:6}}>/ 100</span></div>
-                  <div style={{fontSize:12,color:"#2e4563",marginTop:4}}>Complete KPIs, submit projects, and mentor peers to increase your score.</div>
+                <div style={{padding:"14px 16px",background:"rgba(255,255,255,.05)",borderRadius:12,border:"1px solid rgba(255,255,255,.1)",marginBottom:8}}>
+                  <div style={{fontSize:13,fontWeight:600,color:"#e8eef8",marginBottom:4}}>Pulse Score</div>
+                  <div style={{fontSize:28,fontWeight:800,fontFamily:"'Syne',sans-serif",color:"#00d2b4",letterSpacing:"-.04em"}}>{profile?.pulse_score ?? 0}<span style={{fontSize:14,color:"rgba(168,184,208,.9)",fontFamily:"'DM Sans',sans-serif",fontWeight:500,marginLeft:6}}>/ 100</span></div>
+                  <div style={{fontSize:12,color:"rgba(168,184,208,.85)",marginTop:4}}>Complete KPIs, submit projects, and mentor peers to increase your score.</div>
                 </div>
               </div>
 
               <div className="card-section">
                 <div className="section-label">Portfolio</div>
-                <div style={{padding:"16px 20px",background:"rgba(67,96,151,.06)",borderRadius:14,border:"1px solid rgba(67,96,151,.18)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
+                <div style={{padding:"16px 20px",background:"rgba(255,255,255,.05)",borderRadius:14,border:"1px solid rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
                   <div>
-                    <div style={{fontSize:14,fontWeight:600,color:"#1f3260",marginBottom:4}}>Your public portfolio</div>
-                    <div style={{fontSize:13,color:"#00bfa5",fontFamily:"'DM Sans',sans-serif"}}>uniflow.lk/p/{profile?.username}</div>
+                    <div style={{fontSize:14,fontWeight:600,color:"#e8eef8",marginBottom:4}}>Your public portfolio</div>
+                    <div style={{fontSize:13,color:"#00d2b4",fontFamily:"'DM Sans',sans-serif"}}>/p/{profile?.username}</div>
                   </div>
                   <div style={{display:"flex",gap:8}}>
-                    <button className="copy-btn" onClick={copyPortfolioLink}>{copied?"✓ Copied!":"Copy Link"}</button>
-                    <a href={`/p/${profile?.username}`} target="_blank" style={{padding:"5px 14px",borderRadius:8,background:"rgba(67,96,151,.1)",border:"1px solid rgba(67,96,151,.2)",color:"#1f3260",fontSize:12,fontWeight:600,textDecoration:"none"}}>View →</a>
+                    <button type="button" className="copy-btn" onClick={copyPortfolioLink}>{copied?"✓ Copied!":"Copy Link"}</button>
+                    <a href={`/p/${profile?.username}`} target="_blank" rel="noopener noreferrer" style={{padding:"5px 14px",borderRadius:8,background:"rgba(0,210,180,.12)",border:"1px solid rgba(0,210,180,.28)",color:"#00d2b4",fontSize:12,fontWeight:600,textDecoration:"none"}}>View →</a>
                   </div>
                 </div>
               </div>
@@ -429,11 +456,11 @@ export default function ProfilePage() {
           {error && <div className="error-box">{error}</div>}
 
           {/* Save row — hidden on account tab */}
-          {activeTab !== "account" && (
+          {editing && activeTab !== "account" && (
             <div className="save-row">
-              <button className="btn-cancel" onClick={()=>router.push("/dashboard")}>Cancel</button>
-              <button className="btn-save" onClick={handleSave} disabled={saving}>
-                {saving ? <><span className="spinner"/>Saving…</> : "Save Changes ✓"}
+              <button type="button" className="btn-cancel" onClick={cancelEdit}>Discard changes</button>
+              <button type="button" className="btn-save" onClick={handleSave} disabled={saving}>
+                {saving ? <><span className="spinner"/>Saving…</> : "Save changes"}
               </button>
             </div>
           )}

@@ -40,6 +40,14 @@
     --app-text-soft: #2e4563;
     --app-link: #3f5cff;
     --app-focus: #6d84ff;
+
+    /* Dark tool surfaces (#080c14): scoped via .brand-dark-shell so global !important text rules stay readable */
+    --brand-dark-bg: #080c14;
+    --brand-dark-heading: #f0f4fb;
+    --brand-dark-text: #d4dde8;
+    --brand-dark-muted: #a8b8d0;
+    --brand-dark-subtle: #7d8fa8;
+    --brand-dark-link: #6ee4d4;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -169,4 +177,20 @@
     outline: 2px solid var(--app-focus);
     outline-offset: 2px;
   }
+}
+
+/* Dark uni tool pages (#080c14): override light tokens for descendants so h1/p/li !important rules use readable colors */
+.brand-dark-shell {
+  --app-text-strong: var(--brand-dark-heading);
+  --app-text: var(--brand-dark-text);
+  --app-text-soft: var(--brand-dark-muted);
+  --app-link: var(--brand-dark-link);
+  --app-focus: #00d2b4;
+}
+
+.brand-dark-shell .field input::placeholder,
+.brand-dark-shell .field textarea::placeholder,
+.brand-dark-shell input::placeholder,
+.brand-dark-shell textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
 }
