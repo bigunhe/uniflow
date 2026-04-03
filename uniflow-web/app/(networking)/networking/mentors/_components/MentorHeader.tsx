@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { mentorButtonClassName, MentorButton } from "./MentorButton";
-import { getUserRoleProfile, clearUserRoleProfile } from "./userRoleProfile";
+import {
+  type UserRoleProfile,
+  getUserRoleProfile,
+  clearUserRoleProfile,
+} from "./userRoleProfile";
 
 const studentNavItems = [
   { label: "Home", href: "/networking/mentors/home" },
@@ -37,7 +41,7 @@ export function MentorHeader() {
   const router = useRouter();
   const pathname = usePathname();
   // Defer reading localStorage until after hydration to avoid SSR/client mismatch.
-  const [profile, setProfile] = useState(() => null);
+  const [profile, setProfile] = useState<UserRoleProfile | null>(null);
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
