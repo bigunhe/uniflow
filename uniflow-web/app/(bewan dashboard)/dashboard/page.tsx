@@ -572,8 +572,8 @@ export default function DashboardPage() {
           {/* CTA banner */}
           <div className="cta-card" style={{animationDelay:".05s"}}>
             <div className="cta-text">
-              <h3>Submit your latest project evidence</h3>
-              <p style={{ color: "rgba(168,184,208,0.85)" }}>Link your GitHub repo + screenshot to verify your skills and boost your Pulse Score.</p>
+              <h3>Verify a completed project</h3>
+              <p style={{ color: "rgba(168,184,208,0.85)" }}>Open Completed Projects, pick a build, and add GitHub + screenshot proof. Your Pulse ring updates from verified progress.</p>
             </div>
             <button className="cta-btn" onClick={()=>handleNavClick("evidence")}>
               + Verify project
