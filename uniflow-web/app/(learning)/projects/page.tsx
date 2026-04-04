@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { listLearningModules } from "@/lib/learning/sync";
 import { recommendProjectsForSyncedModules } from "@/lib/projects/recommend";
+import { getProjectProgressPercent, readProjectStateMap } from "@/lib/projects/localState";
 
 const inter = Inter({ subsets: ["latin"], weight: ["600", "700", "800"] });
 
@@ -27,6 +28,7 @@ export default function ProjectsPage() {
   const [syncedModuleNames, setSyncedModuleNames] = useState<string[]>([]);
   const [academicYear, setAcademicYear] = useState<string | null>(null);
   const [recommendationReady, setRecommendationReady] = useState(false);
+  const [progressByProject, setProgressByProject] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let active = true;
@@ -90,6 +92,24 @@ export default function ProjectsPage() {
     [allProjects, syncedModuleNames, academicYear]
   );
 
+  useEffect(() => {
+    const hydrateProgress = () => {
+      const map = readProjectStateMap();
+      const rows: Record<string, number> = {};
+      for (const projectId of Object.keys(map)) {
+        rows[projectId] = getProjectProgressPercent(projectId);
+      }
+      setProgressByProject(rows);
+    };
+    hydrateProgress();
+    window.addEventListener("storage", hydrateProgress);
+    window.addEventListener("uniflow-project-state-changed", hydrateProgress);
+    return () => {
+      window.removeEventListener("storage", hydrateProgress);
+      window.removeEventListener("uniflow-project-state-changed", hydrateProgress);
+    };
+  }, []);
+
   return (
     <div className="brand-dark-shell min-h-screen bg-[#080c14] text-white">
       <div
@@ -103,7 +123,7 @@ export default function ProjectsPage() {
       <div className="pointer-events-none fixed left-[-200px] top-[-200px] h-[500px] w-[500px] rounded-full bg-[#00d2b4]/6 blur-[120px]" />
       <div className="pointer-events-none fixed bottom-[-150px] right-[-150px] h-[400px] w-[400px] rounded-full bg-indigo-500/5 blur-[120px]" />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-12">
+      <div className="relative mx-auto max-w-7xl px-6 py-12">
         <FeatureTopbar
           backHref="/dashboard"
           backLabel="Dashboard"
@@ -160,25 +180,51 @@ export default function ProjectsPage() {
               No direct matches yet. Try syncing more modules and check all year tabs below.
             </p>
           ) : (
-            <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {recommendations.map(({ project, matchedTopicLabels }) => (
-                <div key={project.id}>
-                  <ProjectCard
-                    id={project.id}
-                    title={project.title}
-                    brief={project.brief}
-                    modules={project.modules}
-                    stack={project.stack}
-                    weekendEstimate={project.weekendEstimate}
-                    challengeLevel={project.challengeLevel}
-                  />
-                  {matchedTopicLabels.length > 0 && (
-                    <p className="mt-2 text-xs text-[#7ae9d8]">
-                      Match: {matchedTopicLabels.join(" · ")}
-                    </p>
-                  )}
-                </div>
-              ))}
+            <div className="mt-5 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {recommendations.map(
+                ({ project, matchedTopicLabels, gapTopicLabels, readinessLevel, whyMatched }) => (
+                  <div
+                    key={project.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4"
+                  >
+                    <div className="min-h-0 flex-1">
+                      <ProjectCard
+                        id={project.id}
+                        title={project.title}
+                        brief={project.brief}
+                        modules={project.modules}
+                        stack={project.stack}
+                        weekendEstimate={project.weekendEstimate}
+                        challengeLevel={project.challengeLevel}
+                        readinessLevel={readinessLevel}
+                        progressPercent={progressByProject[project.id] ?? 0}
+                      />
+                    </div>
+                    <div className="space-y-2 border-t border-white/10 pt-3">
+                      {matchedTopicLabels.length > 0 && (
+                        <p className="text-xs leading-relaxed text-[#7ae9d8]">
+                          <span className="font-semibold text-[#7ae9d8]/90">Match: </span>
+                          {matchedTopicLabels.join(" · ")}
+                        </p>
+                      )}
+                      {gapTopicLabels.length ? (
+                        <p className="text-xs leading-relaxed text-amber-300/85">
+                          <span className="font-semibold text-amber-200/90">Prep first: </span>
+                          {gapTopicLabels.slice(0, 3).join(" · ")}
+                        </p>
+                      ) : null}
+                      <details className="group text-[11px] text-white/40">
+                        <summary className="cursor-pointer list-none text-white/50 underline-offset-2 transition hover:text-[#7ae9d8]/90 [&::-webkit-details-marker]:hidden">
+                          <span className="underline decoration-white/20 group-open:decoration-[#00d2b4]/50">
+                            Why this pick
+                          </span>
+                        </summary>
+                        <p className="mt-2 leading-relaxed text-white/45">{whyMatched}</p>
+                      </details>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           )}
         </section>
@@ -207,7 +253,7 @@ export default function ProjectsPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     {projects.map((proj) => (
                       <ProjectCard
                         key={proj.id}
@@ -218,6 +264,7 @@ export default function ProjectsPage() {
                         stack={proj.stack}
                         weekendEstimate={proj.weekendEstimate}
                         challengeLevel={proj.challengeLevel}
+                        progressPercent={progressByProject[proj.id] ?? 0}
                       />
                     ))}
                   </div>

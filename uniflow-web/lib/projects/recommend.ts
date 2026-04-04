@@ -18,6 +18,10 @@ export type ProjectRecommendation = {
   score: number;
   matchedTopics: string[];
   matchedTopicLabels: string[];
+  gapTopics: string[];
+  gapTopicLabels: string[];
+  readinessLevel: "ready" | "stretch" | "prep-needed";
+  whyMatched: string;
 };
 
 type RecoInput = {
@@ -94,6 +98,7 @@ export function recommendProjectsForSyncedModules({
   const scored = projects.map((project) => {
     const pTopics = projectTopicSet(project);
     const matchedTopics = [...pTopics].filter((topic) => syncedTopics.has(topic));
+    const gapTopics = [...pTopics].filter((topic) => !syncedTopics.has(topic));
     const directOverlapCount = countDirectModuleOverlap(project, syncedModuleNames);
     const yearMatch = preferredYear && project.year === preferredYear ? 1 : 0;
 
@@ -101,7 +106,33 @@ export function recommendProjectsForSyncedModules({
     const matchedTopicLabels = matchedTopics.map(
       (topic) => TOPIC_LABELS[topic] ?? topic
     );
-    return { project, score, matchedTopics, matchedTopicLabels };
+    const gapTopicLabels = gapTopics.map((topic) => TOPIC_LABELS[topic] ?? topic);
+    const coverageRatio = pTopics.size === 0 ? 0 : matchedTopics.length / pTopics.size;
+    const readinessLevel: ProjectRecommendation["readinessLevel"] =
+      coverageRatio >= 0.65
+        ? "ready"
+        : coverageRatio >= 0.35
+          ? "stretch"
+          : "prep-needed";
+    const whyMatched = [
+      matchedTopicLabels.length > 0
+        ? `Topic overlap: ${matchedTopicLabels.join(", ")}`
+        : "Limited topic overlap",
+      directOverlapCount > 0
+        ? `${directOverlapCount} direct module match${directOverlapCount > 1 ? "es" : ""}`
+        : "No direct module name overlap",
+      yearMatch ? "Year aligned" : "Cross-year suggestion",
+    ].join(" · ");
+    return {
+      project,
+      score,
+      matchedTopics,
+      matchedTopicLabels,
+      gapTopics,
+      gapTopicLabels,
+      readinessLevel,
+      whyMatched,
+    };
   });
 
   return scored

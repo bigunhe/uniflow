@@ -19,6 +19,8 @@ interface ProjectCardProps {
   stack: string[];
   weekendEstimate?: string;
   challengeLevel?: string;
+  readinessLevel?: "ready" | "stretch" | "prep-needed";
+  progressPercent?: number;
 }
 
 export function ProjectCard({
@@ -29,14 +31,31 @@ export function ProjectCard({
   stack,
   weekendEstimate,
   challengeLevel,
+  readinessLevel,
+  progressPercent,
 }: ProjectCardProps) {
+  const readinessLabel =
+    readinessLevel === "ready"
+      ? "Ready"
+      : readinessLevel === "stretch"
+        ? "Stretch"
+        : readinessLevel === "prep-needed"
+          ? "Prep Needed"
+          : null;
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base leading-snug">{title}</CardTitle>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <CardTitle className="min-w-0 text-base leading-snug">{title}</CardTitle>
+          {typeof progressPercent === "number" && progressPercent > 0 && (
+            <span className="shrink-0 self-start rounded-md border border-[#00d2b4]/30 bg-[#00d2b4]/10 px-2 py-0.5 text-[10px] font-semibold text-[#7ae9d8] sm:self-auto">
+              {progressPercent}% done
+            </span>
+          )}
+        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-4 pb-4">
+      <CardContent className="flex flex-1 flex-col gap-4 pb-4 pt-0 sm:pt-0">
         <p className="text-sm leading-relaxed text-white/50">{brief}</p>
 
         {(weekendEstimate || challengeLevel) && (
@@ -49,6 +68,11 @@ export function ProjectCard({
             {challengeLevel && (
               <Badge variant="default" className="text-[11px]">
                 {challengeLevel}
+              </Badge>
+            )}
+            {readinessLabel && (
+              <Badge variant="outline" className="text-[11px]">
+                {readinessLabel}
               </Badge>
             )}
           </div>

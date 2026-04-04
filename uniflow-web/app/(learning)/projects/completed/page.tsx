@@ -2,15 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Github, ImageIcon } from "lucide-react";
+import { CheckCircle2, Copy, ExternalLink, Github, ImageIcon } from "lucide-react";
 import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 import { mockProjectsById } from "@/lib/mockData";
-import { readCompletedProjectIds } from "@/lib/projects/localState";
+import {
+  getProjectProgressPercent,
+  getProjectState,
+  readCompletedProjectIds,
+  setProjectScoreComponents,
+  updateEvidenceChecklist,
+} from "@/lib/projects/localState";
 import { isValidGithubRepoUrl, isValidHttpOrHttpsUrl } from "@/lib/projects/verificationValidators";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { computeProjectScoreComponents } from "@/lib/projects/scoring";
+import { syncProjectsPulseCredits } from "@/lib/projects/pulseContribution";
+import { createClient } from "@/lib/supabase/client";
 
 type CompletedProject = (typeof mockProjectsById)[string];
 type FieldKey = "githubRepoUrl" | "screenshotLink" | "reflectionNotes";
@@ -20,6 +29,8 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
   const [screenshotLink, setScreenshotLink] = useState("");
   const [reflectionNotes, setReflectionNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [scorePreview, setScorePreview] = useState(0);
   const [errors, setErrors] = useState<Record<FieldKey, string>>({
     githubRepoUrl: "",
     screenshotLink: "",
@@ -30,6 +41,8 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
     screenshotLink: false,
     reflectionNotes: false,
   });
+  const [showcaseUrl, setShowcaseUrl] = useState<string | null>(null);
+  const [showcaseError, setShowcaseError] = useState<string | null>(null);
 
   const validateGithubRepoUrl = (value: string): string => {
     if (!value.trim()) return "GitHub repository link is required.";
@@ -95,10 +108,99 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
     if (!validateForm() || isSubmitting) return;
 
     setIsSubmitting(true);
+    setShowcaseError(null);
     await new Promise((resolve) => setTimeout(resolve, 800));
-    toast.success("Mock verification submitted. Demo mode only - no data was saved.");
+    const touched = updateEvidenceChecklist(project.id, {
+      implementationProof: true,
+      testingProof: true,
+      reflectionNote: Boolean(reflectionNotes.trim()),
+    });
+    const state = getProjectState(project.id);
+    const score = computeProjectScoreComponents({
+      project,
+      completed: state.completed,
+      evidence: state.evidence,
+      lastTouchedAt: touched.lastTouchedAt,
+    });
+    setProjectScoreComponents(project.id, score);
+    setProgress(getProjectProgressPercent(project.id));
+    setScorePreview(score.pulseContributionPreview);
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      await syncProjectsPulseCredits(supabase, user.id);
+
+      const row = {
+        github_url: githubRepoUrl.trim(),
+        live_url: screenshotLink.trim(),
+        screenshot_url: screenshotLink.trim(),
+        reflection: reflectionNotes.trim(),
+        challenges: "",
+        learned: "",
+      };
+
+      const { data: existing } = await supabase
+        .from("user_project_submission")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("module_id", project.id)
+        .maybeSingle();
+
+      let dbErr: Error | null = null;
+      if (existing?.id) {
+        const { error } = await supabase
+          .from("user_project_submission")
+          .update(row)
+          .eq("id", existing.id);
+        if (error) dbErr = error;
+      } else {
+        const { error } = await supabase.from("user_project_submission").insert({
+          user_id: user.id,
+          module_id: project.id,
+          ...row,
+        });
+        if (error) dbErr = error;
+      }
+
+      const { data: profileRow } = await supabase
+        .from("user_data")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (dbErr) {
+        const msg =
+          /row-level security|violates row-level security/i.test(dbErr.message)
+            ? "Could not save public showcase (database policy). Ask your admin to run docs/USER-PROJECT-SUBMISSION.sql."
+            : dbErr.message.includes("foreign key") || dbErr.message.includes("fkey")
+              ? "Could not link submission to your profile. Complete profile setup and try again."
+              : dbErr.message;
+        setShowcaseError(msg);
+        toast.error("Saved locally; showcase sync failed.");
+      } else if (profileRow?.username && typeof window !== "undefined") {
+        const url = `${window.location.origin}/p/${profileRow.username}/projects/${project.id}`;
+        setShowcaseUrl(url);
+        toast.success("Verification saved. Copy your public showcase link below.");
+      } else {
+        toast.success("Verification captured. Evidence progress and score updated.");
+      }
+    } else {
+      toast.success("Verification captured. Sign in to sync public showcase.");
+    }
     setIsSubmitting(false);
   };
+
+  useEffect(() => {
+    const state = getProjectState(project.id);
+    setProgress(getProjectProgressPercent(project.id));
+    setScorePreview(
+      state.scoreComponents?.pulseContributionPreview ??
+        state.scoreComponents?.weightedScore ??
+        0
+    );
+  }, [project.id]);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
@@ -226,6 +328,43 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
           Screenshot proof
         </span>
       </div>
+      <div className="mt-2 rounded-md border border-[#00d2b4]/20 bg-[#00d2b4]/10 px-3 py-2 text-xs text-[#7ae9d8]">
+        Checklist progress: {progress}% · Pulse contribution: {scorePreview}/100
+      </div>
+
+      {showcaseError ? (
+        <p className="mt-3 text-xs text-amber-300/90">{showcaseError}</p>
+      ) : null}
+
+      {showcaseUrl ? (
+        <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
+            Public showcase
+          </p>
+          <p className="mt-1 break-all text-xs text-[#7ae9d8]/90">{showcaseUrl}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="border-[#00d2b4]/35 text-[#7ae9d8] hover:bg-[#00d2b4]/10"
+              onClick={() => {
+                void navigator.clipboard.writeText(showcaseUrl);
+                toast.success("Link copied");
+              }}
+            >
+              <Copy className="mr-1 h-3.5 w-3.5" />
+              Copy link
+            </Button>
+            <Button asChild size="sm" variant="outline" className="border-white/15 text-white/70">
+              <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                Open
+              </a>
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

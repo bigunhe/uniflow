@@ -2,8 +2,10 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
+import { readProjectStateMap, PROJECT_STATE_STORAGE_KEY } from "@/lib/projects/localState";
+import { projectsPulsePillarPercent } from "@/lib/projects/pulseContribution";
 
 type Profile = {
   display_name: string;
@@ -127,6 +129,41 @@ export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedNav, setExpandedNav] = useState<string | null>(null);
+  const [projectsPillarLocal, setProjectsPillarLocal] = useState(0);
+
+  const refreshProjectsPillar = () => {
+    if (typeof window === "undefined") return;
+    setProjectsPillarLocal(projectsPulsePillarPercent(readProjectStateMap()));
+  };
+
+  useEffect(() => {
+    refreshProjectsPillar();
+    const onStorage = (event: StorageEvent) => {
+      if (
+        event.key === PROJECT_STATE_STORAGE_KEY ||
+        event.key === "uniflow.projectsPulseLastAggregate"
+      ) {
+        refreshProjectsPillar();
+      }
+    };
+    const onProjectState = () => refreshProjectsPillar();
+    const onPulseSynced = () => {
+      refreshProjectsPillar();
+      void supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        const { data } = await supabase.from("user_data").select("*").eq("id", user.id).maybeSingle();
+        if (data) setProfile(data as Profile);
+      });
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("uniflow-project-state-changed", onProjectState);
+    window.addEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("uniflow-project-state-changed", onProjectState);
+      window.removeEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+    };
+  }, [supabase]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -148,6 +185,27 @@ export default function DashboardPage() {
       setLoading(false);
     });
   }, [router, supabase]);
+
+  const refreshProfileFromDb = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("user_data").select("*").eq("id", user.id).maybeSingle();
+    if (data) setProfile(data as Profile);
+  }, [supabase]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshProfileFromDb();
+    };
+    window.addEventListener("focus", refreshProfileFromDb);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refreshProfileFromDb);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshProfileFromDb]);
 
   useEffect(() => {
     if (pathname === "/p") setActiveNav("profile");
@@ -221,9 +279,9 @@ export default function DashboardPage() {
     </div>
   );
 
-  const score = profile?.pulse_score ?? 0;
+  const score = Math.min(100, Math.max(0, Math.round(Number(profile?.pulse_score) || 0)));
   const mastery = Math.min(100, Math.round(score * 0.3 * 3.33));
-  const projects = Math.min(100, Math.round(score * 0.4 * 2.5));
+  const projects = projectsPillarLocal;
   const community = Math.min(100, Math.round(score * 0.3 * 3.33));
 
   const handleNavClick = (id: string) => {
@@ -242,7 +300,7 @@ export default function DashboardPage() {
     else if (id === "projects")                           navigateShell("/projects");
     else if (id === "networking")                         navigateShell("/networking");
     else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
-    else if (id === "evidence")                           navigateShell("/evidance");
+    else if (id === "evidence")                           navigateShell("/projects/completed");
     else if (id === "pulse" && profile?.username)         router.push(`/pulse/${profile.username}`);
     else if (id === "profile")                            navigateShell("/p");
   };
@@ -253,7 +311,7 @@ export default function DashboardPage() {
     { id: "projects",   icon: "🛠️", label: "Projects",        hasChildren: false },
     { id: "networking", icon: "🌐", label: "Community",       hasChildren: false },
     { id: "portfolio",  icon: "🔗", label: "Portfolio",       hasChildren: false },
-    { id: "evidence",   icon: "📁", label: "Submit Evidence", hasChildren: false },
+    { id: "evidence",   icon: "📁", label: "Project verification", hasChildren: false },
     { id: "pulse",      icon: "📊", label: "Pulse Details",   hasChildren: false },
     { id: "profile",    icon: "👤", label: "Profile",         hasChildren: false },
   ];
@@ -518,7 +576,7 @@ export default function DashboardPage() {
               <p style={{ color: "rgba(168,184,208,0.85)" }}>Link your GitHub repo + screenshot to verify your skills and boost your Pulse Score.</p>
             </div>
             <button className="cta-btn" onClick={()=>handleNavClick("evidence")}>
-              + Submit Evidence
+              + Verify project
             </button>
           </div>
 

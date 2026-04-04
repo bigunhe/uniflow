@@ -201,6 +201,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Run at least two workers and intentionally crash one worker process.",
         "Add exponential backoff and a dead-letter queue for repeated failures.",
         "Write a short incident-style report explaining what failed and why.",
+        "Define job payload schema and idempotency keys so retries do not double-apply side effects.",
+        "Expose health and queue depth metrics (e.g. Redis/BullMQ stats) and document how to read them during a drill.",
+        "Containerize producer and workers; add a compose file with env samples for connection strings and concurrency limits.",
       ],
       deliverables: [
         "GitHub repository with README and run steps",
@@ -233,6 +236,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Implement prompt templates that output JSON summaries and next actions.",
         "Add confidence scoring and fallback behavior when confidence is low.",
         "Publish a short report comparing AI suggestions with manual triage.",
+        "Persist alert history and model outputs in PostgreSQL with timestamps for audit replay.",
+        "Add FastAPI routes for `/ingest`, `/summarize`, and `/runbook` with request validation (Pydantic).",
+        "Ship a small evaluation notebook or script that scores precision/recall of triage labels on a fixed fixture set.",
       ],
       deliverables: [
         "Working API with sample alert dataset",
@@ -265,6 +271,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Containerize an API service and push versioned images.",
         "Deploy to staging and production with approval controls.",
         "Document rollback strategy and run one simulated failure.",
+        "Wire Trivy (or similar) into the image build stage and fail the build on critical CVE thresholds you document.",
+        "Parameterize Terraform modules for staging vs prod (tags, desired count) and keep secrets out of git (SOPS or CI secrets).",
+        "Add a smoke-test job post-deploy (HTTP health check) and capture artifacts in the Actions summary.",
       ],
       deliverables: [
         "IaC repo and CI/CD workflow files",
@@ -297,6 +306,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Model baseline cost and latency under current settings.",
         "Simulate at least three optimization options and compare impact.",
         "Present final recommendation with assumptions and risk notes.",
+        "Document data sources, sampling windows, and any synthetic assumptions so a peer can rerun your notebook.",
+        "Plot sensitivity analysis (e.g. traffic +20%, egress price +10%) and call out break-even points.",
+        "Add an executive one-pager: problem, options table, recommendation, and top three risks.",
       ],
       deliverables: [
         "Notebook or scripts with reproducible analysis",
@@ -331,6 +343,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Design anomaly rules (spikes, repeated failures, suspicious hosts).",
         "Persist flagged records and expose summary queries via CLI commands.",
         "Add at least 10 sample logs and verify expected anomaly output.",
+        "Version your SQLite schema with a migration note and index columns used in hot queries (e.g. host, timestamp).",
+        "Add subcommands: `ingest`, `report`, `top-hosts` with `--since` filters and table-formatted output.",
+        "Write a short test table in README mapping each sample log file to expected anomaly IDs or empty results.",
       ],
       deliverables: [
         "CLI tool with command reference in README",
@@ -363,6 +378,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Return structured responses with network and host range details.",
         "Add input validation for malformed and unsupported CIDR values.",
         "Run simple load tests and report requests per second.",
+        "Use a line-oriented protocol (e.g. `CALC 192.168.1.0/24\\n`) and document max request size and timeout behavior.",
+        "Include golden tests for edge CIDRs (/32, /31, IPv6 if you choose to support it—state clearly if not).",
+        "Capture `perf` or `py-spy` (if Python) or equivalent notes explaining where CPU time goes under load.",
       ],
       deliverables: [
         "Daemon source with test payloads",
@@ -395,6 +413,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Design backlog/task schema with status history.",
         "Add AI endpoint that returns ranked tasks with short reasoning.",
         "Measure recommendation usefulness with 10 sample scenarios.",
+        "Model `Task`, `User`, `Role`, and `StatusChange` tables; ensure Prisma migrations run from a clean DB.",
+        "Add server-side authorization checks so students cannot PATCH tasks they do not own.",
+        "Log model latency and token usage per ranking call and surface it in an admin-only debug panel.",
       ],
       deliverables: [
         "Working full-stack app and seed data",
@@ -427,6 +448,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Add CLI commands to spin up and tear down environments.",
         "Generate environment summaries with open ports and services.",
         "Benchmark setup time before and after automation.",
+        "Support a `--profile` or template flag so labs can differ by image tags and volume mounts without duplicating YAML.",
+        "Add `down -v` safety prompts or `--force` flags documented in README to prevent accidental data loss.",
+        "Include a troubleshooting section for common failures: port collisions, ARM vs x86 images, and DNS inside compose networks.",
       ],
       deliverables: [
         "Provisioning CLI with sample templates",
@@ -459,6 +483,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Train a baseline model and capture evaluation metrics.",
         "Track dataset/model versions and training configs.",
         "Expose a prediction API and test with sample images.",
+        "Split train/val/test explicitly in DVC or folder layout; document any augmentation you apply.",
+        "Save checkpoints and final `metrics.json` (accuracy, macro-F1) next to the model artifact path.",
+        "Add FastAPI `/predict` multipart upload with size limits and return top-k class probabilities.",
       ],
       deliverables: [
         "Training scripts and dataset notes",
@@ -491,6 +518,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Add notification workers using queued jobs.",
         "Cache high-traffic read endpoints and track cache hit ratios.",
         "Create a CI pipeline for tests and container image builds.",
+        "Use DB transactions or row-level locking for seat decrements; include a stress test script that fires concurrent bookings.",
+        "Define Redis keys and TTL strategy for cached event lists; log cache hits/misses per route.",
+        "Document idempotency for payment webhooks (if stubbed) and how duplicate notifications are ignored.",
       ],
       deliverables: [
         "Service code and architecture notes",
@@ -525,6 +555,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Track block metadata and coalescing behavior.",
         "Run allocation workloads with varied block sizes.",
         "Measure fragmentation and explain observed trends.",
+        "Run under Valgrind or AddressSanitizer builds and document any leaks or invalid frees you fixed.",
+        "Implement `calloc`/`realloc` behavior or explicitly document unsupported cases with compile-time guards.",
+        "Add micro-benchmark comparing your allocator vs system malloc on the same workload script.",
       ],
       deliverables: [
         "Allocator implementation and test harness",
@@ -557,6 +590,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Build parser rules and map them to execution functions.",
         "Store rows in-memory and return deterministic query results.",
         "Document unsupported SQL features clearly.",
+        "Add negative tests: malformed SQL, unknown tables, type mismatches on INSERT, with clear error messages.",
+        "Support at least `WHERE` with `AND` and `=` comparisons on integer and string columns.",
+        "Print an internal execution plan (even if naive nested-loop) for each SELECT to show how rows are scanned.",
       ],
       deliverables: [
         "Engine code with sample query scripts",
@@ -589,6 +625,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Build reusable UI components for cards and forms.",
         "Add client-side validation and helpful errors.",
         "Document the component hierarchy and state choices.",
+        "Use layout routes or shared shells so nav and footer stay consistent across pages.",
+        "Stub auth state (e.g. context) with mock user; protect profile route behind a simple `requireAuth` guard.",
+        "Meet basic responsive checks: readable at 375px width without horizontal scroll on core pages.",
       ],
       deliverables: [
         "Portal app with responsive pages",
@@ -621,6 +660,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Implement reminder scheduler with configurable frequency.",
         "Send email notifications and log delivery outcomes.",
         "Handle timezone assumptions in README.",
+        "Store reminder history in SQLite with columns for status (`sent`, `failed`) and last error text.",
+        "Add a config file for SMTP host, port, and TLS mode; never commit real credentials.",
+        "Provide a dry-run mode that prints emails instead of sending when `DRY_RUN=1`.",
       ],
       deliverables: [
         "Automation script and scheduler config",
@@ -653,6 +695,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Store response times and success/failure status.",
         "Render uptime and latency charts in a basic UI.",
         "Add alerts for repeated failures.",
+        "Model hosts in SQLite with last RTT, consecutive failures, and mute flags for maintenance windows.",
+        "Expose a JSON `/api/status` for the UI and document polling interval vs chart aggregation buckets.",
+        "Seed the DB with synthetic downtime bursts to prove alerts fire only after your documented threshold.",
       ],
       deliverables: [
         "Monitoring app with sample data",
@@ -685,6 +730,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Build vector retrieval and answer generation pipeline.",
         "Return top sources with every answer.",
         "Evaluate answers using a fixed test question set.",
+        "Version your FAISS index build script with chunk size, overlap, and embedding model name in README.",
+        "Add a guardrail: if retrieval score is below a threshold, respond with “not enough context” instead of guessing.",
+        "Log question, retrieved chunk IDs, and latency per request for debugging bad answers.",
       ],
       deliverables: [
         "Running API with retrieval module",
@@ -719,6 +767,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Validate incoming payloads and return clear errors.",
         "Add a simple filter by status and due date.",
         "Test all endpoints with Postman collections.",
+        "Define task fields explicitly (`title`, `status` enum, `dueDate` ISO-8601) and reject unknown JSON keys if you choose strict mode.",
+        "Return consistent error JSON (`{ \"error\": string }`) with correct HTTP status codes for validation vs not-found.",
+        "Add `GET /health` and a README section covering install, `PORT`, example `curl` calls, and common failure modes.",
       ],
       deliverables: [
         "API source with setup guide",
@@ -751,6 +802,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Implement command handlers for CRUD-style operations.",
         "Add export command to CSV.",
         "Write usage examples for every command.",
+        "Persist records in a JSON or SQLite file under `./data/` and document the on-disk format.",
+        "Handle corrupt files gracefully with a clear error and exit code (e.g. `2` for user error).",
+        "Add `list --format=table` vs `json` output flags to practice structured CLI output.",
       ],
       deliverables: [
         "CLI source code and sample dataset",
@@ -783,6 +837,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Implement pages to create, view, update, and delete entries.",
         "Add validation for required fields.",
         "Handle common DB errors with clear messages.",
+        "Use parameterized queries everywhere; add a short note in README explaining why SQL injection matters here.",
+        "Add server-side checks for string length limits and numeric ranges before hitting the database.",
+        "Include seed data script or SQL file so a reviewer can run the app in one command.",
       ],
       deliverables: [
         "Running CRUD app",
@@ -815,6 +872,9 @@ export const mockAppliedProjects: Record<ProjectYear, MockProject[]> = {
         "Move files into organized folder structures.",
         "Add a dry-run mode before actual moves.",
         "Support custom rules via a small config file.",
+        "Default to `--dry-run` in docs until the user passes `--apply`; log every planned move with source → destination.",
+        "Handle filename collisions by appending a counter or timestamp and document the strategy.",
+        "Watch mode: use `watchdog` to react to new files; debounce bursts so partial downloads are not moved mid-write.",
       ],
       deliverables: [
         "Organizer script with config examples",
