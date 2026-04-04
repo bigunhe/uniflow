@@ -33,7 +33,7 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-[#080c14] px-6 py-14 text-white">
+      <div className="brand-dark-shell min-h-screen bg-[#080c14] px-6 py-14 text-white">
         <div className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-white/[0.03] p-8">
           <h1 className="text-xl font-semibold">Project not found</h1>
           <p className="mt-2 text-sm text-white/40">
@@ -51,7 +51,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-white">
+    <div className="brand-dark-shell min-h-screen bg-[#080c14] text-white">
       <div
         className="pointer-events-none fixed inset-0"
         style={{

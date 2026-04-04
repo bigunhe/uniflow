@@ -1,4 +1,5 @@
 "use client";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 
 import { createClient } from "@/lib/supabase/client";
 import { userDataWriteBody } from "@/lib/supabase/user-data-write";
@@ -174,7 +175,7 @@ export default function ProfileSetupPage() {
         .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,210,180,.12) 0%,transparent 70%);top:-150px;left:-150px;}
         .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);bottom:-100px;right:-100px;}
         .logo{display:flex;align-items:center;gap:10px;margin-bottom:40px;position:relative;z-index:1;}
-        .logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;}
+        .logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;}
         .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;color:var(--brand-dark-heading,#f0f4fb);letter-spacing:-.02em;}
         .logo-name span{color:#00d2b4;}
         .progress-wrap{width:100%;max-width:520px;display:flex;gap:8px;margin-bottom:32px;position:relative;z-index:1;}
@@ -233,10 +234,7 @@ export default function ProfileSetupPage() {
 
       <div className="root brand-dark-shell">
         <div className="bg-grid" /><div className="bg-glow g1" /><div className="bg-glow g2" />
-        <div className="logo">
-          <div className="logo-mark">U</div>
-          <div className="logo-name">Uni<span>Flow</span></div>
-        </div>
+        <UniFlowBrandLink variant="dark" size="md" className="logo" />
 
         <div className="progress-wrap">
           <div className={`prog-seg ${step >= 1 ? "done" : ""}`} />

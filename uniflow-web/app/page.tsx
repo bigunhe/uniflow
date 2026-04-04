@@ -7,10 +7,10 @@ import {
   FolderCheck,
   LayoutDashboard,
   ArrowRight,
-  Infinity as InfinityIcon,
   Puzzle,
   Hammer,
 } from "lucide-react";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 import {
   START_FEATURE_COPY,
   type StartFeatureId,
@@ -148,7 +148,7 @@ export default function HubPage() {
         }
         .hub-subtitle {
           font-size: 15px;
-          color: rgba(255,255,255,0.38);
+          color: rgba(255,255,255,0.55);
           line-height: 1.6;
           font-weight: 300;
           max-width: 420px;
@@ -217,7 +217,7 @@ export default function HubPage() {
         }
         .hub-card-desc {
           font-size: 12px;
-          color: rgba(255,255,255,0.28);
+          color: rgba(255,255,255,0.45);
           font-weight: 300;
         }
 
@@ -262,18 +262,11 @@ export default function HubPage() {
         }
       `}</style>
 
-      <div className="hub-root">
+      <div className="hub-root brand-dark-shell">
         <div className="hub-grid" />
 
         <header className="hub-header">
-          <Link href="/" className="hub-logo">
-            <div className="hub-logo-mark" aria-hidden>
-              <InfinityIcon size={17} color="#fff" strokeWidth={2.35} />
-            </div>
-            <div className="hub-logo-name">
-              Uni<span>Flow</span>
-            </div>
-          </Link>
+          <UniFlowBrandLink variant="dark" size="lg" className="hub-logo" />
           <Button
             asChild
             variant="ghost"

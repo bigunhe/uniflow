@@ -43,10 +43,10 @@
 
     /* Dark tool surfaces (#080c14): scoped via .brand-dark-shell so global !important text rules stay readable */
     --brand-dark-bg: #080c14;
-    --brand-dark-heading: #f0f4fb;
-    --brand-dark-text: #d4dde8;
-    --brand-dark-muted: #a8b8d0;
-    --brand-dark-subtle: #7d8fa8;
+    --brand-dark-heading: #f4f7fc;
+    --brand-dark-text: #dce3ee;
+    --brand-dark-muted: #b4c0d4;
+    --brand-dark-subtle: #8b9cb4;
     --brand-dark-link: #6ee4d4;
   }
   .dark {
@@ -179,13 +179,32 @@
   }
 }
 
-/* Dark uni tool pages (#080c14): override light tokens for descendants so h1/p/li !important rules use readable colors */
+/* Dark uni tool pages (#080c14): rebind app + shadcn tokens so global h1/p/li !important rules and UI primitives stay readable. */
 .brand-dark-shell {
   --app-text-strong: var(--brand-dark-heading);
   --app-text: var(--brand-dark-text);
   --app-text-soft: var(--brand-dark-muted);
   --app-link: var(--brand-dark-link);
   --app-focus: #00d2b4;
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
 }
 
 .brand-dark-shell .field input::placeholder,

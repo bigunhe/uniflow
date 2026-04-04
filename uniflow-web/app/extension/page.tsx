@@ -70,7 +70,7 @@ export default function ExtensionPage() {
         }
       `}</style>
 
-      <div className="ext-root">
+      <div className="ext-root brand-dark-shell">
         <div className="ext-grid" />
         <div className="ext-wrap">
           <div className="ext-top">
