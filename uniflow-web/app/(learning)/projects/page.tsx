@@ -91,7 +91,7 @@ export default function ProjectsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-white">
+    <div className="brand-dark-shell min-h-screen bg-[#080c14] text-white">
       <div
         className="pointer-events-none fixed inset-0"
         style={{

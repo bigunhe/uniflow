@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/models/user";
 import { signOut } from "@/services/auth";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 
 type AppTopNavProps = {
   role: UserRole;
@@ -30,9 +31,7 @@ export function AppTopNav({ role }: AppTopNavProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="text-sm font-black uppercase tracking-wide text-amber-700">
-          UniFlow
-        </Link>
+        <UniFlowBrandLink variant="light" size="sm" />
         <nav className="hidden items-center gap-4 md:flex">
           {links.map((item) => (
             <Link

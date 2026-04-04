@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 
 type Profile = {
   display_name: string;
@@ -412,10 +413,7 @@ export default function DashboardPage() {
 
         {/* ── Sidebar ── */}
         <aside className={`sidebar ${sidebarOpen?"open":""}`}>
-          <div className="sidebar-logo">
-            <div className="logo-mark">U</div>
-            <div className="logo-name">Uni<span>Flow</span></div>
-          </div>
+          <UniFlowBrandLink variant="dark" size="md" className="sidebar-logo" />
 
           <div className="nav-section-label">Menu</div>
           {navItems.map(n=>(

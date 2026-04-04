@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 import { mentorButtonClassName, MentorButton } from "./MentorButton";
 import {
   type UserRoleProfile,
@@ -85,17 +86,11 @@ export function MentorHeader() {
       ? "Mentor Hub"
       : "Student Learning Hub";
 
-  const brandHref = isCommonLanding ? "/networking/mentors" : "/networking/mentors/home";
-
   const headerClass = isMentorView
     ? "sticky top-0 z-40 border-b border-slate-200 bg-white/92 backdrop-blur-xl"
     : "sticky top-0 z-40 border-b border-slate-200 bg-white/92 backdrop-blur-xl";
 
-  const logoClass = isMentorView
-    ? "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-black text-white shadow-[0_8px_20px_rgba(79,70,229,0.35)]"
-    : "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-black text-white shadow-[0_8px_20px_rgba(79,70,229,0.35)]";
-
-  const navLinkClass = "text-sm font-medium text-slate-600 transition-colors hover:text-indigo-600";
+const navLinkClass = "text-sm font-medium text-slate-600 transition-colors hover:text-indigo-600";
   const navLinkActiveClass = "text-sm font-semibold text-indigo-700";
 
   const nameChipClass = isMentorView
@@ -111,10 +106,7 @@ export function MentorHeader() {
     return (
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/networking/mentors" className="inline-flex items-center gap-2.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600 text-[10px] font-black text-white">✦</span>
-            <span className="text-sm font-bold tracking-tight text-slate-950">UniFlow</span>
-          </Link>
+          <UniFlowBrandLink variant="light" size="sm" />
 
           <nav className="hidden items-center gap-6 md:flex">
             {[
@@ -162,17 +154,15 @@ export function MentorHeader() {
   return (
     <header className={headerClass}>
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href={brandHref} className="flex items-center gap-3">
-          <div className={logoClass}>
-            {isMentorView ? "MC" : "UF"}
-          </div>
+        <div className="flex items-center gap-3">
+          <UniFlowBrandLink variant="light" size="sm" />
           <div>
             <p className={titleClass}>UniFlow Mentors</p>
             <p className={subtitleClass}>
               {subLabel}
             </p>
           </div>
-        </Link>
+        </div>
 
         <nav className="hidden items-center gap-6 md:flex">
           {activeNavItems.map((item) => (

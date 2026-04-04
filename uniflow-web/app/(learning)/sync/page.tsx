@@ -30,7 +30,7 @@ export default function SyncPage() {
 
   if (!authChecked) {
     return (
-      <div style={{ minHeight: "100vh", background: "#080c14", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.6)" }}>
+      <div className="brand-dark-shell" style={{ minHeight: "100vh", background: "#080c14", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.6)" }}>
         Checking your session...
       </div>
     );
@@ -45,6 +45,7 @@ export default function SyncPage() {
       `}</style>
 
       <div
+        className="brand-dark-shell"
         style={{
           minHeight: "100vh",
           background: "#080c14",

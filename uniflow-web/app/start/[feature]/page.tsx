@@ -36,7 +36,7 @@ export default async function StartFeaturePage({ params }: Props) {
         .start-li{font-size:13px;line-height:1.55;color:rgba(255,255,255,.52);padding-left:18px;position:relative;}
         .start-li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#00d2b4,#6366f1);}
       `}</style>
-      <div className="start-root">
+      <div className="start-root brand-dark-shell">
         <div className="start-grid" aria-hidden />
         <div className="start-inner">
           <div className="start-back">

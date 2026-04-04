@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, ArrowLeft, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 
 type NavItem = {
   label: string;
@@ -52,6 +53,7 @@ export function FeatureTopbar({
   return (
     <div className="mb-8 flex items-center justify-between">
       <div className="flex items-center gap-2">
+        <UniFlowBrandLink variant="dark" size="sm" className="mr-1" />
         <button
           type="button"
           onClick={handleBack}
