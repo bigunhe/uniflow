@@ -299,9 +299,9 @@ export default function DashboardPage() {
     else if (id === "sync")                               navigateShell("/learning");
     else if (id === "projects")                           navigateShell("/projects");
     else if (id === "networking")                         navigateShell("/networking");
-    else if (id === "portfolio" && profile?.username)     router.push(`/p/${profile.username}`);
+    else if (id === "portfolio")                           navigateShell("/portfolio");
     else if (id === "evidence")                           navigateShell("/projects/completed");
-    else if (id === "pulse" && profile?.username)         router.push(`/pulse/${profile.username}`);
+    else if (id === "pulse")                               navigateShell("/pulse-details");
     else if (id === "profile")                            navigateShell("/p");
   };
 
@@ -310,7 +310,7 @@ export default function DashboardPage() {
     { id: "sync",       icon: "📚", label: "Learning",        hasChildren: true  },
     { id: "projects",   icon: "🛠️", label: "Projects",        hasChildren: false },
     { id: "networking", icon: "🌐", label: "Community",       hasChildren: false },
-    { id: "portfolio",  icon: "🔗", label: "Portfolio",       hasChildren: false },
+    { id: "portfolio",  icon: "🔗", label: "My portfolio",    hasChildren: false },
     { id: "evidence",   icon: "📁", label: "Project verification", hasChildren: false },
     { id: "pulse",      icon: "📊", label: "Pulse Details",   hasChildren: false },
     { id: "profile",    icon: "👤", label: "Profile",         hasChildren: false },
@@ -556,8 +556,8 @@ export default function DashboardPage() {
               <p style={{ color: "rgba(168,184,208,0.85)" }}>Here's your career progress at a glance</p>
             </div>
             <div className="topbar-right">
-              <button className="portfolio-btn" onClick={()=>profile?.username && router.push(`/p/${profile.username}`)}>
-                🔗 View Portfolio
+              <button className="portfolio-btn" onClick={()=>router.push("/portfolio")}>
+                🔗 My project portfolio
               </button>
               <div className="avatar-btn" style={{cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}} onClick={()=>handleNavClick("profile")}>
                 {profile?.avatar_url ? (

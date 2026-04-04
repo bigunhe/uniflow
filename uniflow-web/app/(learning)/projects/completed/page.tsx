@@ -15,6 +15,14 @@ import {
 import { isValidGithubRepoUrl, isValidHttpOrHttpsUrl } from "@/lib/projects/verificationValidators";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { computeProjectScoreComponents } from "@/lib/projects/scoring";
@@ -43,6 +51,7 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
   });
   const [showcaseUrl, setShowcaseUrl] = useState<string | null>(null);
   const [showcaseError, setShowcaseError] = useState<string | null>(null);
+  const [showcaseDialogOpen, setShowcaseDialogOpen] = useState(false);
 
   const validateGithubRepoUrl = (value: string): string => {
     if (!value.trim()) return "GitHub repository link is required.";
@@ -182,7 +191,10 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
       } else if (profileRow?.username && typeof window !== "undefined") {
         const url = `${window.location.origin}/p/${profileRow.username}/projects/${project.id}`;
         setShowcaseUrl(url);
-        toast.success("Verification saved. Copy your public showcase link below.");
+        setShowcaseDialogOpen(true);
+        toast.success("Public showcase ready — copy the link from the dialog or below.", {
+          duration: 8000,
+        });
       } else {
         toast.success("Verification captured. Evidence progress and score updated.");
       }
@@ -362,9 +374,60 @@ function CompletedProjectVerificationCard({ project }: { project: CompletedProje
                 Open
               </a>
             </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="text-white/50 hover:text-white/80"
+              onClick={() => setShowcaseDialogOpen(true)}
+            >
+              Show link again
+            </Button>
           </div>
         </div>
       ) : null}
+
+      <Dialog open={showcaseDialogOpen} onOpenChange={setShowcaseDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-white/15 bg-[#0c111a] text-white sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white">Your public project page</DialogTitle>
+            <DialogDescription className="text-white/55">
+              Share this URL so anyone can view your verified evidence and project details. On localhost, copy the
+              full address and open it in your browser (e.g. http://localhost:3000/…).
+            </DialogDescription>
+          </DialogHeader>
+          {showcaseUrl ? (
+            <>
+              <Input
+                readOnly
+                value={showcaseUrl}
+                className="border-white/15 bg-[#080c14] font-mono text-xs text-[#7ae9d8]"
+                onFocus={(e) => e.target.select()}
+              />
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[#00d2b4]/35 text-[#7ae9d8] hover:bg-[#00d2b4]/10"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(showcaseUrl);
+                    toast.success("Link copied");
+                  }}
+                >
+                  <Copy className="mr-1 h-4 w-4" />
+                  Copy link
+                </Button>
+                <Button asChild className="bg-[#00d2b4] text-[#080c14] hover:bg-[#00d2b4]/85">
+                  <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-1 h-4 w-4" />
+                    Open in new tab
+                  </a>
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

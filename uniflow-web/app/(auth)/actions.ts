@@ -70,3 +70,41 @@ export async function getProjectShowcaseByUsernameAndProjectId(
     submission: row as ProjectShowcaseSubmission | null,
   };
 }
+
+export type PortfolioSubmissionRow = ProjectShowcaseSubmission & {
+  module_id: string;
+};
+
+/**
+ * All studio submissions for a public portfolio index (`/p/{username}/portfolio`).
+ */
+export async function getPublicProjectSubmissionsForUsername(
+  username: string
+): Promise<{ profile: ProjectShowcaseProfile; submissions: PortfolioSubmissionRow[] } | null> {
+  const supabase = getSupabase();
+  const { data: profile, error: profileError } = await supabase
+    .from("user_data")
+    .select("id, display_name, username, avatar_url, job_role, pulse_score")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (profileError || !profile) return null;
+
+  const { data: rows, error: subError } = await supabase
+    .from("user_project_submission")
+    .select("id, module_id, github_url, live_url, screenshot_url, reflection, challenges, learned")
+    .eq("user_id", profile.id);
+
+  if (subError) {
+    return {
+      profile: profile as ProjectShowcaseProfile,
+      submissions: [],
+    };
+  }
+
+  const list = (Array.isArray(rows) ? rows : []) as PortfolioSubmissionRow[];
+  return {
+    profile: profile as ProjectShowcaseProfile,
+    submissions: list,
+  };
+}
