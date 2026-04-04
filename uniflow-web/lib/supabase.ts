@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /**
  * One Supabase client for the app. Use only on the server (Server Components / Server Actions).
@@ -14,10 +14,8 @@ export function getSupabase() {
   return createClient(supabaseUrl, supabaseAnonKey);
 }
 
-/** Server-only: returns null when env is missing so APIs can degrade gracefully (e.g. Ridmi messages). */
+/** Server-only: returns null when env is missing so APIs can degrade gracefully (e.g. messages). */
 export function getSupabaseIfConfigured() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
