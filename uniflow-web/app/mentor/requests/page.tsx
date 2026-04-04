@@ -74,18 +74,18 @@ export default function MentorRequestsPage() {
       title="Requests"
       subtitle="Review direct student requests and open queue requests."
     >
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        {requests.length === 0 ? <p className="text-sm text-slate-500">No requests available.</p> : null}
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-5 shadow-sm">
+        {requests.length === 0 ? <p className="text-sm text-slate-400">No requests available.</p> : null}
         <div className="space-y-3">
           {requests.map((request) => (
-            <article key={request.id} className="rounded-lg border border-slate-200 p-3">
+            <article key={request.id} className="rounded-lg border border-slate-700 bg-slate-800/30 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-900">{request.topic}</p>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                <p className="text-sm font-semibold text-slate-50">{request.topic}</p>
+                <span className="rounded-full bg-slate-800/50 px-2 py-0.5 text-xs font-semibold text-slate-400">
                   {request.status}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-600">{request.description}</p>
+              <p className="mt-1 text-xs text-slate-400">{request.description}</p>
               <p className="mt-1 text-xs text-slate-500">Urgency: {request.urgency}</p>
               <div className="mt-3 flex gap-2">
                 <button

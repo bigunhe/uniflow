@@ -46,24 +46,24 @@ export function MentorBreadcrumbs() {
   });
 
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+    <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[rgba(168,184,208,0.85)]">
       <Link
         href="/networking/mentors"
-        className="rounded-full border border-slate-300 bg-white px-2.5 py-1 transition hover:text-slate-800"
+        className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 transition hover:text-white"
       >
         Home
       </Link>
       {crumbs.map((crumb) => (
         <div key={crumb.href} className="flex items-center gap-2">
-          <span className="text-slate-400">/</span>
+          <span className="text-[rgba(168,184,208,0.6)]">/</span>
           {crumb.isLast ? (
-            <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 font-medium text-indigo-800">
+            <span className="rounded-full border border-[#00d2b4]/20 bg-[#00d2b4]/10 px-2.5 py-1 font-medium text-[#00d2b4]">
               {crumb.label}
             </span>
           ) : (
             <Link
               href={crumb.href}
-              className="rounded-full border border-slate-300 bg-white px-2.5 py-1 transition hover:text-slate-800"
+              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 transition hover:text-white"
             >
               {crumb.label}
             </Link>

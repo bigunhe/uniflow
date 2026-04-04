@@ -106,7 +106,7 @@ export function MentorRoleAccessBoundary({ children }: MentorRoleAccessBoundaryP
 
   if (!isAllowed) {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+      <section className="rounded-2xl border border-white/8 bg-[rgba(255,255,255,0.03)] p-6 text-sm text-[rgba(232,238,248,0.86)] shadow-sm">
         Checking access...
       </section>
     );

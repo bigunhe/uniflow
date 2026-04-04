@@ -5,12 +5,29 @@ export type AIMessage = {
   content: string;
 };
 
+function buildFallbackReply(messages: AIMessage[], reason: string) {
+  const lastUser = [...messages].reverse().find((message) => message.role === "user");
+  const question = lastUser?.content?.trim() || "your question";
+
+  return [
+    "I am currently running in fallback mode, so this answer is a guided best-effort response.",
+    `You asked: \"${question}\"`,
+    "Try this approach:",
+    "1) Break the problem into small parts and solve one part at a time.",
+    "2) Write down what you already know and what is still unclear.",
+    "3) Test one concrete example and verify the expected result.",
+    "4) If you are still blocked, ask a focused follow-up with your exact error or output.",
+    "",
+    `Technical note: ${reason}`,
+  ].join("\n");
+}
+
 export async function chatWithOpenAI(messages: AIMessage[]) {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
   if (!apiKey) {
-    throw new Error("Missing OPENAI_API_KEY");
+    return buildFallbackReply(messages, "OPENAI_API_KEY is not configured.");
   }
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -28,14 +45,14 @@ export async function chatWithOpenAI(messages: AIMessage[]) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`OpenAI request failed: ${errorText}`);
+    return buildFallbackReply(messages, `OpenAI request failed: ${errorText}`);
   }
 
   const data = await response.json();
   const output = data.choices?.[0]?.message?.content;
 
   if (!output) {
-    throw new Error("No AI response returned.");
+    return buildFallbackReply(messages, "OpenAI returned an empty response.");
   }
 
   return output as string;

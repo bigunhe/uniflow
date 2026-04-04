@@ -79,6 +79,54 @@ export const mentorProfiles: MentorProfile[] = [
     about:
       "Mia works with learners to improve product thinking, wireframing quality, and interface consistency across web and mobile surfaces.",
   },
+  {
+    id: 5,
+    slug: "ethan-cole",
+    name: "Ethan Cole",
+    expertise: "Machine Learning",
+    bio: "Breaks down ML workflows from feature prep to model deployment.",
+    ratePerHour: 58,
+    rating: 4.8,
+    reviews: 104,
+    image: "https://i.pravatar.cc/200?img=59",
+    availability: "Mon-Wed, 7:00 PM - 10:00 PM",
+    languages: ["English"],
+    highlights: ["Python", "Scikit-learn", "Model Tuning", "MLOps Basics"],
+    about:
+      "Ethan helps students connect statistics, coding, and deployment with practical mentorship on end-to-end ML projects.",
+  },
+  {
+    id: 6,
+    slug: "sophia-njeri",
+    name: "Sophia Njeri",
+    expertise: "Mobile Development",
+    bio: "Coaches students in building production-ready Flutter apps.",
+    ratePerHour: 50,
+    rating: 4.9,
+    reviews: 117,
+    image: "https://i.pravatar.cc/200?img=47",
+    availability: "Tue-Fri, 4:00 PM - 8:00 PM",
+    languages: ["English", "Swahili"],
+    highlights: ["Flutter", "Firebase", "State Management", "App Architecture"],
+    about:
+      "Sophia mentors learners through UI implementation, backend integration, and release readiness for mobile products.",
+  },
+  {
+    id: 7,
+    slug: "oliver-chen",
+    name: "Oliver Chen",
+    expertise: "Cloud and DevOps",
+    bio: "Teaches CI/CD, containerization, and cloud deployment fundamentals.",
+    ratePerHour: 60,
+    rating: 4.8,
+    reviews: 91,
+    image: "https://i.pravatar.cc/200?img=53",
+    availability: "Sat-Sun, 11:00 AM - 3:00 PM",
+    languages: ["English", "Mandarin"],
+    highlights: ["Docker", "GitHub Actions", "AWS", "Observability"],
+    about:
+      "Oliver focuses on practical DevOps systems so students can deploy confidently and keep services stable in production.",
+  },
 ];
 
 export function getMentorBySlug(slug: string) {

@@ -72,24 +72,24 @@ export default function MentorDiscoveryPage() {
 
   return (
     <div className="space-y-7">
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
-        <h1 className="text-5xl font-black tracking-tight text-slate-950">Find your guide.</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+      <section className="rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6 shadow-sm sm:p-7">
+        <h1 className="text-5xl font-black tracking-tight text-slate-50">Find your guide.</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
           Connect with industry experts and academic leaders for personalized 1-on-1 mentorship.
         </p>
 
-        <div className="mt-5 grid grid-cols-12 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+        <div className="mt-5 grid grid-cols-12 gap-2 rounded-xl border border-slate-700 bg-slate-900/40 p-2">
           <input
             type="search"
             placeholder="Search by name, expertise or university"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="col-span-12 h-11 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-700 outline-none ring-blue-500 transition focus:border-blue-300 focus:ring-2 lg:col-span-4"
+            className="col-span-12 h-11 rounded-lg border border-slate-700 bg-slate-800/50 px-4 text-sm text-slate-50 placeholder-slate-500 outline-none ring-teal-500/50 transition focus:border-teal-500 focus:ring-2 lg:col-span-4"
           />
           <select
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
-            className="col-span-6 h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none ring-blue-500 transition focus:border-blue-300 focus:ring-2 lg:col-span-2"
+            className="col-span-6 h-11 rounded-lg border border-slate-700 bg-slate-800/50 px-3 text-sm text-slate-50 outline-none ring-teal-500/50 transition focus:border-teal-500 focus:ring-2 lg:col-span-2"
           >
             <option>Subject</option>
             <option>Frontend</option>
@@ -101,7 +101,7 @@ export default function MentorDiscoveryPage() {
           <select
             value={minRating}
             onChange={(event) => setMinRating(event.target.value)}
-            className="col-span-6 h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none ring-blue-500 transition focus:border-blue-300 focus:ring-2 lg:col-span-2"
+            className="col-span-6 h-11 rounded-lg border border-slate-700 bg-slate-800/50 px-3 text-sm text-slate-50 outline-none ring-teal-500/50 transition focus:border-teal-500 focus:ring-2 lg:col-span-2"
           >
             <option>Rating (4.0+)</option>
             <option>Rating (4.5+)</option>
@@ -110,7 +110,7 @@ export default function MentorDiscoveryPage() {
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
-            className="col-span-6 h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none ring-blue-500 transition focus:border-blue-300 focus:ring-2 lg:col-span-2"
+            className="col-span-6 h-11 rounded-lg border border-slate-700 bg-slate-800/50 px-3 text-sm text-slate-50 outline-none ring-teal-500/50 transition focus:border-teal-500 focus:ring-2 lg:col-span-2"
           >
             <option>Top Rated</option>
             <option>Most Reviews</option>
@@ -121,7 +121,7 @@ export default function MentorDiscoveryPage() {
           <button
             type="button"
             onClick={handleReset}
-            className="col-span-6 h-11 rounded-lg bg-blue-700 text-sm font-semibold text-white transition hover:bg-blue-800 lg:col-span-2"
+            className="col-span-6 h-11 rounded-lg bg-teal-700 text-sm font-semibold text-white transition hover:bg-teal-800 lg:col-span-2"
           >
             Reset Filters
           </button>
@@ -165,16 +165,16 @@ export default function MentorDiscoveryPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-3xl font-black tracking-tight text-slate-900">Top Mentors for You</h2>
+          <h2 className="text-3xl font-black tracking-tight text-slate-50">Top Mentors for You</h2>
           <div className="flex items-center gap-2">
-            <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-blue-100 text-blue-700">▦</button>
-            <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500">☰</button>
+            <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-teal-500/20 text-teal-300">▦</button>
+            <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400">☰</button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredMentors.length === 0 ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
+            <div className="col-span-full rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 px-6 py-10 text-center text-sm text-slate-400">
               No mentors match these filters yet. Try adjusting the search or filters.
             </div>
           ) : (
@@ -186,12 +186,12 @@ export default function MentorDiscoveryPage() {
       </section>
 
       {selectedMentor ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-6">
-          <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 px-4 py-6">
+          <div className="relative w-full max-w-3xl rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm shadow-2xl">
             <button
               type="button"
               onClick={() => setSelectedMentor(null)}
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100"
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-800/50 text-slate-400 transition hover:bg-slate-700"
               aria-label="Close"
             >
               ×
@@ -203,30 +203,30 @@ export default function MentorDiscoveryPage() {
                   <img
                     src={selectedMentor.image}
                     alt={selectedMentor.name}
-                    className="h-20 w-20 rounded-2xl object-cover ring-2 ring-slate-100"
+                    className="h-20 w-20 rounded-2xl object-cover ring-2 ring-slate-700"
                   />
                   <div className="flex-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Profile</p>
-                    <h3 className="text-2xl font-black text-slate-900">{selectedMentor.name}</h3>
-                    <p className="text-sm text-slate-600">{selectedMentor.expertise}</p>
-                    <div className="mt-2 flex items-center gap-3 text-xs font-semibold text-slate-600">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-amber-700">
+                    <h3 className="text-2xl font-black text-slate-50">{selectedMentor.name}</h3>
+                    <p className="text-sm text-slate-400">{selectedMentor.expertise}</p>
+                    <div className="mt-2 flex items-center gap-3 text-xs font-semibold text-slate-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/20 px-2 py-1 text-teal-300">
                         ★ {selectedMentor.rating.toFixed(1)}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-800/50 px-2 py-1">
                         {selectedMentor.reviews} reviews
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm leading-relaxed text-slate-700">{selectedMentor.about}</p>
+                <p className="mt-4 text-sm leading-relaxed text-slate-300">{selectedMentor.about}</p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {selectedMentor.highlights.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-blue-700"
+                      className="rounded-full bg-teal-500/20 px-3 py-1 text-[11px] font-semibold text-teal-300"
                     >
                       #{tag.replace(/\s+/g, "")}
                     </span>
@@ -234,7 +234,7 @@ export default function MentorDiscoveryPage() {
                   {selectedMentor.languages.map((lang) => (
                     <span
                       key={lang}
-                      className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700"
+                      className="rounded-full bg-slate-800/50 px-3 py-1 text-[11px] font-semibold text-slate-300"
                     >
                       {lang}
                     </span>
@@ -242,11 +242,11 @@ export default function MentorDiscoveryPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-700 bg-slate-800/50 p-4">
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Availability</p>
-                  <p className="text-sm font-semibold text-slate-900">{selectedMentor.availability}</p>
-                  <p className="text-xs text-slate-500">Book directly or ask a question first.</p>
+                  <p className="text-sm font-semibold text-slate-50">{selectedMentor.availability}</p>
+                  <p className="text-xs text-slate-400">Book directly or ask a question first.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -258,7 +258,7 @@ export default function MentorDiscoveryPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedMentor(null)}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-800/50 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
                   >
                     Close
                   </button>

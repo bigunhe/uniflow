@@ -193,21 +193,21 @@ export default function ModulesPage() {
   }, [selectedModule, studentDoubt]);
 
   return (
-    <div className="relative min-h-screen bg-slate-50">
+    <div className="relative min-h-screen bg-slate-950">
       <MentorHeader />
 
       <main className="relative z-10 mx-auto w-full max-w-7xl space-y-8 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-3 rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Learning Modules</p>
-          <h1 className="text-2xl font-bold text-slate-900">Plan your next session</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-teal-500">Learning Modules</p>
+          <h1 className="text-2xl font-bold text-slate-50">Plan your next session</h1>
+          <p className="mt-1 text-sm text-slate-400">
             Browse modules, see common student doubts, and jump into Ask AI when a question matches.
           </p>
         </div>
         <Link
           href={askAiHref("Help me pick a module to start")}
-          className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+          className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-teal-700"
         >
           Ask AI to Guide Me
         </Link>
@@ -223,17 +223,17 @@ export default function ModulesPage() {
                 onClick={() => setSelectedId(mod.id)}
                 className={`w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
                   isActive
-                    ? "border-indigo-200 bg-indigo-50"
-                    : "border-slate-200 bg-white hover:border-indigo-100 hover:bg-slate-50"
+                    ? "border-teal-400/70 bg-teal-500/15 shadow-[0_10px_24px_rgba(20,184,166,0.18)]"
+                    : "border-slate-700 bg-slate-800/30 hover:border-teal-500/30 hover:bg-slate-800/50"
                 }`}
               >
-                <p className="text-sm font-semibold text-slate-900">{mod.title}</p>
-                <p className="mt-1 text-xs text-slate-600">{mod.summary}</p>
+                <p className="text-sm font-semibold text-slate-50">{mod.title}</p>
+                <p className="mt-1 text-xs text-slate-400">{mod.summary}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {mod.outcomes.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-indigo-700 ring-1 ring-indigo-100"
+                      className="rounded-full bg-slate-800/50 px-2.5 py-1 text-[11px] font-semibold text-teal-400 ring-1 ring-teal-500/30"
                     >
                       {tag}
                     </span>
@@ -244,18 +244,21 @@ export default function ModulesPage() {
           })}
         </section>
 
-        <section className="lg:col-span-8 space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="lg:col-span-8 space-y-6 rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">{selectedModule.title}</h2>
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+            <h2 className="text-xl font-bold text-slate-100">{selectedModule.title}</h2>
+            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
               Focused overview
             </span>
+            <span className="rounded-full border border-slate-600 bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-300">
+              {selectedModule.commonDoubts.length} common doubts
+            </span>
           </div>
-          <p className="text-sm text-slate-700">{selectedModule.summary}</p>
+          <p className="text-sm leading-relaxed text-slate-300">{selectedModule.summary}</p>
 
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-slate-900">What you will learn</h3>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+          <div className="space-y-2 rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4">
+            <h3 className="text-sm font-semibold text-slate-100">What you will learn</h3>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
               {selectedModule.outcomes.map((item) => (
                 <li key={item}>{item}</li>
               ))}
@@ -263,17 +266,17 @@ export default function ModulesPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">Practical tips</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+            <div className="space-y-2 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+              <p className="text-sm font-semibold text-slate-100">Practical tips</p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
                 {selectedModule.tips.map((tip) => (
                   <li key={tip}>{tip}</li>
                 ))}
               </ul>
             </div>
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">Starter resources</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+            <div className="space-y-2 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+              <p className="text-sm font-semibold text-slate-100">Starter resources</p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
                 {selectedModule.resources.map((res) => (
                   <li key={res}>{res}</li>
                 ))}
@@ -283,20 +286,20 @@ export default function ModulesPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900">Common student doubts</h3>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+              <h3 className="text-sm font-semibold text-slate-100">Common student doubts</h3>
+              <span className="rounded-full border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-300">
                 Ask AI is fastest for these
               </span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {selectedModule.commonDoubts.map((doubt) => (
-                <div key={doubt} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-900">{doubt}</p>
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                <div key={doubt} className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-100">{doubt}</p>
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
                     <span>AI can draft a quick explanation</span>
                     <Link
                       href={askAiHref(doubt)}
-                      className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700"
+                      className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-indigo-500"
                     >
                       Ask AI
                     </Link>
@@ -306,9 +309,9 @@ export default function ModulesPage() {
             </div>
           </div>
 
-          <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-4">
+          <div className="space-y-3 rounded-2xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-4">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-indigo-900">Your doubt</p>
+              <p className="text-sm font-semibold text-indigo-100">Your doubt</p>
               {matchedDoubt ? (
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold text-emerald-700">
                   Matches a common doubt — launch Ask AI
@@ -321,7 +324,7 @@ export default function ModulesPage() {
                 value={studentDoubt}
                 onChange={(event) => setStudentDoubt(event.target.value)}
                 placeholder="Describe your question"
-                className="h-11 flex-1 rounded-xl border border-indigo-100 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                className="h-11 flex-1 rounded-xl border border-indigo-300/30 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/30"
               />
               <Link
                 href={askAiHref(studentDoubt || `Help me with ${selectedModule.title}`)}
@@ -330,7 +333,7 @@ export default function ModulesPage() {
                 Ask AI now
               </Link>
             </div>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-indigo-100/90">
               If your typed doubt matches a common one, we route you to Ask AI first to save time.
             </p>
           </div>

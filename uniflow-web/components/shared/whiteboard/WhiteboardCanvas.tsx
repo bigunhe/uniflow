@@ -55,12 +55,12 @@ export function WhiteboardCanvas() {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-base font-bold text-slate-900">Whiteboard</h3>
+        <h3 className="text-base font-bold text-slate-50">Whiteboard</h3>
         <button
           type="button"
-          className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold hover:bg-slate-100"
+          className="rounded-lg border border-slate-700 text-slate-400 px-2 py-1 text-xs font-semibold hover:bg-slate-800"
           onClick={clearCanvas}
         >
           Clear
@@ -70,7 +70,7 @@ export function WhiteboardCanvas() {
         ref={canvasRef}
         width={900}
         height={320}
-        className="w-full rounded-lg border border-slate-200 bg-white"
+        className="w-full rounded-lg border border-slate-700 bg-slate-950"
         onMouseDown={startDraw}
         onMouseMove={draw}
         onMouseUp={stopDraw}
