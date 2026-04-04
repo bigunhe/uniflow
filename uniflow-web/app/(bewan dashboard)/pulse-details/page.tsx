@@ -41,7 +41,7 @@ function PulseRing({ score }: { score: number }) {
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(22,49,94,0.14)"
+          stroke="rgba(255,255,255,0.14)"
           strokeWidth={strokeWidth}
         />
         <circle
@@ -98,8 +98,8 @@ function PulseRing({ score }: { score: number }) {
         <div
           style={{
             fontSize: 11,
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.45)",
+            fontWeight: 600,
+            color: "rgba(0,210,180,0.85)",
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             marginTop: 4,
@@ -167,8 +167,8 @@ function PillarBar({
             <span
               style={{
                 fontSize: 13,
-                color: "rgba(212,221,232,0.92)",
-                fontWeight: 500,
+                color: "#e8eef8",
+                fontWeight: 600,
               }}
             >
               {label}
@@ -177,8 +177,9 @@ function PillarBar({
               <div
                 style={{
                   fontSize: 11,
-                  color: "rgba(212,221,232,0.45)",
+                  color: "rgba(168,184,208,0.92)",
                   marginTop: 2,
+                  lineHeight: 1.45,
                 }}
               >
                 {sublabel}
@@ -186,15 +187,16 @@ function PillarBar({
             ) : null}
           </div>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#f0f4fb" }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>
           {value}%
         </span>
       </div>
       <div
         style={{
-          height: 6,
+          height: 8,
           borderRadius: 99,
-          background: "rgba(26,47,88,0.14)",
+          background: "rgba(255,255,255,0.1)",
+          border: "1px solid rgba(255,255,255,0.08)",
           overflow: "hidden",
         }}
       >
@@ -325,11 +327,12 @@ export default function PulseDetailsPage() {
       <div
         style={{
           minHeight: "100vh",
-          background: "#050b16",
+          background: "#080c14",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "rgba(212,221,232,0.6)",
+          color: "rgba(232,238,248,0.85)",
+          fontFamily: "'DM Sans',sans-serif",
         }}
       >
         Loading Pulse…
@@ -339,11 +342,12 @@ export default function PulseDetailsPage() {
 
   return (
     <div
+      className="brand-dark-shell"
       style={{
         minHeight: "100vh",
-        background: "#050b16",
-        color: "#f0f4fb",
-        fontFamily: "'Inter', sans-serif",
+        background: "#080c14",
+        color: "#e8eef8",
+        fontFamily: "'DM Sans',sans-serif",
       }}
     >
       <div
@@ -351,10 +355,38 @@ export default function PulseDetailsPage() {
           position: "fixed",
           inset: 0,
           pointerEvents: "none",
+          zIndex: 0,
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            "linear-gradient(rgba(0,210,180,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,180,.04) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
-          opacity: 0.35,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          width: 520,
+          height: 520,
+          borderRadius: "50%",
+          filter: "blur(120px)",
+          background: "radial-gradient(circle, rgba(0,210,180,.14) 0%, transparent 70%)",
+          top: -160,
+          left: -80,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          filter: "blur(120px)",
+          background: "radial-gradient(circle, rgba(99,102,241,.12) 0%, transparent 70%)",
+          bottom: -120,
+          right: -60,
+          pointerEvents: "none",
+          zIndex: 0,
         }}
       />
 
@@ -368,11 +400,13 @@ export default function PulseDetailsPage() {
               style={{
                 padding: "8px 16px",
                 borderRadius: 10,
-                border: "1px solid rgba(255,255,255,.12)",
-                background: "rgba(255,255,255,.05)",
-                color: "rgba(255,255,255,.75)",
+                border: "1px solid rgba(0,210,180,.28)",
+                background: "rgba(0,210,180,.12)",
+                color: "#7ae9d8",
                 cursor: "pointer",
                 fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "'DM Sans',sans-serif",
               }}
             >
               Back to dashboard
@@ -382,8 +416,9 @@ export default function PulseDetailsPage() {
             <Link
               href={`/pulse/${username}`}
               style={{
-                fontSize: 12,
-                color: "rgba(212,221,232,0.55)",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#00d2b4",
                 textDecoration: "none",
               }}
             >
@@ -396,13 +431,15 @@ export default function PulseDetailsPage() {
           style={{
             fontSize: 26,
             fontWeight: 800,
+            fontFamily: "'Inter',sans-serif",
             letterSpacing: "-0.03em",
             margin: "0 0 8px",
+            color: "#fff",
           }}
         >
           Pulse details
         </h1>
-        <p style={{ margin: "0 0 28px", fontSize: 14, color: "rgba(212,221,232,0.62)", maxWidth: 640, lineHeight: 1.55 }}>
+        <p style={{ margin: "0 0 28px", fontSize: 14, color: "rgba(232,238,248,0.78)", maxWidth: 640, lineHeight: 1.6 }}>
           Your official Pulse score (below) is what employers and programs see. Use the breakdown to see where to invest time next: sync learning modules, verify projects with evidence, and soon community activity.
         </p>
 
@@ -418,8 +455,9 @@ export default function PulseDetailsPage() {
           <div
             style={{
               borderRadius: 20,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(10,18,36,0.72)",
+              border: "1px solid rgba(0,210,180,.22)",
+              background: "linear-gradient(160deg, rgba(255,255,255,.06) 0%, rgba(0,210,180,.06) 100%)",
+              boxShadow: "0 0 0 1px rgba(255,255,255,.04) inset, 0 12px 40px rgba(0,0,0,.25)",
               padding: 28,
               display: "flex",
               flexDirection: "column",
@@ -427,7 +465,7 @@ export default function PulseDetailsPage() {
             }}
           >
             <PulseRing score={pulseScore} />
-            <p style={{ margin: "20px 0 0", fontSize: 12, color: "rgba(212,221,232,0.5)", textAlign: "center", lineHeight: 1.5 }}>
+            <p style={{ margin: "20px 0 0", fontSize: 13, color: "rgba(168,184,208,0.95)", textAlign: "center", lineHeight: 1.55 }}>
               Capped at 100. Updates when you sync learning, submit project evidence, and complete verification.
             </p>
           </div>
@@ -435,12 +473,13 @@ export default function PulseDetailsPage() {
           <div
             style={{
               borderRadius: 20,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(10,18,36,0.72)",
+              border: "1px solid rgba(255,255,255,.1)",
+              background: "rgba(255,255,255,.04)",
+              boxShadow: "0 12px 40px rgba(0,0,0,.2)",
               padding: 24,
             }}
           >
-            <h2 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 16px", color: "rgba(212,221,232,0.9)" }}>
+            <h2 style={{ fontSize: 12, fontWeight: 700, fontFamily: "'Inter',sans-serif", margin: "0 0 18px", color: "rgba(255,255,255,.55)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Where you stand
             </h2>
 
@@ -467,49 +506,50 @@ export default function PulseDetailsPage() {
             <div
               style={{
                 marginTop: 8,
-                padding: 14,
+                padding: 16,
                 borderRadius: 14,
-                background: "rgba(26,47,88,0.2)",
-                border: "1px dashed rgba(255,255,255,0.12)",
+                background: "rgba(99,102,241,.1)",
+                border: "1px dashed rgba(129,140,248,.45)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 14 }}>🤝</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(212,221,232,0.85)" }}>Community</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#e8eef8" }}>Community</span>
                 <span
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
-                    color: "rgba(212,221,232,0.45)",
-                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "#c4b5fd",
+                    border: "1px solid rgba(196,181,253,.5)",
                     borderRadius: 99,
-                    padding: "2px 8px",
+                    padding: "3px 10px",
+                    background: "rgba(99,102,241,.15)",
                   }}
                 >
                   COMING SOON
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "rgba(212,221,232,0.5)", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "rgba(199,210,254,0.9)", lineHeight: 1.55 }}>
                 Networking and community signals will add to Pulse here. For now, focus on learning sync and verified projects.
               </p>
             </div>
 
-            <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "rgba(212,221,232,0.45)", margin: "0 0 10px" }}>
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.1)" }}>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(0,210,180,.85)", margin: "0 0 12px", fontFamily: "'Inter',sans-serif" }}>
                 NEXT STEPS
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/learning" style={{ fontSize: 13, color: "#7ab8ff", textDecoration: "none" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <Link href="/learning" style={{ fontSize: 14, fontWeight: 600, color: "#5eead4", textDecoration: "none" }}>
                   Sync modules → Learning
                 </Link>
-                <Link href="/projects" style={{ fontSize: 13, color: "#7ab8ff", textDecoration: "none" }}>
+                <Link href="/projects" style={{ fontSize: 14, fontWeight: 600, color: "#5eead4", textDecoration: "none" }}>
                   Build evidence → Projects
                 </Link>
-                <Link href="/projects/completed" style={{ fontSize: 13, color: "#7ab8ff", textDecoration: "none" }}>
+                <Link href="/projects/completed" style={{ fontSize: 14, fontWeight: 600, color: "#5eead4", textDecoration: "none" }}>
                   Verify for Pulse → Completed projects
                 </Link>
-                <Link href="/portfolio" style={{ fontSize: 13, color: "#7ab8ff", textDecoration: "none" }}>
+                <Link href="/portfolio" style={{ fontSize: 14, fontWeight: 600, color: "#5eead4", textDecoration: "none" }}>
                   Share work → Portfolio
                 </Link>
               </div>
