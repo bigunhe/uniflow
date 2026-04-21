@@ -91,7 +91,7 @@ export function RegisterForm() {
           Create an account
         </h1>
         <p className="mt-2 text-sm text-gray-600">
-          Fill in your details to get started with UniFlow.
+          Fill in your details to get started with uniflow.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

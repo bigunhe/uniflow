@@ -164,8 +164,8 @@ export default function MentorRegisterPage() {
           <div>
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-2 mb-12">
-              <img src="/logo.svg" alt="UniFlow" className="h-10 w-10" />
-              <span className="text-2xl font-bold">UniFlow</span>
+              <img src="/logo.svg" alt="uniflow" className="h-10 w-10" />
+              <span className="text-2xl font-bold">uniflow</span>
             </Link>
 
             {/* Heading */}
@@ -194,7 +194,7 @@ export default function MentorRegisterPage() {
           </div>
 
           {/* Footer Text */}
-          <p className="text-blue-100 text-sm">© 2024 UniFlow. Empowering the next generation of IT professionals.</p>
+          <p className="text-blue-100 text-sm">© 2024 uniflow. Empowering the next generation of IT professionals.</p>
         </div>
 
         {/* Right Form */}
@@ -203,7 +203,7 @@ export default function MentorRegisterPage() {
             {/* Header */}
             <div className="mb-8">
               <h2 className="text-4xl font-bold text-gray-900 mb-2">Create an account</h2>
-              <p className="text-gray-600">Fill in your details to get started with UniFlow</p>
+              <p className="text-gray-600">Fill in your details to get started with uniflow</p>
             </div>
 
             {/* Role Toggle */}

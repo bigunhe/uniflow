@@ -30,8 +30,8 @@ export default function StudentLoginPage() {
           <div>
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-2 mb-12">
-              <img src="/logo.svg" alt="UniFlow" className="h-10 w-10" />
-              <span className="text-2xl font-bold">UniFlow</span>
+              <img src="/logo.svg" alt="uniflow" className="h-10 w-10" />
+              <span className="text-2xl font-bold">uniflow</span>
             </Link>
 
             {/* Heading */}
@@ -74,7 +74,7 @@ export default function StudentLoginPage() {
           </div>
 
           {/* Footer Text */}
-          <p className="text-green-100 text-sm">© 2024 UniFlow. Empowering the next generation of IT professionals.</p>
+          <p className="text-green-100 text-sm">© 2024 uniflow. Empowering the next generation of IT professionals.</p>
         </div>
 
         {/* Right Form */}

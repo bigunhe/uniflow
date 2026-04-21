@@ -365,7 +365,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <span className="text-[14px] font-bold">U</span>
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-extrabold text-slate-900">UniFlow</div>
+              <div className="truncate text-sm font-extrabold text-slate-900">uniflow</div>
               <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-indigo-500/90">
                 Career & mentorship
               </div>

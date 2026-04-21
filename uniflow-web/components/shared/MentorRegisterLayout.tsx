@@ -33,7 +33,7 @@ export function MentorRegisterLayout({ children }: MentorRegisterLayoutProps) {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
               <GraduationCap className="h-5 w-5" strokeWidth={2.25} />
             </span>
-            <span className="text-lg sm:text-xl">UniFlow</span>
+            <span className="text-lg sm:text-xl">uniflow</span>
           </Link>
 
           <nav
@@ -69,7 +69,7 @@ export function MentorRegisterLayout({ children }: MentorRegisterLayoutProps) {
               <GraduationCap className="h-4 w-4" strokeWidth={2.25} />
             </span>
             <p className="text-sm text-gray-600">
-              © {year} UniFlow. Empowering the next generation of industry
+              © {year} uniflow. Empowering the next generation of industry
               leaders.
             </p>
           </div>

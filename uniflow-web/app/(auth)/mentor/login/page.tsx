@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 
-export default function UniFlowRegisterPage() {
+export default function uniflowRegisterPage() {
   const router = useRouter();
   const [userType, setUserType] = useState<'student' | 'mentor'>('student');
   const [isLoading, setIsLoading] = useState(false);

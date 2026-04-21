@@ -296,7 +296,7 @@ export default function FindMentorsClient({ mentors }: { mentors: MentorRow[] })
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm ring-1 ring-white/20">
               <span className="text-[14px]">FP</span>
             </span>
-            <span className="text-lg sm:text-xl">UniFlow</span>
+            <span className="text-lg sm:text-xl">uniflow</span>
           </Link>
 
           <div className="hidden md:flex flex-1 items-center justify-center">
@@ -549,7 +549,7 @@ export default function FindMentorsClient({ mentors }: { mentors: MentorRow[] })
 
       <footer className="border-t border-slate-200 bg-white/60 py-6">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-center text-xs text-slate-500 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
-          <div>© 2024 UniFlow. Empowering the next generation of tech leaders.</div>
+          <div>© 2024 uniflow. Empowering the next generation of tech leaders.</div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
             <Link href="#" className="hover:text-indigo-700">Privacy Policy</Link>
             <Link href="#" className="hover:text-indigo-700">Terms of Service</Link>

@@ -23,7 +23,7 @@ export function AuthMarketingLayout({
       </main>
 
       <footer className="py-6 text-center text-xs text-gray-500 px-4">
-        © {year} UniFlow. All rights reserved. Built for the next generation of IT
+        © {year} uniflow. All rights reserved. Built for the next generation of IT
         professionals.
       </footer>
     </div>

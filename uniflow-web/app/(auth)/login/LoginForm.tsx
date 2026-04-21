@@ -21,7 +21,7 @@ export function LoginForm() {
             Welcome back.
           </h2>
           <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-blue-100/95 max-w-sm">
-            Sign in to continue your path with mentors, roadmaps, and your UniFlow
+            Sign in to continue your path with mentors, roadmaps, and your uniflow
             dashboard.
           </p>
         </div>
@@ -46,7 +46,7 @@ export function LoginForm() {
           Sign in
         </h1>
         <p className="mt-2 text-sm text-gray-600">
-          Enter your credentials to access UniFlow.
+          Enter your credentials to access uniflow.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

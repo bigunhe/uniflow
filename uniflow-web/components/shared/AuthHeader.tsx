@@ -84,7 +84,7 @@ export function AuthHeader({ cta, ctaVariant = "primary" }: AuthHeaderProps) {
           </span>
           <div className="min-w-0 leading-tight">
             <span className="block text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
-              UniFlow
+              uniflow
             </span>
             <span className="hidden text-[11px] font-medium uppercase tracking-wider text-indigo-500/90 sm:block">
               Career & mentorship
