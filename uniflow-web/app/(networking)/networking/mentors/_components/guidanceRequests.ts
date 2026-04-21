@@ -85,6 +85,15 @@ export function updateGuidanceRequestStatus(requestId: string, status: GuidanceR
   saveGuidanceRequests(updated);
 }
 
+export function removeGuidanceRequestByMentor(mentorSlug: string) {
+  const requests = getGuidanceRequests();
+  const filtered = requests.filter((request) => request.mentorSlug !== mentorSlug);
+
+  if (filtered.length !== requests.length) {
+    saveGuidanceRequests(filtered);
+  }
+}
+
 export function hasAcceptedGuidanceRequest() {
   return getGuidanceRequests().some((request) => request.status === "accepted");
 }

@@ -41,21 +41,21 @@ export default function RequestManagementPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Request Management</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-8 shadow-sm">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-50">Request Management</h1>
+        <p className="mt-2 text-sm text-slate-400">
           Accept or reject student guidance requests. Accepting a request activates Messages for both parties.
         </p>
-        <p className="mt-4 inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+        <p className="mt-4 inline-flex rounded-full bg-teal-500/20 px-3 py-1 text-xs font-semibold text-teal-300">
           {pendingCount} pending request{pendingCount === 1 ? "" : "s"}
         </p>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Incoming Requests</h2>
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6">
+        <h2 className="text-lg font-semibold text-slate-50">Incoming Requests</h2>
 
         {requests.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-600">
+          <p className="mt-4 text-sm text-slate-400">
             No requests yet. Students can send requests from the mentor card using the Request Guidance button.
           </p>
         ) : (
@@ -63,14 +63,14 @@ export default function RequestManagementPage() {
             {requests.map((request) => (
               <article
                 key={request.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                className="rounded-xl border border-slate-700 bg-slate-800/30 px-4 py-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-slate-50">
                       {request.studentName} requested {request.mentorName}
                     </p>
-                    <p className="mt-1 text-sm text-slate-600">{request.topic}</p>
+                    <p className="mt-1 text-sm text-slate-400">{request.topic}</p>
                   </div>
 
                   <span

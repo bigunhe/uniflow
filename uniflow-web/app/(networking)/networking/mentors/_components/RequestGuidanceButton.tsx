@@ -7,6 +7,7 @@ import {
   createGuidanceRequest,
   getRequestByMentor,
   GuidanceRequest,
+  removeGuidanceRequestByMentor,
 } from "./guidanceRequests";
 import { mentorProfiles } from "./mentorData";
 import { getUserRoleProfile, UserRoleProfile } from "./userRoleProfile";
@@ -34,9 +35,9 @@ function getButtonState(
   if (request.status === "pending") {
     return {
       label: "Request Pending",
-      disabled: true,
+      disabled: false,
       className: mentorButtonClassName({ variant: "secondary" }),
-      helperText: "Waiting for mentor to accept or reject.",
+      helperText: "Click again to cancel this request.",
     };
   }
 
@@ -109,6 +110,12 @@ export default function RequestGuidanceButton({
         className={buttonState.className}
         disabled={buttonState.disabled}
         onClick={() => {
+          if (request?.status === "pending") {
+            removeGuidanceRequestByMentor(mentorSlug);
+            setRequest(undefined);
+            return;
+          }
+
           const studentName =
             profile?.role === "student" && profile.fullName ? profile.fullName : undefined;
           const next = createGuidanceRequest({ mentorSlug, mentorName, studentName });
@@ -118,14 +125,14 @@ export default function RequestGuidanceButton({
         {buttonState.label}
       </button>
       {request?.status === "rejected" ? (
-        <div className="space-y-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
-          <p className="text-xs font-semibold text-slate-800">Try another tutor</p>
+        <div className="space-y-2 rounded-lg border border-dashed border-white/10 bg-white/3 p-3">
+          <p className="text-xs font-semibold text-[#f0f4fb]">Try another tutor</p>
           <div className="flex flex-wrap gap-2">
             {alternativeMentors.map((mentor) => (
               <Link
                 key={mentor.slug}
                 href={`/networking/mentors/${mentor.slug}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-indigo-700 ring-1 ring-slate-200 transition hover:bg-indigo-50"
+                className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-[11px] font-semibold text-[#00d2b4] ring-1 ring-white/10 transition hover:bg-white/8"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 {mentor.name}
@@ -133,14 +140,14 @@ export default function RequestGuidanceButton({
             ))}
             <Link
               href="/networking/mentors/mentor-discovery"
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-3 py-1 text-[11px] font-semibold text-white transition hover:opacity-90"
             >
               View all mentors
             </Link>
           </div>
         </div>
       ) : !hideHelperText && buttonState.helperText ? (
-        <p className="text-[11px] text-slate-500">{buttonState.helperText}</p>
+        <p className="text-[11px] text-[rgba(168,184,208,0.85)]">{buttonState.helperText}</p>
       ) : null}
     </div>
   );

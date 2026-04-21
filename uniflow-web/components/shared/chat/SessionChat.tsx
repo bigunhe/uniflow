@@ -48,12 +48,12 @@ export function SessionChat({ sessionId, userId }: SessionChatProps) {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-base font-bold text-slate-900">Session Chat</h3>
-      <div className="mt-3 h-72 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
-        {loading ? <p className="text-sm text-slate-500">Loading messages...</p> : null}
+    <section className="rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-4 shadow-sm">
+      <h3 className="text-base font-bold text-slate-50">Session Chat</h3>
+      <div className="mt-3 h-72 space-y-2 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/50 p-3">
+        {loading ? <p className="text-sm text-slate-400">Loading messages...</p> : null}
         {!loading && messages.length === 0 ? (
-          <p className="text-sm text-slate-500">No messages yet. Start the discussion.</p>
+          <p className="text-sm text-slate-400">No messages yet. Start the discussion.</p>
         ) : null}
         {messages.map((message) => {
           const isCurrentUser = message.sender_id === userId;
@@ -62,8 +62,8 @@ export function SessionChat({ sessionId, userId }: SessionChatProps) {
               key={message.id}
               className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                 isCurrentUser
-                  ? "ml-auto bg-slate-900 text-white"
-                  : "bg-white text-slate-700 border border-slate-200"
+                  ? "ml-auto bg-teal-600 text-white"
+                  : "bg-slate-800/50 text-slate-200 border border-slate-700"
               }`}
             >
               {message.content}
@@ -76,12 +76,12 @@ export function SessionChat({ sessionId, userId }: SessionChatProps) {
           value={content}
           onChange={(event) => setContent(event.target.value)}
           placeholder="Type your message"
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-50 placeholder-slate-500 focus:border-teal-500 focus:outline-none"
         />
         <button
           type="submit"
           disabled={!canSend}
-          className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Send
         </button>

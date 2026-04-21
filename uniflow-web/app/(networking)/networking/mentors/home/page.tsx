@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import MentorCard from "../_components/mentorCard";
 import { mentorButtonClassName } from "../_components/MentorButton";
 import { mentorProfiles } from "../_components/mentorData";
@@ -54,7 +53,6 @@ const mentorHubSessions = [
 ];
 
 export default function MentorsHomePage() {
-  const router = useRouter();
   const [profile, setProfile] = useState(getUserRoleProfile());
   const [mentorRequests, setMentorRequests] = useState<GuidanceRequest[]>([]);
 
@@ -78,12 +76,12 @@ export default function MentorsHomePage() {
   if (profile?.role === "student") {
     return (
       <div className="space-y-12">
-        <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm lg:p-10">
+        <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-[0_20px_45px_rgba(0,0,0,0.32)] lg:p-10">
           <div className="col-span-12 space-y-5 lg:col-span-7">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
               Hello, {profile.fullName}!
             </h1>
-            <p className="max-w-xl text-base leading-relaxed text-slate-600">
+            <p className="max-w-xl text-base leading-relaxed text-slate-400">
               Ready for your next learning session? Browse available mentors, join study groups,
               or continue with your learning modules.
             </p>
@@ -111,9 +109,9 @@ export default function MentorsHomePage() {
 
           <div className="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-5 lg:grid-cols-1">
             {studentStats.map((item) => (
-              <div key={item.label} className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">{item.label}</p>
-                <p className="mt-1 text-3xl font-bold text-slate-900">{item.value}</p>
+              <div key={item.label} className="rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+                <p className="text-sm text-slate-400">{item.label}</p>
+                <p className="mt-1 text-3xl font-bold text-slate-50">{item.value}</p>
               </div>
             ))}
           </div>
@@ -122,14 +120,14 @@ export default function MentorsHomePage() {
         <section className="space-y-5">
           <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Featured Mentors</h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <h2 className="text-2xl font-bold text-slate-50">Featured Mentors</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 Connect with experienced mentors in your field of study.
               </p>
             </div>
             <Link
               href="/networking/mentors/mentor-discovery"
-              className="text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+              className="text-sm font-semibold text-teal-400 hover:text-teal-300"
             >
               View all mentors
             </Link>
@@ -142,11 +140,11 @@ export default function MentorsHomePage() {
           </div>
         </section>
 
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="space-y-6 rounded-3xl border border-slate-700 bg-slate-900/40 p-8 shadow-sm">
           <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Start here</p>
-            <h2 className="text-2xl font-bold text-slate-900">Support Hub</h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-wide text-teal-500">Start here</p>
+            <h2 className="text-2xl font-bold text-slate-50">Support Hub</h2>
+            <p className="text-sm text-slate-400">
               Ask AI first to get instant answers. If you still need help, jump into a session with a mentor.
             </p>
           </div>
@@ -182,11 +180,11 @@ export default function MentorsHomePage() {
               </div>
             </div>
 
-            <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-700 bg-slate-900/70 p-6">
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Need a human?</p>
-                <h3 className="text-xl font-bold text-slate-900">Still need help?</h3>
-                <p className="text-sm text-slate-600">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Need a human?</p>
+                <h3 className="text-xl font-bold text-slate-50">Still need help?</h3>
+                <p className="text-sm text-slate-400">
                   If AI did not fully solve it, connect with a mentor for 1-on-1 support.
                 </p>
               </div>
@@ -202,13 +200,13 @@ export default function MentorsHomePage() {
                 <div className="grid grid-cols-2 gap-2 text-sm font-semibold">
                   <Link
                     href="/networking/mentors/messages"
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-100"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-slate-300 transition hover:bg-slate-800"
                   >
                     My Messages
                   </Link>
                   <Link
                     href="/learning/modules"
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-100"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-slate-300 transition hover:bg-slate-800"
                   >
                     Help Center
                   </Link>
@@ -229,18 +227,18 @@ export default function MentorsHomePage() {
 
     return (
       <div className="space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-[0_20px_45px_rgba(0,0,0,0.35)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-slate-950">Mentor Hub</h1>
-              <p className="mt-1 text-base text-slate-500">
+              <h1 className="text-4xl font-black tracking-tight text-slate-50">Mentor Hub</h1>
+              <p className="mt-1 text-base text-slate-400">
                 Welcome back. You have {pendingRequests.length || 0} pending mentorship requests.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">A</span>
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">B</span>
-              <span className="inline-flex h-8 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700">+8</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-300">A</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-300">B</span>
+              <span className="inline-flex h-8 items-center justify-center rounded-full bg-teal-600/20 px-2 text-xs font-semibold text-teal-400">+8</span>
             </div>
           </div>
 
@@ -250,21 +248,21 @@ export default function MentorsHomePage() {
                 key={item.label}
                 className={item.highlight
                   ? "rounded-2xl bg-[linear-gradient(135deg,#4f46e5_0%,#4338ca_100%)] p-5 text-white"
-                  : "rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                  : "rounded-2xl border border-slate-700 bg-slate-900/70 p-5"
                 }
               >
                 <div className="flex items-start justify-between gap-3">
-                  <p className={item.highlight ? "text-xs uppercase tracking-wide text-indigo-100" : "text-xs uppercase tracking-wide text-slate-500"}>{item.label}</p>
+                  <p className={item.highlight ? "text-xs uppercase tracking-wide text-indigo-100" : "text-xs uppercase tracking-wide text-slate-400"}>{item.label}</p>
                   {item.badge ? (
                     <span className={item.highlight
                       ? "rounded-full bg-indigo-300/30 px-2 py-0.5 text-[10px] font-semibold text-white"
-                      : "rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                      : "rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
                     }>
                       {item.badge}
                     </span>
                   ) : null}
                 </div>
-                <p className={item.highlight ? "mt-4 text-4xl font-black tracking-tight" : "mt-4 text-4xl font-black tracking-tight text-slate-900"}>
+                <p className={item.highlight ? "mt-4 text-4xl font-black tracking-tight" : "mt-4 text-4xl font-black tracking-tight text-slate-50"}>
                   {item.value}
                 </p>
               </div>
@@ -273,17 +271,17 @@ export default function MentorsHomePage() {
         </section>
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900">Incoming Requests</h2>
-              <span className="rounded-full bg-indigo-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-50">Incoming Requests</h2>
+              <span className="rounded-full bg-indigo-500/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-200">
                 {pendingRequests.length} New
               </span>
             </div>
 
             <div className="space-y-3">
               {pendingRequests.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
+                <div className="rounded-xl border border-dashed border-slate-600 p-4 text-sm text-slate-400">
                   No pending requests right now.
                 </div>
               ) : (
@@ -291,24 +289,24 @@ export default function MentorsHomePage() {
                   <article
                     key={request.id}
                     className={index === 0
-                      ? "rounded-xl border border-rose-200 bg-rose-50/40 p-4"
-                      : "rounded-xl border border-indigo-200 bg-indigo-50/30 p-4"
+                      ? "rounded-xl border border-rose-400/30 bg-rose-500/10 p-4"
+                      : "rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4"
                     }
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{request.studentName}</p>
-                        <p className="text-xs text-slate-500">{request.mentorName}</p>
+                        <p className="text-sm font-bold text-slate-100">{request.studentName}</p>
+                        <p className="text-xs text-slate-400">{request.mentorName}</p>
                       </div>
                       <span className={index === 0
-                        ? "rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-700"
-                        : "rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600"
+                        ? "rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300"
+                        : "rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-300"
                       }>
                         {index === 0 ? "Urgent" : "Normal"}
                       </span>
                     </div>
 
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-600">{request.topic}</p>
+                    <p className="mt-2 line-clamp-2 text-sm text-slate-300">{request.topic}</p>
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
@@ -321,7 +319,7 @@ export default function MentorsHomePage() {
                       <button
                         type="button"
                         onClick={() => updateGuidanceRequestStatus(request.id, "rejected")}
-                        className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-100 text-xs font-semibold text-slate-600 transition hover:bg-slate-200"
+                        className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-800/70 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
                       >
                         Reject
                       </button>
@@ -331,32 +329,32 @@ export default function MentorsHomePage() {
               )}
             </div>
 
-            <Link href="/networking/mentors/request-management" className="mt-4 inline-flex text-sm font-semibold text-indigo-700 hover:text-indigo-800">
+            <Link href="/networking/mentors/request-management" className="mt-4 inline-flex text-sm font-semibold text-teal-400 hover:text-teal-300">
               View all requests
             </Link>
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900">Active Sessions</h2>
-                <Link href="/networking/mentors/live-session" className="text-sm font-semibold text-indigo-700 hover:text-indigo-800">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-50">Active Sessions</h2>
+                <Link href="/networking/mentors/live-session" className="text-sm font-semibold text-teal-400 hover:text-teal-300">
                   View Calendar
                 </Link>
               </div>
 
               <div className="space-y-2.5">
                 {mentorHubSessions.map((session, index) => (
-                  <article key={session.title} className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                  <article key={session.title} className="rounded-xl border border-slate-700 bg-slate-900/70 p-3.5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="inline-flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-indigo-100 text-[10px] font-bold leading-tight text-indigo-700">
+                        <div className="inline-flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-indigo-500/20 text-[10px] font-bold leading-tight text-indigo-200">
                           {session.date.split(" ")[0]}
                           <span className="text-xs">{session.date.split(" ")[1]}</span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{session.title}</p>
-                          <p className="text-xs text-slate-500">{session.time}</p>
+                          <p className="text-sm font-semibold text-slate-100">{session.title}</p>
+                          <p className="text-xs text-slate-400">{session.time}</p>
                         </div>
                       </div>
 
@@ -368,7 +366,7 @@ export default function MentorsHomePage() {
                           Join Room
                         </button>
                       ) : (
-                        <span className={session.status === "Live Now" ? "text-xs font-semibold text-emerald-600" : "text-xs font-semibold text-slate-500"}>
+                        <span className={session.status === "Live Now" ? "text-xs font-semibold text-emerald-300" : "text-xs font-semibold text-slate-400"}>
                           {session.status}
                         </span>
                       )}
@@ -378,19 +376,19 @@ export default function MentorsHomePage() {
               </div>
             </div>
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-lg font-semibold text-slate-900">Growth Insight</p>
-              <p className="mt-1 text-sm text-slate-500">Your session bookings increased by 12% this week.</p>
+            <article className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
+              <p className="text-lg font-semibold text-slate-100">Growth Insight</p>
+              <p className="mt-1 text-sm text-slate-400">Your session bookings increased by 12% this week.</p>
             </article>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Quick Actions</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-50">Quick Actions</h2>
             <div className="flex gap-2">
-              <Link href="/networking/mentors/messages" className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-slate-100 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-200">Messages</Link>
-              <Link href="/networking/mentors/tutor-analytics" className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-slate-100 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-200">Feedback</Link>
+              <Link href="/networking/mentors/messages" className="inline-flex h-10 items-center rounded-lg border border-slate-700 bg-slate-800/70 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Messages</Link>
+              <Link href="/networking/mentors/tutor-analytics" className="inline-flex h-10 items-center rounded-lg border border-slate-700 bg-slate-800/70 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Feedback</Link>
               <Link href="/networking/mentors/live-session" className="inline-flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">New Session</Link>
             </div>
           </div>
@@ -402,15 +400,15 @@ export default function MentorsHomePage() {
   // Default view if not logged in
   return (
     <div className="space-y-12">
-      <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm lg:p-10">
+      <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-sm lg:p-10">
         <div className="col-span-12 space-y-5 lg:col-span-7">
-          <p className="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold tracking-wide text-indigo-800">
+          <p className="inline-flex rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold tracking-wide text-indigo-200">
             Mentor Marketplace
           </p>
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
             Build skills faster with focused, real-world mentors.
           </h1>
-          <p className="max-w-xl text-base leading-relaxed text-slate-600">
+          <p className="max-w-xl text-base leading-relaxed text-slate-400">
             Explore verified mentors, compare expertise, and request guidance based on your goals.
             The flow is designed for clear discovery, profile review, and support requests.
           </p>
@@ -432,9 +430,9 @@ export default function MentorsHomePage() {
 
         <div className="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-5 lg:grid-cols-1">
           {mentorStats.map((item) => (
-            <div key={item.label} className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">{item.label}</p>
-              <p className="mt-1 text-3xl font-bold text-slate-900">{item.value}</p>
+            <div key={item.label} className="rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+              <p className="text-sm text-slate-400">{item.label}</p>
+              <p className="mt-1 text-3xl font-bold text-slate-50">{item.value}</p>
             </div>
           ))}
         </div>
@@ -443,14 +441,14 @@ export default function MentorsHomePage() {
       <section className="space-y-5">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Featured Mentors</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-2xl font-bold text-slate-50">Featured Mentors</h2>
+            <p className="mt-1 text-sm text-slate-400">
               Start with top-rated mentors and move to full listing for more options.
             </p>
           </div>
           <Link
             href="/networking/mentors/mentor-discovery"
-            className="text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+            className="text-sm font-semibold text-teal-400 hover:text-teal-300"
           >
             View all mentors
           </Link>

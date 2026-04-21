@@ -142,7 +142,6 @@ function validateMentorForm(input: {
   phone: string;
   expertise: string;
   yearsOfExperience: string;
-  bio: string;
 }): { errors: FieldErrors; data?: MentorValidated } {
   const { errors, trimmedFullName, trimmedEmail, trimmedPhone } = validateCommonFields(input);
 
@@ -162,11 +161,6 @@ function validateMentorForm(input: {
     errors.yearsOfExperience = "Years of experience must be a non-negative integer";
   }
 
-  const trimmedBio = input.bio.trim();
-  if (trimmedBio.length < 50) {
-    errors.bio = "Short bio must be at least 50 characters";
-  }
-
   if (Object.keys(errors).length > 0) {
     return { errors };
   }
@@ -180,7 +174,7 @@ function validateMentorForm(input: {
       phone: trimmedPhone,
       expertise: expertiseItems.join(", "),
       yearsOfExperience: String(numericYears),
-      bio: trimmedBio,
+      bio: "",
     },
   };
 }
@@ -198,7 +192,6 @@ export default function RoleSelectionPage() {
   const [yearLevel, setYearLevel] = useState("");
   const [expertise, setExpertise] = useState("");
   const [yearsOfExperience, setYearsOfExperience] = useState("");
-  const [bio, setBio] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -233,7 +226,6 @@ export default function RoleSelectionPage() {
             phone,
             expertise,
             yearsOfExperience,
-            bio,
           });
 
     if (!result.data) {
@@ -256,31 +248,31 @@ export default function RoleSelectionPage() {
   const currentContent = ROLE_DATA[role];
 
   return (
-    <section className="min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-xl">
+    <section className="min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-white/8 bg-[rgba(255,255,255,0.03)] shadow-xl">
       <div className="grid min-h-[calc(100vh-8rem)] grid-cols-1 lg:grid-cols-2">
         
         {/* Left Side: Dynamic Content */}
-        <div className="relative flex items-center justify-center bg-gradient-to-b from-slate-200 to-indigo-100 px-8 py-12 lg:px-16">
+        <div className="relative flex items-center justify-center bg-[radial-gradient(circle_at_18%_16%,rgba(0,210,180,0.12),transparent_32%),radial-gradient(circle_at_82%_8%,rgba(99,102,241,0.14),transparent_30%),linear-gradient(180deg,rgba(10,14,22,0.98),rgba(8,12,20,0.98))] px-8 py-12 lg:px-16">
           <div className="pointer-events-none absolute inset-0 opacity-50">
-            <div className="absolute -left-12 top-16 h-40 w-40 rounded-full bg-indigo-300/40 blur-3xl" />
-            <div className="absolute bottom-10 right-8 h-44 w-44 rounded-full bg-sky-300/40 blur-3xl" />
+            <div className="absolute -left-12 top-16 h-40 w-40 rounded-full bg-[#00d2b4]/18 blur-3xl" />
+            <div className="absolute bottom-10 right-8 h-44 w-44 rounded-full bg-[#6366f1]/18 blur-3xl" />
           </div>
 
           <div className="relative z-10 w-full max-w-md text-center lg:text-left">
-            <div className="mx-auto flex h-16 w-16 animate-in fade-in zoom-in duration-500 items-center justify-center rounded-2xl bg-white shadow-md lg:mx-0">
+            <div className="mx-auto flex h-16 w-16 animate-in fade-in zoom-in duration-500 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-md lg:mx-0">
               <span className="text-2xl">{currentContent.icon}</span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl">
+            <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight text-[#f0f4fb] md:text-5xl">
               {currentContent.title}
-              <span className="text-indigo-600"> {currentContent.highlight}</span>
+              <span className="text-[#00d2b4]"> {currentContent.highlight}</span>
             </h1>
-            <p className="mt-4 text-base text-slate-600 transition-all duration-300">
+            <p className="mt-4 text-base text-[rgba(232,238,248,0.88)] transition-all duration-300">
               {currentContent.description}
             </p>
 
-            <div className="mt-8 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-lg backdrop-blur">
-              <div className="relative h-56 overflow-hidden rounded-xl bg-slate-200">
+            <div className="mt-8 rounded-2xl border border-white/8 bg-[rgba(255,255,255,0.03)] p-4 shadow-lg backdrop-blur">
+              <div className="relative h-56 overflow-hidden rounded-xl bg-white/5">
                 <Image
                   key={role} // Key forces re-render for a fresh fade-in animation
                   src={currentContent.image}
@@ -295,12 +287,12 @@ export default function RoleSelectionPage() {
         </div>
 
         {/* Right Side: Form */}
-        <div className="flex items-center justify-center bg-slate-100 px-6 py-10 sm:px-8 lg:px-12">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex items-center justify-center bg-[rgba(255,255,255,0.02)] px-6 py-10 sm:px-8 lg:px-12">
+          <div className="w-full max-w-md rounded-3xl border border-white/8 bg-[rgba(255,255,255,0.03)] p-6 shadow-sm sm:p-8">
             <div className="mb-6 text-center">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-600">UniFlow Mentors</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Create Profile</h2>
-              <p className="mt-2 text-sm text-slate-500">Choose your role and complete your details to continue.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#00d2b4]">UniFlow Mentors</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#f0f4fb]">Create Profile</h2>
+              <p className="mt-2 text-sm text-[rgba(168,184,208,0.85)]">Choose your role and complete your details to continue.</p>
             </div>
 
             {/* Role Switcher */}
@@ -310,8 +302,8 @@ export default function RoleSelectionPage() {
                 onClick={() => setRole("student")}
                 className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                   role === "student"
-                    ? "border-indigo-600 bg-indigo-600 text-white shadow-md scale-[1.02]"
-                    : "border-slate-300 bg-white text-slate-700 hover:border-indigo-300"
+                    ? "border-[#00d2b4] bg-[#00d2b4]/15 text-white shadow-md scale-[1.02]"
+                      : "border-white/10 bg-white/5 text-[rgba(232,238,248,0.84)] hover:border-[#00d2b4]/30"
                 }`}
               >
                 Student
@@ -321,8 +313,8 @@ export default function RoleSelectionPage() {
                 onClick={() => setRole("mentor")}
                 className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                   role === "mentor"
-                    ? "border-indigo-600 bg-indigo-600 text-white shadow-md scale-[1.02]"
-                    : "border-slate-300 bg-white text-slate-700 hover:border-indigo-300"
+                    ? "border-[#00d2b4] bg-[#00d2b4]/15 text-white shadow-md scale-[1.02]"
+                      : "border-white/10 bg-white/5 text-[rgba(232,238,248,0.84)] hover:border-[#00d2b4]/30"
                 }`}
               >
                 Mentor
@@ -334,18 +326,18 @@ export default function RoleSelectionPage() {
               onSubmit={handleSubmit}
             >
               {formError ? (
-                <div className="col-span-12 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="col-span-12 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
                   {formError}
                 </div>
               ) : null}
 
-              <label className="col-span-12 text-sm font-medium text-slate-700">
+              <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
                 Full Name
                 <input
                   required
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                   placeholder="Enter your name"
                 />
                 {fieldErrors.fullName ? (
@@ -353,14 +345,14 @@ export default function RoleSelectionPage() {
                 ) : null}
               </label>
 
-              <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+              <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                 Email
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                   placeholder="name@email.com"
                   autoComplete="email"
                 />
@@ -369,7 +361,7 @@ export default function RoleSelectionPage() {
                 ) : null}
               </label>
 
-              <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+              <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                 Phone Number
                 <input
                   required
@@ -379,7 +371,7 @@ export default function RoleSelectionPage() {
                   maxLength={10}
                   value={phone}
                   onChange={(event) => handlePhoneChange(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                   placeholder="1234567890"
                 />
                 {fieldErrors.phone ? (
@@ -389,35 +381,35 @@ export default function RoleSelectionPage() {
 
               {role === "student" ? (
                 <>
-                  <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     University
                     <input
                       required
                       value={university}
                       onChange={(event) => setUniversity(event.target.value)}
                       maxLength={100}
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                       placeholder="University name"
                     />
                     {fieldErrors.university ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.university}</p>
                     ) : null}
                   </label>
-                  <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Program
                     <input
                       required
                       value={program}
                       onChange={(event) => setProgram(event.target.value)}
                       pattern="[A-Za-z ]+"
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                       placeholder="e.g. Computer Science"
                     />
                     {fieldErrors.program ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.program}</p>
                     ) : null}
                   </label>
-                  <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Year Level
                     <input
                       required
@@ -427,7 +419,7 @@ export default function RoleSelectionPage() {
                       min={1}
                       max={5}
                       inputMode="numeric"
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                       placeholder="Year level (1-5)"
                     />
                     {fieldErrors.yearLevel ? (
@@ -467,27 +459,13 @@ export default function RoleSelectionPage() {
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.yearsOfExperience}</p>
                     ) : null}
                   </label>
-                  <label className="col-span-12 text-sm font-medium text-slate-700">
-                    Short Bio
-                    <textarea
-                      required
-                      value={bio}
-                      onChange={(event) => setBio(event.target.value)}
-                      rows={4}
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
-                      placeholder="Tell students about your mentoring style"
-                    />
-                    {fieldErrors.bio ? (
-                      <p className="mt-1 text-xs text-red-600">{fieldErrors.bio}</p>
-                    ) : null}
-                  </label>
                 </>
               )}
 
               <div className="col-span-12 pt-1">
                 <button
                   type="submit"
-                  className="h-11 w-full rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-700 active:scale-95"
+                  className="h-11 w-full rounded-xl bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
                 >
                   Continue to Home
                 </button>

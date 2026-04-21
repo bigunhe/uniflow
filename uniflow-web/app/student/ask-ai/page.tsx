@@ -53,18 +53,18 @@ export default function StudentAskAIPage() {
       title="Ask AI"
       subtitle="Use AI first, then escalate to mentor support when needed."
     >
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="h-96 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-5 shadow-sm">
+        <div className="h-96 space-y-2 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/50 p-3">
           {messages.length === 0 ? (
-            <p className="text-sm text-slate-500">Ask a question to start your AI tutoring chat.</p>
+            <p className="text-sm text-slate-400">Ask a question to start your AI tutoring chat.</p>
           ) : null}
           {messages.map((message, index) => (
             <article
               key={`${message.role}-${index}`}
               className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                 message.role === "user"
-                  ? "ml-auto bg-slate-900 text-white"
-                  : "border border-slate-200 bg-white text-slate-700"
+                  ? "ml-auto bg-teal-600 text-white"
+                  : "border border-slate-700 bg-slate-800/50 text-slate-200"
               }`}
             >
               {message.content}
@@ -77,12 +77,12 @@ export default function StudentAskAIPage() {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder="e.g. Explain quicksort with an example"
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="flex-1 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-50 placeholder-slate-500"
           />
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-60"
+            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
           >
             {loading ? "Thinking..." : "Send"}
           </button>
@@ -91,13 +91,13 @@ export default function StudentAskAIPage() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href="/student/request"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-lg border border-slate-700 text-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-800"
           >
             Still need help? Request a mentor
           </Link>
           <Link
             href="/student/urgent"
-            className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+            className="rounded-lg border border-rose-900/30 bg-rose-950/20 text-rose-400 px-3 py-2 text-sm font-semibold hover:bg-rose-950/30"
           >
             Urgent help
           </Link>
@@ -105,12 +105,12 @@ export default function StudentAskAIPage() {
       </section>
 
       {suggestions.length > 0 ? (
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">Suggested Mentors</h2>
+        <section className="mt-5 rounded-2xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-50">Suggested Mentors</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {suggestions.map((mentor) => (
-              <article key={mentor.id} className="rounded-lg border border-slate-200 p-3 text-sm">
-                <p className="font-semibold text-slate-900">{mentor.full_name || "Mentor"}</p>
+              <article key={mentor.id} className="rounded-lg border border-slate-700 bg-slate-800/30 p-3 text-sm">
+                <p className="font-semibold text-slate-50">{mentor.full_name || "Mentor"}</p>
               </article>
             ))}
           </div>
