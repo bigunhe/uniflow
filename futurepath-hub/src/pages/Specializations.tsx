@@ -36,24 +36,18 @@ export function Specializations() {
               Mentors
             </Link>
             <Link
-              to="/register"
+              to="/mentor-register?role=mentor"
               className="text-sm font-medium text-gray-600 hover:text-[#4F46E5]"
             >
-              Resources
-            </Link>
-            <Link
-              to="/login"
-              className="text-sm font-medium text-gray-600 hover:text-[#4F46E5]"
-            >
-              Profile
+              Mentor signup
             </Link>
           </nav>
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/')}
             className="rounded-full bg-[#4F46E5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600"
           >
-            Sign Out
+            Back to Home
           </button>
         </div>
       </header>

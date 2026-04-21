@@ -30,10 +30,10 @@ export function Register() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (role === 'mentor') {
-      navigate('/mentor-register')
+      navigate('/mentor-register', { state: { role: 'mentor' as const } })
       return
     }
-    navigate('/login', { replace: false })
+    navigate('/specializations', { replace: false })
   }
 
   return (
@@ -63,10 +63,10 @@ export function Register() {
               </Link>
             </nav>
             <Link
-              to="/login"
+              to="/register"
               className="rounded-full bg-[#EEF2FF] px-5 py-2 text-sm font-semibold text-[#4F46E5] transition hover:bg-indigo-100"
             >
-              Login
+              Register
             </Link>
           </div>
           <nav className="mt-4 flex justify-center gap-8 border-t border-gray-100 pt-4 md:hidden">
@@ -280,12 +280,12 @@ export function Register() {
             </form>
 
             <p className="mt-6 text-center text-sm text-gray-600">
-              Already have an account?{' '}
+              Already registered?{' '}
               <Link
-                to="/login"
+                to="/specializations"
                 className="font-semibold text-[#4F46E5] hover:underline"
               >
-                Login here
+                Continue
               </Link>
             </p>
           </div>

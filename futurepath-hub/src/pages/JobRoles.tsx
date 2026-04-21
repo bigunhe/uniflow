@@ -57,10 +57,10 @@ export function JobRoles() {
               />
             </div>
             <Link
-              to="/login"
+              to="/mentor-register?role=mentor"
               className="rounded-full bg-[#4F46E5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600"
             >
-              Sign In
+              Mentor signup
             </Link>
             <span className="hidden h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-violet-600 ring-2 ring-white sm:inline-block" />
           </div>

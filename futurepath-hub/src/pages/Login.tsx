@@ -1,15 +1,51 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Lock, Mail } from 'lucide-react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Check, Lock, Mail, User, UserCog } from 'lucide-react'
 import { Logo } from '../components/Logo'
+import { getCurrentUser, login, type UserRole } from '../lib/authStore'
+import { setCurrentMentorId } from '../lib/messagesStore'
 
 export function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [role, setRole] = useState<UserRole>('student')
+  const [error, setError] = useState<string | null>(null)
+
+  const initialRole = useMemo<UserRole>(() => {
+    const r = searchParams.get('role')
+    return r === 'mentor' ? 'mentor' : 'student'
+  }, [searchParams])
+
+  useEffect(() => {
+    setRole(initialRole)
+  }, [initialRole])
+
+  useEffect(() => {
+    const u = getCurrentUser()
+    if (!u) return
+    if (u.role === 'mentor') {
+      if (u.mentorId) setCurrentMentorId(u.mentorId)
+      navigate('/mentor-dashboard', { replace: true })
+      return
+    }
+    navigate('/specializations', { replace: true })
+  }, [navigate])
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    setError(null)
+    const res = login(role, email.trim(), password)
+    if (!res.ok) {
+      setError(res.error)
+      return
+    }
+    if (res.user.role === 'mentor') {
+      if (res.user.mentorId) setCurrentMentorId(res.user.mentorId)
+      navigate('/mentor-dashboard', { replace: true })
+      return
+    }
     navigate('/specializations', { replace: true })
   }
 
@@ -39,10 +75,10 @@ export function Login() {
             </Link>
           </nav>
           <Link
-            to="/register"
+            to="/mentor-register?role=mentor"
             className="rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-[#4F46E5] hover:bg-indigo-100"
           >
-            Register
+            Sign up
           </Link>
         </div>
       </header>
@@ -53,8 +89,42 @@ export function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-center text-sm text-gray-500">
-            Sign in to continue to UniFlow
+            Sign in as a student or mentor
           </p>
+
+          <div className="mt-6 flex rounded-full bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => setRole('student')}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition ${
+                role === 'student'
+                  ? 'bg-white text-[#4F46E5] shadow-sm'
+                  : 'text-gray-500'
+              }`}
+            >
+              <User className="h-4 w-4" />
+              Student
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('mentor')}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition ${
+                role === 'mentor'
+                  ? 'bg-white text-[#4F46E5] shadow-sm'
+                  : 'text-gray-500'
+              }`}
+            >
+              <UserCog className="h-4 w-4" />
+              Mentor
+            </button>
+          </div>
+
+          {error ? (
+            <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </div>
+          ) : null}
+
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-600">
@@ -98,12 +168,29 @@ export function Login() {
           <p className="mt-6 text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
             <Link
-              to="/register"
+              to={`/mentor-register?role=${role}`}
               className="font-semibold text-[#4F46E5] hover:underline"
             >
-              Register
+              Sign up
             </Link>
           </p>
+
+          <p className="mt-3 text-center text-xs text-gray-500">
+            After you register, come back here and login using the same email and
+            password.
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[#4F46E5] shadow-sm">
+                <Check className="h-3.5 w-3.5" />
+              </span>
+              <p>
+                This is a local demo login (saved in your browser). Hook this up
+                to a real database/Supabase later.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>

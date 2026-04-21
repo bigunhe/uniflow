@@ -4,8 +4,8 @@ import { JobRoles } from './pages/JobRoles'
 import { Login } from './pages/Login'
 import { Mentors } from './pages/Mentors'
 import { Messages } from './pages/Messages'
+import { MentorDashboard } from './pages/MentorDashboard'
 import { MentorRegister } from './pages/MentorRegister'
-import { Register } from './pages/Register'
 import { Specializations } from './pages/Specializations'
 
 export default function App() {
@@ -13,8 +13,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/register" element={<Navigate to="/mentor-register" replace />} />
       <Route path="/mentor-register" element={<MentorRegister />} />
+      <Route path="/mentor-dashboard" element={<MentorDashboard />} />
       <Route path="/specializations" element={<Specializations />} />
       <Route path="/roles/:specId" element={<JobRoles />} />
       <Route path="/mentors" element={<Mentors />} />

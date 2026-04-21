@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Briefcase,
@@ -18,13 +18,17 @@ import {
 } from 'lucide-react'
 import { Logo } from '../components/Logo'
 import { SPECIALIZATIONS } from '../data/specializations'
+import { registerUser } from '../lib/authStore'
+import { setCurrentMentorId } from '../lib/messagesStore'
 import type { SpecId } from '../types'
 
 type RoleTab = 'student' | 'mentor'
 
 export function MentorRegister() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [roleTab, setRoleTab] = useState<RoleTab>('student')
+  const [error, setError] = useState<string | null>(null)
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -39,14 +43,91 @@ export function MentorRegister() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
 
+  const initialRoleTab = useMemo<RoleTab>(() => {
+    const stateRole = (location.state as { role?: RoleTab } | null)?.role
+    if (stateRole === 'mentor' || stateRole === 'student') return stateRole
+    const qs = new URLSearchParams(location.search)
+    const qRole = qs.get('role')
+    return qRole === 'mentor' ? 'mentor' : 'student'
+  }, [location.search, location.state])
+
+  useEffect(() => {
+    setRoleTab(initialRoleTab)
+    setError(null)
+  }, [initialRoleTab])
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (roleTab === 'student') {
-      if (!agreedStudent) return
-      navigate('/login', { replace: false })
+    setError(null)
+
+    if (!fullName.trim() || !email.trim()) {
+      setError('Please fill in your name and email.')
       return
     }
-    navigate('/login', { replace: false })
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+
+    if (password !== confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    if (roleTab === 'student') {
+      if (!yearSem) {
+        setError('Please select your year and semester.')
+        return
+      }
+      if (!agreedStudent) {
+        setError('Please agree to the Terms of Service and Privacy Policy.')
+        return
+      }
+      const res = registerUser({
+        role: 'student',
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password,
+        yearSem,
+      })
+      if (!res.ok) {
+        setError(res.error)
+        navigate('/login?role=student', { replace: false })
+        return
+      }
+      navigate('/specializations', { replace: false })
+      return
+    }
+    if (!company.trim() || !jobTitle.trim() || !years.trim() || !expertise) {
+      setError('Please complete all mentor details before continuing.')
+      return
+    }
+    const mentorId = email
+      .trim()
+      .toLowerCase()
+      .split('@')[0]
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+
+    const res = registerUser({
+      role: 'mentor',
+      fullName: fullName.trim(),
+      email: email.trim(),
+      password,
+      company: company.trim(),
+      jobTitle: jobTitle.trim(),
+      years: years.trim(),
+      expertise,
+      mentorId: mentorId || 'mentor',
+    })
+    if (!res.ok) {
+      setError(res.error)
+      navigate('/login?role=mentor', { replace: false })
+      return
+    }
+    setCurrentMentorId(res.user.mentorId ?? mentorId)
+    navigate('/mentor-dashboard', { replace: false })
   }
 
   const heading =
@@ -82,17 +163,17 @@ export function MentorRegister() {
                 Network
               </Link>
               <Link
-                to="/login"
+                to="/login?role=mentor"
                 className="text-sm font-medium text-gray-600 transition hover:text-[#4F46E5]"
               >
-                Support
+                Login
               </Link>
             </nav>
             <Link
               to="/login"
               className="rounded-full bg-[#4F46E5] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-600"
             >
-              Sign In
+              Login
             </Link>
           </div>
           <nav className="mt-4 flex justify-center gap-8 border-t border-gray-100 pt-4 md:hidden">
@@ -106,7 +187,7 @@ export function MentorRegister() {
               Network
             </Link>
             <Link to="/login" className="text-sm font-medium text-gray-600">
-              Support
+              Login
             </Link>
           </nav>
         </div>
@@ -156,10 +237,10 @@ export function MentorRegister() {
             {roleTab === 'mentor' ? (
               <p className="mt-2 text-sm text-gray-600">
                 <Link
-                  to="/register"
+                  to="/login?role=student"
                   className="font-semibold text-[#4F46E5] hover:underline"
                 >
-                  Student register here
+                  Student login here
                 </Link>
               </p>
             ) : (
@@ -178,7 +259,10 @@ export function MentorRegister() {
             <div className="mt-6 flex rounded-full bg-gray-100 p-1">
               <button
                 type="button"
-                onClick={() => setRoleTab('student')}
+                onClick={() => {
+                  setRoleTab('student')
+                  setError(null)
+                }}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition ${
                   roleTab === 'student'
                     ? 'bg-white text-[#4F46E5] shadow-sm'
@@ -190,7 +274,10 @@ export function MentorRegister() {
               </button>
               <button
                 type="button"
-                onClick={() => setRoleTab('mentor')}
+                onClick={() => {
+                  setRoleTab('mentor')
+                  setError(null)
+                }}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition ${
                   roleTab === 'mentor'
                     ? 'bg-white text-[#4F46E5] shadow-sm'
@@ -203,6 +290,11 @@ export function MentorRegister() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              {error ? (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {error}
+                </div>
+              ) : null}
               {roleTab === 'student' ? (
                 <>
                   <div className="grid gap-5 sm:grid-cols-2">
@@ -218,7 +310,6 @@ export function MentorRegister() {
                           placeholder="John Doe"
                           autoComplete="name"
                           className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                          required
                         />
                       </div>
                     </div>
@@ -235,7 +326,6 @@ export function MentorRegister() {
                           placeholder="john@example.com"
                           autoComplete="email"
                           className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                          required
                         />
                       </div>
                     </div>
@@ -279,7 +369,6 @@ export function MentorRegister() {
                           placeholder="••••••••"
                           autoComplete="new-password"
                           className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                          required
                         />
                       </div>
                     </div>
@@ -296,7 +385,6 @@ export function MentorRegister() {
                           placeholder="••••••••"
                           autoComplete="new-password"
                           className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                          required
                         />
                       </div>
                     </div>
@@ -348,7 +436,6 @@ export function MentorRegister() {
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="John Doe"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -364,7 +451,6 @@ export function MentorRegister() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="john@example.com"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -379,7 +465,6 @@ export function MentorRegister() {
                         onChange={(e) => setCompany(e.target.value)}
                         placeholder="FutureTech Inc."
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -394,7 +479,6 @@ export function MentorRegister() {
                         onChange={(e) => setJobTitle(e.target.value)}
                         placeholder="Senior Product Lead"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -412,7 +496,6 @@ export function MentorRegister() {
                         }
                         placeholder="8"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -426,7 +509,6 @@ export function MentorRegister() {
                         value={expertise}
                         onChange={(e) => setExpertise(e.target.value as SpecId)}
                         className="w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-10 text-sm text-gray-800 outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       >
                         <option value="">Select Specialty</option>
                         {SPECIALIZATIONS.map((s) => (
@@ -450,7 +532,6 @@ export function MentorRegister() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -466,7 +547,6 @@ export function MentorRegister() {
                         onChange={(e) => setConfirm(e.target.value)}
                         placeholder="••••••••"
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-[#4F46E5] focus:ring-2"
-                        required
                       />
                     </div>
                   </div>
@@ -548,7 +628,7 @@ export function MentorRegister() {
               Mentor Guidelines
             </a>
             <Link to="/login" className="hover:text-[#4F46E5]">
-              Help Center
+              Login
             </Link>
           </nav>
         </div>

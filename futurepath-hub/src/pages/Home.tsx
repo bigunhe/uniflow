@@ -9,16 +9,10 @@ export function Home() {
           <Logo to="/" />
           <div className="flex items-center gap-3">
             <Link
-              to="/login"
-              className="rounded-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
+              to="/mentor-register?role=mentor"
               className="rounded-full bg-[#4F46E5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600"
             >
-              Get started
+              Mentor sign up
             </Link>
           </div>
         </div>
@@ -34,10 +28,10 @@ export function Home() {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/register"
+            to="/mentor-register?role=mentor"
             className="inline-flex rounded-2xl bg-[#4F46E5] px-8 py-3 text-base font-semibold text-white shadow-md transition hover:bg-indigo-600"
           >
-            Create account
+            Become a mentor
           </Link>
           <Link
             to="/specializations"
@@ -45,15 +39,20 @@ export function Home() {
           >
             I already have access
           </Link>
+          <Link
+            to="/mentor-dashboard"
+            className="inline-flex rounded-2xl border border-gray-300 bg-white px-8 py-3 text-base font-semibold text-gray-800 shadow-sm transition hover:border-[#4F46E5] hover:text-[#4F46E5]"
+          >
+            Mentor dashboard
+          </Link>
         </div>
         <p className="mt-8 text-sm text-gray-500">
           New here? Start with{' '}
-          <Link to="/login" className="font-medium text-[#4F46E5] hover:underline">
-            Sign in
-          </Link>{' '}
-          or{' '}
-          <Link to="/register" className="font-medium text-[#4F46E5] hover:underline">
-            Register
+          <Link
+            to="/mentor-register?role=mentor"
+            className="font-medium text-[#4F46E5] hover:underline"
+          >
+            mentor signup
           </Link>
           .
         </p>
@@ -67,18 +66,21 @@ export function Home() {
           </p>
           <ol className="mt-3 space-y-2 text-sm text-gray-700">
             <li>
-              <Link className="text-[#4F46E5] hover:underline" to="/login">
-                1. Login
+              <Link className="text-[#4F46E5] hover:underline" to="/mentor-dashboard">
+                1. Mentor dashboard
               </Link>
             </li>
             <li>
-              <Link className="text-[#4F46E5] hover:underline" to="/register">
-                2. Register (student)
+              <Link
+                className="text-[#4F46E5] hover:underline"
+                to="/mentor-register?role=mentor"
+              >
+                2. Mentor signup
               </Link>
             </li>
             <li>
               <Link className="text-[#4F46E5] hover:underline" to="/mentor-register">
-                2b. Mentor registration
+                2b. Mentor registration (form)
               </Link>
             </li>
             <li>

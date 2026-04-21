@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   Bell,
   MoreHorizontal,
@@ -9,63 +9,58 @@ import {
   Send,
   Smile,
 } from 'lucide-react'
-import { getMentorById, MENTORS } from '../data/mentors'
+import { getMentorUserByMentorId, listMentorUsers } from '../lib/authStore'
+import {
+  appendMessage,
+  getThreadSummaries,
+  listMessagesForMentor,
+  markMentorThreadRead,
+} from '../lib/messagesStore'
 
 export function Messages() {
   const { mentorId = '' } = useParams()
-  const mentor = getMentorById(mentorId)
+  const [searchParams] = useSearchParams()
+  const mentor = getMentorUserByMentorId(mentorId)
+  const mentorUsers = listMentorUsers()
 
   const [draft, setDraft] = useState('')
-  const [messages, setMessages] = useState<
-    { id: string; from: 'me' | 'them'; text: string; time: string }[]
-  >([
-    {
-      id: '1',
-      from: 'them',
-      text: 'Hey! I saw your roadmap — want me to share a few AWS study resources?',
-      time: '4:10 PM',
-    },
-    {
-      id: '2',
-      from: 'me',
-      text: 'Yes please — especially around IAM and VPC basics.',
-      time: '4:22 PM',
-    },
-    {
-      id: '3',
-      from: 'them',
-      text: 'Attached a PDF with best-practice checklists. Skim the first 10 pages today.',
-      time: '4:24 PM',
-    },
-  ])
+  const [messages, setMessages] = useState(() => listMessagesForMentor(mentorId))
 
   if (!mentor) {
     return <Navigate to="/mentors" replace />
   }
 
-  const initials = mentor.name
+  const isMentorView = searchParams.get('as') === 'mentor'
+
+  useEffect(() => {
+    setMessages(listMessagesForMentor(mentorId))
+    if (isMentorView) markMentorThreadRead(mentorId)
+  }, [mentorId, isMentorView])
+
+  const summaries = useMemo(() => {
+    const map = new Map(getThreadSummaries().map((s) => [s.mentorId, s]))
+    return map
+  }, [messages.length])
+
+  const initials = mentor.fullName
     .split(' ')
     .map((p) => p[0])
     .join('')
 
   const canSend = draft.trim().length > 0
 
+  function formatTime(ts: number) {
+    return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  }
+
   function send() {
     if (!canSend) return
-    const now = new Date()
-    const time = now.toLocaleTimeString([], {
-      hour: 'numeric',
-      minute: '2-digit',
+    appendMessage({
+      mentorId,
+      from: isMentorView ? 'mentor' : 'student',
+      text: draft.trim(),
     })
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}`,
-        from: 'me',
-        text: draft.trim(),
-        time,
-      },
-    ])
+    setMessages(listMessagesForMentor(mentorId))
     setDraft('')
   }
 
@@ -83,7 +78,7 @@ export function Messages() {
           </div>
           <nav className="hidden flex-1 items-center justify-center gap-6 md:flex">
             <Link
-              to="/specializations"
+              to={isMentorView ? '/mentor-dashboard' : '/specializations'}
               className="text-sm font-medium text-gray-600 hover:text-[#4F46E5]"
             >
               Dashboard
@@ -128,12 +123,20 @@ export function Messages() {
             />
           </div>
           <ul className="mt-4 space-y-2">
-            {MENTORS.map((m) => {
-              const isActive = m.id === mentorId
+            {mentorUsers.map((m) => {
+              const isActive = m.mentorId === mentorId
+              const summary = summaries.get(m.mentorId)
+              const lastLabel = summary ? formatTime(summary.lastAt) : ''
+              const lastText = summary ? summary.lastText : 'Open a conversation'
+              const unread = isMentorView ? summary?.unreadForMentor ?? 0 : 0
+              const initials2 = m.fullName
+                .split(' ')
+                .map((p) => p[0])
+                .join('')
               return (
-                <li key={m.id}>
+                <li key={m.mentorId}>
                   <Link
-                    to={`/messages/${m.id}`}
+                    to={`/messages/${m.mentorId}${isMentorView ? '?as=mentor' : ''}`}
                     className={`flex gap-3 rounded-xl p-3 transition ${
                       isActive
                         ? 'bg-indigo-50 ring-2 ring-[#4F46E5]'
@@ -142,31 +145,32 @@ export function Messages() {
                   >
                     <div className="relative">
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-xs font-bold text-white ${m.avatarGradient}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white"
                       >
-                        {m.name
-                          .split(' ')
-                          .map((p) => p[0])
-                          .join('')}
+                        {initials2}
                       </div>
-                      {m.online ? (
-                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
-                      ) : null}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-gray-900">
-                          {m.name}{' '}
+                          {m.fullName}{' '}
                           <span className="font-normal text-gray-500">
-                            | {m.title}
+                            | {m.jobTitle ?? 'Mentor'}
                           </span>
                         </p>
-                        <span className="shrink-0 text-[10px] text-gray-400">
-                          {m.timeLabel}
-                        </span>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {unread ? (
+                            <span className="rounded-full bg-[#4F46E5] px-2 py-0.5 text-[10px] font-bold text-white">
+                              {unread}
+                            </span>
+                          ) : null}
+                          {lastLabel ? (
+                            <span className="text-[10px] text-gray-400">{lastLabel}</span>
+                          ) : null}
+                        </div>
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs text-gray-600">
-                        {m.lastMessage}
+                        {lastText}
                       </p>
                     </div>
                   </Link>
@@ -181,12 +185,14 @@ export function Messages() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {mentor.name}
+                  {mentor.fullName}
                 </h3>
-                <span className="text-sm text-gray-500">· {mentor.title}</span>
+                <span className="text-sm text-gray-500">
+                  · {mentor.jobTitle ?? 'Mentor'}
+                </span>
               </div>
               <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-emerald-600">
-                {mentor.online ? 'Online' : 'Away'}
+                Active
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -214,11 +220,12 @@ export function Messages() {
               TODAY
             </div>
 
-            {messages.map((msg) =>
-              msg.from === 'them' ? (
+            {messages.map((msg) => {
+              const isMe = msg.from === (isMentorView ? 'mentor' : 'student')
+              return !isMe ? (
                 <div key={msg.id} className="flex gap-3">
                   <div
-                    className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white ${mentor.avatarGradient}`}
+                    className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-bold text-white"
                   >
                     {initials}
                   </div>
@@ -226,29 +233,7 @@ export function Messages() {
                     <div className="rounded-2xl rounded-tl-sm bg-gray-100 px-4 py-3 text-sm text-gray-800">
                       {msg.text}
                     </div>
-                    {msg.id === '3' ? (
-                      <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-xs font-bold text-red-600 shadow-sm">
-                            PDF
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">
-                              AWS_Best_Practices_2024.pdf
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              2.4 MB · PDF Document
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="text-[#4F46E5] hover:underline"
-                        >
-                          Download
-                        </button>
-                      </div>
-                    ) : null}
+                    <div className="mt-1 text-[10px] text-gray-400">{formatTime(msg.createdAt)}</div>
                   </div>
                 </div>
               ) : (
@@ -258,13 +243,13 @@ export function Messages() {
                       {msg.text}
                     </div>
                     <div className="mt-1 flex items-center justify-end gap-2 text-[10px] text-gray-400">
-                      <span>{msg.time}</span>
+                      <span>{formatTime(msg.createdAt)}</span>
                       <span className="text-sky-300">✓✓</span>
                     </div>
                   </div>
                 </div>
-              ),
-            )}
+              )
+            })}
           </div>
 
           <div className="border-t border-gray-100 px-5 py-4">
@@ -292,7 +277,7 @@ export function Messages() {
                     send()
                   }
                 }}
-                placeholder={`Write a message to ${mentor.name.split(' ')[0]}...`}
+                placeholder={`Write a message ${isMentorView ? 'to student' : `to ${mentor.fullName.split(' ')[0]}`}...`}
                 rows={2}
                 className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-gray-400"
               />
