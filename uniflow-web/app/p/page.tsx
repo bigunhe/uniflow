@@ -130,7 +130,7 @@ export default function ProfilePage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -146,21 +146,21 @@ export default function ProfilePage() {
         .topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;position:relative;z-index:1;}
         .back-btn{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s;text-decoration:none;}
         .back-btn:hover{background:rgba(255,255,255,.09);color:rgba(255,255,255,.8);}
-        .page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;}
+        .page-title{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;color:#fff;}
 
         /* Avatar hero */
         .avatar-hero{width:100%;max-width:680px;display:flex;align-items:center;gap:24px;padding:28px 32px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:24px;margin-bottom:20px;position:relative;z-index:1;animation:fadeUp .4s ease both;}
         .avatar-circle{width:80px;height:80px;border-radius:50%;border:3px solid rgba(0,210,180,.35);overflow:hidden;background:#1a2030;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
         .avatar-circle img{width:100%;height:100%;object-fit:cover;}
         .avatar-info{flex:1;}
-        .avatar-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:4px;}
+        .avatar-name{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:4px;}
         .avatar-role{font-size:14px;color:rgba(255,255,255,.4);margin-bottom:10px;}
         .portfolio-link-row{display:flex;align-items:center;gap:10px;}
         .portfolio-url{font-size:13px;color:rgba(0,210,180,.7);font-family:'DM Sans',sans-serif;}
         .copy-btn{padding:5px 14px;border-radius:8px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);color:#00d2b4;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;}
         .copy-btn:hover{background:rgba(0,210,180,.18);}
         .pulse-badge{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:12px;background:rgba(0,210,180,.08);border:1px solid rgba(0,210,180,.2);}
-        .pulse-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#00d2b4;letter-spacing:-.04em;}
+        .pulse-num{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:24px;font-weight:700;color:#00d2b4;letter-spacing:-.02em;}
         .pulse-lbl{font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;}
 
         /* Tabs */
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                 </div>
                 <div style={{padding:"14px 16px",background:"rgba(255,255,255,.05)",borderRadius:12,border:"1px solid rgba(255,255,255,.1)",marginBottom:8}}>
                   <div style={{fontSize:13,fontWeight:600,color:"#e8eef8",marginBottom:4}}>Pulse Score</div>
-                  <div style={{fontSize:28,fontWeight:800,fontFamily:"'Syne',sans-serif",color:"#00d2b4",letterSpacing:"-.04em"}}>{profile?.pulse_score ?? 0}<span style={{fontSize:14,color:"rgba(168,184,208,.9)",fontFamily:"'DM Sans',sans-serif",fontWeight:500,marginLeft:6}}>/ 100</span></div>
+                  <div style={{fontSize:28,fontWeight:700,fontFamily:"'DM Sans',system-ui,sans-serif",color:"#00d2b4",letterSpacing:"-.02em"}}>{profile?.pulse_score ?? 0}<span style={{fontSize:14,color:"rgba(168,184,208,.9)",fontFamily:"'DM Sans',sans-serif",fontWeight:500,marginLeft:6}}>/ 100</span></div>
                   <div style={{fontSize:12,color:"rgba(168,184,208,.85)",marginTop:4}}>Complete KPIs, submit projects, and mentor peers to increase your score.</div>
                 </div>
               </div>

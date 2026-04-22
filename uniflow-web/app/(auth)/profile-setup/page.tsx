@@ -167,7 +167,7 @@ export default function ProfileSetupPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         .root{min-height:100vh;background:#080c14;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;padding:32px 16px;position:relative;overflow:hidden;}
         .bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,210,180,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,180,.025) 1px,transparent 1px);background-size:48px 48px;}
@@ -176,7 +176,7 @@ export default function ProfileSetupPage() {
         .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);bottom:-100px;right:-100px;}
         .logo{display:flex;align-items:center;gap:10px;margin-bottom:40px;position:relative;z-index:1;}
         .logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#00d2b4,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;}
-        .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;color:var(--brand-dark-heading,#f0f4fb);letter-spacing:-.02em;}
+        .logo-name{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-weight:700;font-size:19px;color:var(--brand-dark-heading,#f0f4fb);letter-spacing:-.02em;}
         .logo-name span{color:#00d2b4;}
         .progress-wrap{width:100%;max-width:520px;display:flex;gap:8px;margin-bottom:32px;position:relative;z-index:1;}
         .prog-seg{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;position:relative;}
@@ -184,7 +184,7 @@ export default function ProfileSetupPage() {
         .prog-seg.done::after{transform:scaleX(1);}
         .card{width:100%;max-width:520px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:40px 40px 36px;position:relative;z-index:1;backdrop-filter:blur(20px);}
         .step-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.22);border-radius:99px;padding:3px 12px;font-size:11px;font-weight:500;letter-spacing:.08em;color:#00d2b4;text-transform:uppercase;margin-bottom:16px;}
-        .card-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--brand-dark-heading,#f0f4fb);letter-spacing:-.03em;margin-bottom:6px;}
+        .card-title{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:24px;font-weight:700;color:var(--brand-dark-heading,#f0f4fb);letter-spacing:-.02em;margin-bottom:6px;}
         .card-sub{font-size:14px;color:var(--brand-dark-muted,#a8b8d0);line-height:1.6;margin-bottom:32px;}
         .field{margin-bottom:20px;}
         .field label{display:block;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-dark-muted,#a8b8d0);margin-bottom:8px;}

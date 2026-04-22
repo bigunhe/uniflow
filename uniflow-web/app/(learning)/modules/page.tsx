@@ -193,7 +193,7 @@ export default function ModulesPage() {
   }, [selectedModule, studentDoubt]);
 
   return (
-    <div className="relative min-h-screen bg-slate-950">
+    <div className="brand-dark-shell relative min-h-screen bg-slate-950">
       <MentorHeader />
 
       <main className="relative z-10 mx-auto w-full max-w-7xl space-y-8 px-4 pb-10 pt-6 sm:px-6 lg:px-8">

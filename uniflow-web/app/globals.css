@@ -213,3 +213,12 @@
 .brand-dark-shell textarea::placeholder {
   color: rgba(255, 255, 255, 0.4) !important;
 }
+
+/* Login page: global base layer forces .card-label to --app-text-soft; keep CTA eyebrow teal */
+.login-root.brand-dark-shell a.card-label {
+  color: rgba(0, 210, 180, 0.9) !important;
+}
+.login-root.brand-dark-shell a.card-label:hover,
+.login-root.brand-dark-shell a.card-label:focus-visible {
+  color: #5eead4 !important;
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { mentorButtonClassName, MentorButton } from "./MentorButton";
+import { signOut } from "@/services/auth";
 import {
   type UserRoleProfile,
   getUserRoleProfile,
@@ -61,9 +62,10 @@ export function MentorHeader() {
     };
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearUserRoleProfile();
-    router.push("/networking/mentors");
+    await signOut();
+    router.replace("/");
   };
 
   const navItems = profile
