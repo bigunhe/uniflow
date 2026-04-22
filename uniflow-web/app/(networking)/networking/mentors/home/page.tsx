@@ -7,10 +7,11 @@ import { mentorButtonClassName } from "../_components/MentorButton";
 import { mentorProfiles } from "../_components/mentorData";
 import { getUserRoleProfile } from "../_components/userRoleProfile";
 import {
-  GuidanceRequest,
-  getGuidanceRequests,
-  updateGuidanceRequestStatus,
-} from "../_components/guidanceRequests";
+  listMentorBadges,
+  listMentorRequests,
+  refreshMentorBadges,
+  updateMentorshipRequestStatus,
+} from "@/services/mentorship";
 
 const mentorStats = [
   { label: "Active Mentors", value: "120+" },
@@ -24,52 +25,51 @@ const studentStats = [
   { label: "Semester Goals", value: "72%" },
 ];
 
-const mentorHubStats = [
-  { label: "Total Students", value: "1,284", badge: "+12%" },
-  { label: "Hours Mentored", value: "142.5", badge: "Weekly" },
-  { label: "Impact Score", value: "98/100", highlight: true },
-  { label: "Avg. Rating", value: "4.9", badge: "Top 1% Mentor" },
-];
+type MentorRequestRow = {
+  id: string;
+  status: "pending" | "accepted" | "rejected";
+  meeting_link: string | null;
+  student?: {
+    full_name?: string | null;
+    learning_goals?: string | null;
+  } | null;
+};
 
-const mentorHubSessions = [
-  {
-    date: "OCT 24",
-    title: "Advanced Tailwind Layouts",
-    time: "02:00 PM - 03:30 PM",
-    status: "Live Now",
-  },
-  {
-    date: "OCT 25",
-    title: "Backend Scaling Strategies",
-    time: "10:00 AM - 11:00 AM",
-    status: "Upcoming",
-  },
-  {
-    date: "OCT 25",
-    title: "Portfolio Review: Fintech",
-    time: "04:30 PM - 05:30 PM",
-    status: "Upcoming",
-  },
-];
+type MentorBadgeRow = {
+  badge_name: string;
+  criteria: string | null;
+};
 
 export default function MentorsHomePage() {
   const [profile, setProfile] = useState(getUserRoleProfile());
-  const [mentorRequests, setMentorRequests] = useState<GuidanceRequest[]>([]);
+  const [mentorRequests, setMentorRequests] = useState<MentorRequestRow[]>([]);
+  const [mentorBadges, setMentorBadges] = useState<MentorBadgeRow[]>([]);
 
   useEffect(() => {
     const userProfile = getUserRoleProfile();
     setProfile(userProfile);
 
-    const syncRequests = () => {
-      setMentorRequests(getGuidanceRequests());
+    if (userProfile?.role !== "mentor") {
+      return;
+    }
+
+    const syncMentorData = async () => {
+      try {
+        const [requests, badges] = await Promise.all([
+          listMentorRequests(),
+          refreshMentorBadges(),
+        ]);
+        setMentorRequests(requests as MentorRequestRow[]);
+        setMentorBadges((badges || []) as MentorBadgeRow[]);
+      } catch {
+        const requests = await listMentorRequests();
+        const badges = await listMentorBadges();
+        setMentorRequests(requests as MentorRequestRow[]);
+        setMentorBadges((badges || []) as MentorBadgeRow[]);
+      }
     };
 
-    syncRequests();
-    window.addEventListener("guidance-requests-updated", syncRequests);
-
-    return () => {
-      window.removeEventListener("guidance-requests-updated", syncRequests);
-    };
+    void syncMentorData();
   }, []);
 
   // Show student home page
@@ -224,6 +224,21 @@ export default function MentorsHomePage() {
     const pendingRequests = mentorRequests
       .filter((request) => request.status === "pending")
       .slice(0, 2);
+    const acceptedRequests = mentorRequests.filter((request) => request.status === "accepted");
+    const studentsHelped = new Set(
+      acceptedRequests.map((request) => request.student?.full_name || request.id),
+    ).size;
+
+    const mentorHubStats = [
+      { label: "Active Sessions", value: String(acceptedRequests.length), badge: "Accepted" },
+      { label: "Incoming Requests", value: String(pendingRequests.length), badge: "Pending" },
+      { label: "Students Helped", value: String(studentsHelped), highlight: true },
+      {
+        label: "Badge Count",
+        value: String(mentorBadges.length),
+        badge: mentorBadges[0]?.badge_name || "Mentor",
+      },
+    ];
 
     return (
       <div className="space-y-6">
@@ -295,8 +310,8 @@ export default function MentorsHomePage() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-bold text-slate-100">{request.studentName}</p>
-                        <p className="text-xs text-slate-400">{request.mentorName}</p>
+                        <p className="text-sm font-bold text-slate-100">{request.student?.full_name || "Student"}</p>
+                        <p className="text-xs text-slate-400">Mentorship request</p>
                       </div>
                       <span className={index === 0
                         ? "rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300"
@@ -306,19 +321,19 @@ export default function MentorsHomePage() {
                       </span>
                     </div>
 
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-300">{request.topic}</p>
+                    <p className="mt-2 line-clamp-2 text-sm text-slate-300">{request.student?.learning_goals || "Learning goals not provided."}</p>
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => updateGuidanceRequestStatus(request.id, "accepted")}
+                        onClick={() => void updateMentorshipRequestStatus(request.id, "accepted")}
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 text-xs font-semibold text-white transition hover:bg-indigo-700"
                       >
                         Accept
                       </button>
                       <button
                         type="button"
-                        onClick={() => updateGuidanceRequestStatus(request.id, "rejected")}
+                        onClick={() => void updateMentorshipRequestStatus(request.id, "rejected")}
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-800/70 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
                       >
                         Reject
@@ -344,41 +359,51 @@ export default function MentorsHomePage() {
               </div>
 
               <div className="space-y-2.5">
-                {mentorHubSessions.map((session, index) => (
-                  <article key={session.title} className="rounded-xl border border-slate-700 bg-slate-900/70 p-3.5">
+                {acceptedRequests.slice(0, 3).map((session, index) => (
+                  <article key={session.id} className="rounded-xl border border-slate-700 bg-slate-900/70 p-3.5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="inline-flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-indigo-500/20 text-[10px] font-bold leading-tight text-indigo-200">
-                          {session.date.split(" ")[0]}
-                          <span className="text-xs">{session.date.split(" ")[1]}</span>
+                          ACC
+                          <span className="text-xs">EPT</span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-100">{session.title}</p>
-                          <p className="text-xs text-slate-400">{session.time}</p>
+                          <p className="text-sm font-semibold text-slate-100">Session with {session.student?.full_name || "Student"}</p>
+                          <p className="text-xs text-slate-400">Accepted mentorship</p>
                         </div>
                       </div>
 
                       {index === 0 ? (
-                        <button
-                          type="button"
-                          className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700"
-                        >
-                          Join Room
-                        </button>
+                        <Link href={`/networking/mentors/live-session?requestId=${session.id}`} className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700">Join Room</Link>
                       ) : (
-                        <span className={session.status === "Live Now" ? "text-xs font-semibold text-emerald-300" : "text-xs font-semibold text-slate-400"}>
-                          {session.status}
+                        <span className="text-xs font-semibold text-emerald-300">
+                          Ready
                         </span>
                       )}
                     </div>
                   </article>
                 ))}
+                {acceptedRequests.length === 0 ? (
+                  <article className="rounded-xl border border-dashed border-slate-600 p-3.5 text-sm text-slate-400">
+                    No active sessions yet. Accept requests to start mentorship sessions.
+                  </article>
+                ) : null}
               </div>
             </div>
 
             <article className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-              <p className="text-lg font-semibold text-slate-100">Growth Insight</p>
-              <p className="mt-1 text-sm text-slate-400">Your session bookings increased by 12% this week.</p>
+              <p className="text-lg font-semibold text-slate-100">Mentor Badges</p>
+              {mentorBadges.length === 0 ? (
+                <p className="mt-1 text-sm text-slate-400">Complete more sessions to unlock badges.</p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {mentorBadges.map((badge) => (
+                    <span key={badge.badge_name} className="rounded-full border border-indigo-400/40 bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-200">
+                      {badge.badge_name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </article>
           </div>
         </section>

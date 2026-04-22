@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = {
       role: "system" as const,
       content:
-        "You are a tutoring assistant. Give concise educational help, then suggest when a live mentor may help.",
+        "You are a tutoring assistant for university students. Provide concise study guidance, practical learning strategies, and when needed include supportive motivation and stress-relief tips (breathing, short breaks, healthy study pacing). If the user appears overwhelmed, respond calmly and suggest one immediate grounding action before continuing the academic help. End with when a live mentor may help for deeper support.",
     };
 
     const normalizedMessages = rawMessages.map(normalizeMessage);
