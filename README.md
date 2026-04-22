@@ -18,7 +18,7 @@ Welcome to the UniFlow Monorepo! We are using a strict "Feature Silo" architectu
 2. Open the terminal, `cd uniflow-web`, and run `npm install`.
 3. Duplicate the `.env.example` file, rename the copy to `.env.local`, and paste the Supabase keys from our group chat.
 4. Create your branch: `git checkout -b feature/your-feature-name`
-5. Start the server: `npm run dev`
+5. Start the server: `npm run dev` (runs on http://localhost:5174)
 
 
 
@@ -85,7 +85,7 @@ uniflow-monorepo/
 
 ## Run
 
-- **Web:** `cd uniflow-web && npm install && npm run dev`
+- **Web:** `cd uniflow-web && npm install && npm run dev` (runs on http://localhost:5174)
 - **Python:** 
 `cd uniflow-python`
 `python3 -m venv venv`
