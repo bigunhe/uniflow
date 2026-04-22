@@ -1,5 +1,10 @@
 "use server";
 
+/**
+ * Legacy CRUD for the small `alumni` table (name/email).
+ * Prefer `alumni_network_profiles` + `network-actions.ts` for the alumni mentoring flow.
+ */
+
 import { revalidatePath } from "next/cache";
 import { getSupabaseIfConfigured } from "@/lib/supabase";
 

@@ -360,71 +360,75 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4">
+    <div className="brand-dark-shell min-h-screen bg-[#080c14] text-[#d4dde8]">
+      <div
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.04] [background-image:linear-gradient(rgba(0,210,180,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(0,210,180,0.35)_1px,transparent_1px)] [background-size:38px_38px]"
+        aria-hidden
+      />
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[rgba(8,12,20,0.92)] backdrop-blur-md">
+        <div className="relative z-10 mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm ring-1 ring-white/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[rgba(0,210,180,0.2)] text-[#00d2b4] shadow-sm ring-1 ring-[rgba(0,210,180,0.35)]">
               <span className="text-[14px] font-bold">U</span>
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-extrabold text-slate-900">UniFlow</div>
-              <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-indigo-500/90">
-                Career & mentorship
+              <div className="truncate text-sm font-extrabold text-white">UniFlow</div>
+              <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-[#00d2b4]">
+                Messages
               </div>
             </div>
           </div>
 
-          <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-700 md:flex">
-            <Link className="hover:text-indigo-700" href="/dashboard">
+          <nav className="hidden items-center gap-7 text-sm font-semibold text-[rgba(168,184,208,0.92)] md:flex">
+            <Link className="transition hover:text-[#00d2b4]" href="/dashboard">
               Dashboard
             </Link>
-            <Link className="hover:text-indigo-700" href="/networking/mentors">
+            <Link className="transition hover:text-[#00d2b4]" href="/networking/mentors">
               Peer mentors
             </Link>
-            <Link className="hover:text-indigo-700" href="/learning">
+            <Link className="transition hover:text-[#00d2b4]" href="/learning">
               Learning
             </Link>
-            <Link className="hover:text-indigo-700" href="/networking">
+            <Link className="transition hover:text-[#00d2b4]" href="/networking">
               Community
             </Link>
           </nav>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgba(168,184,208,0.55)]" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search resources..."
-                className="w-[260px] rounded-full border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-[260px] rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-sm text-[#f0f4fb] outline-none placeholder:text-[rgba(168,184,208,0.45)] focus:ring-2 focus:ring-[#00d2b4]/35"
               />
             </div>
-            <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-slate-50 ring-1 ring-slate-200">
-              <span className="text-xs text-slate-700">Bell</span>
+            <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10 md:flex">
+              <span className="text-xs text-[rgba(168,184,208,0.8)]">Bell</span>
             </div>
-            <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center">
-              <span className="text-xs font-bold text-slate-700">🙂</span>
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15">
+              <span className="text-xs font-bold text-[#00d2b4]">🙂</span>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl">
+      <div className="relative z-10 mx-auto flex max-w-7xl">
         {/* Sidebar */}
-        <aside className="w-[320px] border-r border-slate-200 bg-white">
+        <aside className="w-[320px] border-r border-white/10 bg-[rgba(255,255,255,0.02)]">
           <div className="px-5 py-4">
-            <h2 className="text-base font-extrabold text-slate-900">Messages</h2>
+            <h2 className="text-base font-extrabold text-white">Conversations</h2>
           </div>
 
           <div className="px-5 pb-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgba(168,184,208,0.5)]" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search mentors..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-sm text-[#f0f4fb] outline-none placeholder:text-[rgba(168,184,208,0.45)] focus:ring-2 focus:ring-[#00d2b4]/30"
               />
             </div>
           </div>
@@ -442,30 +446,30 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                   type="button"
                   onClick={() => router.push(`/messages/${m.id}`)}
                   className={[
-                    "w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition",
-                    active ? "bg-indigo-50 ring-1 ring-indigo-100" : "hover:bg-slate-50",
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition",
+                    active
+                      ? "bg-[rgba(0,210,180,0.14)] ring-1 ring-[rgba(0,210,180,0.35)]"
+                      : "hover:bg-white/5",
                   ].join(" ")}
                 >
-                  <div className="relative h-11 w-11 rounded-full bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center">
-                    <span className="text-sm font-bold text-slate-700">{initials(m.name)}</span>
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+                    <span className="text-sm font-bold text-[#e8eef8]">{initials(m.name)}</span>
                     <span
                       className={[
-                        "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-white",
-                        m.online ? "bg-emerald-500" : "bg-slate-300",
+                        "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-[#080c14]",
+                        m.online ? "bg-emerald-500" : "bg-slate-500",
                       ].join(" ")}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-900">{m.name}</div>
-                        <div className="truncate text-xs text-slate-500">{m.title}</div>
+                        <div className="truncate text-sm font-semibold text-white">{m.name}</div>
+                        <div className="truncate text-xs text-[rgba(168,184,208,0.75)]">{m.title}</div>
                       </div>
-                      <div className="text-[11px] font-semibold text-slate-400">{lastTime}</div>
+                      <div className="text-[11px] font-semibold text-[rgba(168,184,208,0.55)]">{lastTime}</div>
                     </div>
-                    <div className="mt-1 truncate text-xs text-slate-600">
-                      {preview}
-                    </div>
+                    <div className="mt-1 truncate text-xs text-[rgba(212,221,232,0.85)]">{preview}</div>
                   </div>
                 </button>
               );
@@ -474,25 +478,26 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
         </aside>
 
         {/* Chat */}
-        <main className="flex-1 flex flex-col bg-white">
-          <div className="border-b border-slate-200 px-6 py-4">
+        <main className="flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col bg-[#080c14]">
+          <div className="border-b border-white/10 px-6 py-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative h-10 w-10 rounded-full bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center">
-                  <span className="text-sm font-bold text-slate-700">{initials(selectedMentor.name)}</span>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+                  <span className="text-sm font-bold text-[#e8eef8]">{initials(selectedMentor.name)}</span>
                   <span
                     className={[
-                      "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-white",
-                      selectedMentor.online ? "bg-emerald-500" : "bg-slate-300",
+                      "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-[#080c14]",
+                      selectedMentor.online ? "bg-emerald-500" : "bg-slate-500",
                     ].join(" ")}
                   />
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-extrabold text-slate-900">
-                    {selectedMentor.name}
-                  </div>
-                  <div className="truncate text-xs font-semibold text-slate-500">
-                    {selectedMentor.title} • <span className="text-emerald-600">{selectedMentor.online ? "ONLINE" : "OFFLINE"}</span>
+                  <div className="truncate text-sm font-extrabold text-white">{selectedMentor.name}</div>
+                  <div className="truncate text-xs font-semibold text-[rgba(168,184,208,0.85)]">
+                    {selectedMentor.title} •{" "}
+                    <span className={selectedMentor.online ? "text-[#00d2b4]" : "text-[rgba(168,184,208,0.6)]"}>
+                      {selectedMentor.online ? "ONLINE" : "OFFLINE"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -500,16 +505,16 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+                  className="rounded-xl bg-[rgba(0,210,180,0.22)] px-4 py-2 text-sm font-semibold text-[#080c14] shadow-sm ring-1 ring-[rgba(0,210,180,0.4)] hover:bg-[rgba(0,210,180,0.32)]"
                 >
                   View Profile
                 </button>
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center hover:bg-slate-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/12 bg-white/5 hover:bg-white/10"
                   aria-label="More"
                 >
-                  <MoreHorizontal className="h-4 w-4 text-slate-700" />
+                  <MoreHorizontal className="h-4 w-4 text-[#d4dde8]" />
                 </button>
               </div>
             </div>
@@ -527,8 +532,8 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               return (
                 <div key={msg.id} className="mb-4">
                   {needsSeparator && (
-                    <div className="flex justify-center mb-2">
-                      <div className="rounded-full bg-slate-50 px-4 py-1 text-[11px] font-extrabold tracking-wider text-slate-400 ring-1 ring-slate-200">
+                    <div className="mb-2 flex justify-center">
+                      <div className="rounded-full bg-white/5 px-4 py-1 text-[11px] font-extrabold tracking-wider text-[rgba(168,184,208,0.75)] ring-1 ring-white/10">
                         {fmtDateGroup(msg.dateGroup)}
                       </div>
                     </div>
@@ -545,8 +550,8 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                         className={[
                           "max-w-[520px] rounded-2xl px-4 py-3 ring-1",
                           msg.sender === "user"
-                            ? "bg-indigo-600 text-white ring-indigo-600"
-                            : "bg-slate-50 text-slate-900 ring-slate-200",
+                            ? "bg-[#00d2b4] text-[#080c14] ring-[#00d2b4]"
+                            : "bg-[rgba(255,255,255,0.06)] text-[#e8eef8] ring-white/10",
                         ].join(" ")}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -560,10 +565,10 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                             type="button"
                             aria-label="Download"
                             className={[
-                              "h-9 w-9 rounded-xl flex items-center justify-center ring-1",
+                              "flex h-9 w-9 items-center justify-center rounded-xl ring-1",
                               msg.sender === "user"
-                                ? "bg-white/15 ring-white/30"
-                                : "bg-white ring-slate-200",
+                                ? "bg-[#080c14]/15 ring-[#080c14]/25"
+                                : "bg-white/10 ring-white/15",
                             ].join(" ")}
                           >
                             <Download className="h-4 w-4" />
@@ -575,8 +580,8 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                         className={[
                           "max-w-[520px] rounded-2xl px-4 py-3 text-sm ring-1",
                           msg.sender === "user"
-                            ? "bg-indigo-600 text-white ring-indigo-600"
-                            : "bg-white text-slate-900 ring-slate-200",
+                            ? "bg-[#00d2b4] text-[#080c14] ring-[#00d2b4]"
+                            : "bg-[rgba(255,255,255,0.06)] text-[#e8eef8] ring-white/10",
                         ].join(" ")}
                       >
                         {editingMessageId === msg.id ? (
@@ -584,21 +589,21 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                             <input
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
-                              className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm outline-none ring-1 ring-white/20"
+                              className="w-full rounded-xl border border-[#080c14]/20 bg-[#080c14]/10 px-3 py-2 text-sm text-[#080c14] outline-none ring-1 ring-[#080c14]/15"
                               autoFocus
                             />
-                            <div className="flex items-center gap-2 justify-end">
+                            <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => setEditingMessageId(null)}
-                                className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold ring-1 ring-white/20 hover:bg-white/15"
+                                className="rounded-xl bg-[#080c14]/10 px-3 py-2 text-xs font-semibold text-[#080c14] ring-1 ring-[#080c14]/20 hover:bg-[#080c14]/15"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
                                 onClick={() => updateMessage(msg.id)}
-                                className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                className="rounded-xl bg-[#080c14] px-3 py-2 text-xs font-semibold text-[#00d2b4] hover:bg-[#0d1424]"
                               >
                                 Save
                               </button>
@@ -607,7 +612,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                         ) : (
                           <>
                             <div className="whitespace-pre-wrap">{msg.text}</div>
-                            <div className="mt-2 text-[11px] opacity-70 flex items-center justify-between gap-3">
+                            <div className="mt-2 flex items-center justify-between gap-3 text-[11px] opacity-80">
                               <span>{msg.timeLabel}</span>
                               {msg.sender === "user" ? (
                                 <span className="flex items-center gap-2">
@@ -617,7 +622,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                                       setEditingMessageId(msg.id);
                                       setEditingText(msg.text ?? "");
                                     }}
-                                    className="text-[11px] font-semibold underline underline-offset-4 decoration-white/30 hover:decoration-white/60"
+                                    className="text-[11px] font-semibold text-[#080c14] underline decoration-[#080c14]/35 underline-offset-4 hover:decoration-[#080c14]/70"
                                   >
                                     Edit
                                   </button>
@@ -628,7 +633,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                                       if (!ok) return;
                                       void deleteMessage(msg.id);
                                     }}
-                                    className="text-[11px] font-semibold underline underline-offset-4 decoration-white/30 hover:decoration-white/60"
+                                    className="text-[11px] font-semibold text-[#080c14] underline decoration-[#080c14]/35 underline-offset-4 hover:decoration-[#080c14]/70"
                                   >
                                     Delete
                                   </button>
@@ -645,29 +650,29 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
             })}
           </div>
 
-          <div className="border-t border-slate-200 px-6 py-4">
-            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 ring-1 ring-slate-200 px-3 py-2">
+          <div className="border-t border-white/10 px-6 py-4">
+            <div className="flex items-center gap-3 rounded-2xl bg-[rgba(255,255,255,0.05)] px-3 py-2 ring-1 ring-white/10">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-xl bg-white ring-1 ring-slate-200 flex items-center justify-center hover:bg-slate-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10 hover:bg-white/10"
                   aria-label="Add"
                 >
-                  <Plus className="h-4 w-4 text-slate-700" />
+                  <Plus className="h-4 w-4 text-[#d4dde8]" />
                 </button>
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-xl bg-white ring-1 ring-slate-200 flex items-center justify-center hover:bg-slate-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10 hover:bg-white/10"
                   aria-label="Emoji"
                 >
-                  <Smile className="h-4 w-4 text-slate-700" />
+                  <Smile className="h-4 w-4 text-[#d4dde8]" />
                 </button>
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-xl bg-white ring-1 ring-slate-200 flex items-center justify-center hover:bg-slate-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10 hover:bg-white/10"
                   aria-label="Attachment"
                 >
-                  <Paperclip className="h-4 w-4 text-slate-700" />
+                  <Paperclip className="h-4 w-4 text-[#d4dde8]" />
                 </button>
               </div>
 
@@ -675,7 +680,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                 value={composer}
                 onChange={(e) => setComposer(e.target.value)}
                 placeholder={`Write a message to ${selectedMentor.name}...`}
-                className="flex-1 bg-transparent px-2 py-1 text-sm outline-none"
+                className="flex-1 bg-transparent px-2 py-1 text-sm text-[#f0f4fb] outline-none placeholder:text-[rgba(168,184,208,0.45)]"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") sendMessage();
                 }}
@@ -684,7 +689,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <button
                 type="button"
                 onClick={sendMessage}
-                className="h-11 w-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm hover:bg-indigo-700 disabled:opacity-60 disabled:pointer-events-none"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#00d2b4] text-[#080c14] shadow-sm ring-1 ring-[rgba(0,210,180,0.45)] hover:bg-[#33ddc4] disabled:pointer-events-none disabled:opacity-50"
                 disabled={!composer.trim()}
                 aria-label="Send"
               >
