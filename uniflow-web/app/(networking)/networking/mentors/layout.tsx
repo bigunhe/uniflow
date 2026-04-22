@@ -25,10 +25,10 @@ export default function MentorsLayout({
       <div className="pointer-events-none absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(0,210,180,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(0,210,180,0.35)_1px,transparent_1px)] [background-size:38px_38px]" />
 
       {isMentorsLanding ? (
-        <div className="relative z-10 flex min-h-screen">
+        <div className="relative z-10 min-h-screen">
           <AppShellSidebar />
-          <div className="flex min-h-screen flex-1 flex-col md:ml-[240px]">
-            <main className="relative z-10 w-full flex-1 px-4 pb-8 pt-20 sm:px-6 md:px-8 md:pt-8 lg:px-10">
+          <div className="relative flex min-h-screen flex-col md:ml-[240px] md:w-[calc(100vw-240px)]">
+            <main className="relative z-10 w-full flex-1 overflow-y-auto px-0 pb-0 pt-0">
               <MentorBreadcrumbs />
               <MentorRoleAccessBoundary>{children}</MentorRoleAccessBoundary>
             </main>
