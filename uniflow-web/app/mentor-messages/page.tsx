@@ -13,12 +13,12 @@ import {
   Smile,
 } from "lucide-react";
 
-type Mentor = {
+type Student = {
   id: string;
   name: string;
-  title: string;
-  company: string;
-  online: boolean;
+  email: string;
+  yearAndSemester: string;
+  online?: boolean;
 };
 
 type Attachment = {
@@ -36,121 +36,26 @@ type ChatMessage = {
   dateGroup: "yesterday" | "today";
 };
 
-type DbMessage = {
-  id: string;
-  sender: "mentor" | "user";
-  text: string;
-  created_at: string | null;
-};
-
-const MENTORS: Mentor[] = [
-  {
-    id: "alex-rivers",
-    name: "Alex Rivers",
-    title: "Senior Software Engineer at Google",
-    company: "Google",
-    online: true,
-  },
-  {
-    id: "elena-vance",
-    name: "Elena Vance",
-    title: "Staff Engineer at Stripe",
-    company: "Stripe",
-    online: false,
-  },
-  {
-    id: "marcus-chen",
-    name: "Marcus Chen",
-    title: "Software Engineer at Microsoft",
-    company: "Microsoft",
-    online: false,
-  },
-  {
-    id: "sarah-jenkins",
-    name: "Sarah Jenkins",
-    title: "Engineering Manager at Meta",
-    company: "Meta",
-    online: false,
-  },
+const STUDENTS: Student[] = [
+  { id: "s1", name: "Emma Wilson", email: "emma@example.com", yearAndSemester: "3rd Year 1st Semester", online: true },
+  { id: "s2", name: "James Carter", email: "james@example.com", yearAndSemester: "4th Year 2nd Semester", online: false },
+  { id: "s3", name: "Sophia Lee", email: "sophia@example.com", yearAndSemester: "2nd Year 1st Semester", online: false },
 ];
 
-function getDummyMentorById(id: string | undefined | null): Mentor {
-  return (
-    MENTORS.find((m) => m.id === id) ??
-    MENTORS[0]
-  );
+function getDummyStudentById(id: string | undefined | null): Student {
+  return STUDENTS.find((s) => s.id === id) ?? STUDENTS[0];
 }
 
 function initials(name: string) {
   const parts = name.split(/\s+/).filter(Boolean);
   const a = parts[0]?.[0] ?? "";
   const b = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
-  return (a + b).toUpperCase() || "U";
+  return (a + b).toUpperCase() || "S";
 }
 
 function fmtDateGroup(group: ChatMessage["dateGroup"]) {
   return group === "yesterday" ? "YESTERDAY" : "TODAY";
 }
-
-const CONVERSATIONS: Record<string, ChatMessage[]> = {
-  "alex-rivers": [
-    {
-      id: "m1",
-      sender: "mentor",
-      text: "Hi there! I reviewed your proposed architecture for the cloud project. The use of S3 and CloudFront is a great start. Have you considered adding a WAF for security?",
-      timeLabel: "10:24 AM",
-      dateGroup: "yesterday",
-    },
-    {
-      id: "m2",
-      sender: "user",
-      text: "Thanks Alex! I actually forgot about WAF. I’ll add that to the diagram tonight. Should I also look into AWS Shield for the basic DDoS protection or is the default enough?",
-      timeLabel: "4:22 PM",
-      dateGroup: "yesterday",
-    },
-    {
-      id: "m3",
-      sender: "mentor",
-      text: "Default Shield is usually fine for most student projects. By the way, check out these AWS whitepapers on Serverless best practices. They’ll be very useful for your next module.",
-      timeLabel: "10:24 AM",
-      dateGroup: "today",
-    },
-    {
-      id: "m4",
-      sender: "mentor",
-      attachment: { kind: "pdf", fileName: "AWS_Best_Practices_2024.pdf", fileSize: "24 MB" },
-      timeLabel: "10:24 AM",
-      dateGroup: "today",
-    },
-  ],
-  "elena-vance": [
-    {
-      id: "e1",
-      sender: "mentor",
-      text: "Hi! I noticed your card layout and spacing. The hierarchy looks good—want me to review your empty states and loading skeleton next?",
-      timeLabel: "Yesterday",
-      dateGroup: "yesterday",
-    },
-  ],
-  "marcus-chen": [
-    {
-      id: "m1",
-      sender: "mentor",
-      text: "Did you apply for the internship yet? If you want, share your DevOps resume bullets and I can help you tighten them.",
-      timeLabel: "Tue",
-      dateGroup: "today",
-    },
-  ],
-  "sarah-jenkins": [
-    {
-      id: "s1",
-      sender: "mentor",
-      text: "Great progress on the SQL module. When you’re ready, share your query approach and I’ll help you optimize it for readability and performance.",
-      timeLabel: "Oct 12",
-      dateGroup: "today",
-    },
-  ],
-};
 
 function getLastPreview(messages: ChatMessage[] | undefined) {
   const msgs = messages ?? [];
@@ -160,52 +65,54 @@ function getLastPreview(messages: ChatMessage[] | undefined) {
   return last.text ?? "";
 }
 
-export default function MessagesClient({ selectedMentorId }: { selectedMentorId: string }) {
+function computeTimeLabel(d: Date) {
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+export default function MentorMessagesPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [composer, setComposer] = useState("");
-  const [studentId, setStudentId] = useState<string>("demo-student");
+  const [mentorId, setMentorId] = useState<string>("demo-mentor");
   const [conversations, setConversations] = useState<Record<string, ChatMessage[]>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const [useDb, setUseDb] = useState(false);
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState<string>("");
 
-  const [localMentors, setLocalMentors] = useState<Mentor[]>([]);
+  const [localStudents, setLocalStudents] = useState<Student[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     // Load student ID
     const storedStudents = localStorage.getItem('registeredStudents');
-    let sId = "demo-student";
+    let loadedStudents: Student[] = [];
     if (storedStudents) {
       try {
-        const parsed = JSON.parse(storedStudents);
-        if (parsed.length > 0) sId = parsed[parsed.length - 1].id;
+        loadedStudents = JSON.parse(storedStudents);
       } catch(e){}
     }
-    setStudentId(sId);
+    setLocalStudents(loadedStudents);
+    if (loadedStudents.length > 0) {
+      setSelectedStudentId(loadedStudents[loadedStudents.length - 1].id);
+    } else {
+      setSelectedStudentId(STUDENTS[0].id);
+    }
 
-    // Load conversations
+    // Load mentor ID
+    const storedMentors = localStorage.getItem('registeredMentors');
+    if (storedMentors) {
+      try {
+        const parsed = JSON.parse(storedMentors);
+        if (parsed.length > 0) setMentorId(parsed[parsed.length - 1].id);
+      } catch (e) {}
+    }
+
+    // Load global conversations
     const storedChats = localStorage.getItem('uniflow_chats');
     if (storedChats) {
       try {
         setConversations(JSON.parse(storedChats));
-      } catch(e){}
-    } else {
-      const initial: Record<string, ChatMessage[]> = {};
-      for (const [mId, msgs] of Object.entries(CONVERSATIONS)) {
-        initial[`${mId}_${sId}`] = msgs;
-      }
-      setConversations(initial);
-      localStorage.setItem('uniflow_chats', JSON.stringify(initial));
-    }
-
-    // Load registered mentors
-    const storedMentors = localStorage.getItem('registeredMentors');
-    if (storedMentors) {
-      try {
-        setLocalMentors(JSON.parse(storedMentors));
       } catch (e) {}
     }
   }, []);
@@ -216,137 +123,90 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
     }
   }, [conversations]);
 
-  const allMentors = useMemo(() => {
-    return [...localMentors, ...MENTORS];
-  }, [localMentors]);
+  const allStudents = useMemo(() => {
+    // avoid duplicates if demo student is used
+    const localIds = new Set(localStudents.map(s => s.id));
+    const merged = [...localStudents, ...STUDENTS.filter(s => !localIds.has(s.id))];
+    
+    // Dynamically include any student who has sent a message to this mentor
+    const knownIds = new Set(merged.map(s => s.id));
+    const dynamicStudents: Student[] = [];
 
-  const selectedMentor = useMemo(
-    () => allMentors.find((m) => m.id === selectedMentorId) ?? allMentors[0] ?? getDummyMentorById(selectedMentorId),
-    [selectedMentorId, allMentors]
+    for (const key of Object.keys(conversations)) {
+      if (key.startsWith(mentorId + "_")) {
+        const sId = key.split("_")[1];
+        if (sId && !knownIds.has(sId)) {
+          dynamicStudents.push({
+            id: sId,
+            name: sId === "demo-student" ? "Demo Student" : "Student " + sId,
+            email: "student@example.com",
+            yearAndSemester: "3rd Year 1st Semester",
+            online: true,
+          });
+          knownIds.add(sId);
+        }
+      }
+    }
+
+    return [...merged, ...dynamicStudents];
+  }, [localStudents, conversations, mentorId]);
+
+  const selectedStudent = useMemo(
+    () => allStudents.find((s) => s.id === selectedStudentId) ?? allStudents[0] ?? getDummyStudentById(selectedStudentId),
+    [selectedStudentId, allStudents]
   );
 
-  const selectedMessages = conversations[`${selectedMentor.id}_${studentId}`] ?? [];
+  const selectedMessages = conversations[`${mentorId}_${selectedStudent.id}`] ?? [];
 
   useEffect(() => {
     // Scroll to bottom whenever conversation changes.
     const el = scrollerRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [selectedMentor.id, selectedMessages.length]);
+  }, [selectedStudent.id, selectedMessages.length]);
 
-  function computeTimeLabel(d: Date) {
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-
-  function computeDateGroup(d: Date): ChatMessage["dateGroup"] {
-    const today = new Date();
-    const d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const diffDays = Math.round((t0.getTime() - d0.getTime()) / 86400000);
-    if (diffDays === 1) return "yesterday";
-    return "today";
-  }
-
-  function mapDbMessageToChat(m: DbMessage): ChatMessage {
-    const created = m.created_at ? new Date(m.created_at) : new Date();
-    return {
-      id: m.id,
-      sender: m.sender,
-      text: m.text,
-      timeLabel: computeTimeLabel(created),
-      dateGroup: computeDateGroup(created),
-    };
-  }
-
-  async function loadMessagesForMentor(mentorId: string) {
-    try {
-      const res = await fetch(`/api/messages/thread/${encodeURIComponent(mentorId)}`);
-      if (!res.ok) return false;
-      const payload = (await res.json()) as { messages: DbMessage[] };
-      const mapped = (payload.messages ?? []).map(mapDbMessageToChat);
-      setConversations((prev) => ({ ...prev, [mentorId]: mapped }));
-      setUseDb(true);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  useEffect(() => {
-    // Prefer Supabase when available; fall back to dummy conversations on error.
-    void loadMessagesForMentor(selectedMentor.id);
-  }, [selectedMentor.id]);
-
-  const filteredMentors = useMemo(() => {
+  const filteredStudents = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return allMentors;
-    return allMentors.filter((m) => {
-      const preview = getLastPreview(conversations[`${m.id}_${studentId}`]);
+    if (!q) return allStudents;
+    return allStudents.filter((s) => {
+      const preview = getLastPreview(conversations[`${mentorId}_${s.id}`]);
       return (
-        m.name.toLowerCase().includes(q) ||
-        m.company.toLowerCase().includes(q) ||
-        m.title.toLowerCase().includes(q) ||
+        s.name.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        s.yearAndSemester.toLowerCase().includes(q) ||
         preview.toLowerCase().includes(q)
       );
     });
-  }, [query, conversations]);
+  }, [query, conversations, allStudents, mentorId]);
 
-  async function sendMessage() {
+  function sendMessage() {
     const text = composer.trim();
     if (!text) return;
 
     const optimistic: ChatMessage = {
-      id: `u-${Math.random().toString(16).slice(2)}`,
-      sender: "user",
+      id: `m-${Math.random().toString(16).slice(2)}`,
+      sender: "mentor", // Mentor sending
       text,
       timeLabel: computeTimeLabel(new Date()),
       dateGroup: "today",
     };
 
-    // Optimistic UI
-    setConversations((prev) => ({
-      ...prev,
-      [`${selectedMentor.id}_${studentId}`]: [...(prev[`${selectedMentor.id}_${studentId}`] ?? []), optimistic],
-    }));
+    setConversations((prev) => {
+      const threadKey = `${mentorId}_${selectedStudent.id}`;
+      return {
+        ...prev,
+        [threadKey]: [...(prev[threadKey] ?? []), optimistic],
+      };
+    });
     setComposer("");
-
-    if (!useDb) return;
-
-    try {
-      const res = await fetch(
-        `/api/messages/thread/${encodeURIComponent(selectedMentor.id)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        }
-      );
-      if (!res.ok) return;
-      const payload = (await res.json()) as { message: DbMessage | null };
-      if (!payload.message) return;
-      setConversations((prev) => {
-        const threadKey = `${selectedMentor.id}_${studentId}`;
-        const list = prev[threadKey] ?? [];
-        // Remove optimistic message and replace with DB-saved one.
-        const withoutOptimistic = list.filter((m) => m.id !== optimistic.id);
-        return {
-          ...prev,
-          [threadKey]: [...withoutOptimistic, mapDbMessageToChat(payload.message)],
-        };
-      });
-    } catch {
-      // If the request fails, optimistic message stays visible.
-      return;
-    }
   }
 
-  async function updateMessage(messageId: string) {
+  function updateMessage(messageId: string) {
     const text = editingText.trim();
     if (!text) return;
 
-    // Optimistic update
     setConversations((prev) => {
-      const threadKey = `${selectedMentor.id}_${studentId}`;
+      const threadKey = `${mentorId}_${selectedStudent.id}`;
       const list = prev[threadKey] ?? [];
       return {
         ...prev,
@@ -358,54 +218,17 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
 
     setEditingMessageId(null);
     setEditingText("");
-
-    if (!useDb) return;
-    try {
-      const res = await fetch(`/api/messages/message/${encodeURIComponent(messageId)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      if (!res.ok) return;
-      const payload = (await res.json()) as { message: DbMessage | null };
-      if (!payload.message) return;
-
-      setConversations((prev) => {
-        const threadKey = `${selectedMentor.id}_${studentId}`;
-        const list = prev[threadKey] ?? [];
-        return {
-          ...prev,
-          [threadKey]: list.map((m) =>
-            m.id === messageId ? mapDbMessageToChat(payload.message!) : m
-          ),
-        };
-      });
-    } catch {
-      return;
-    }
   }
 
-  async function deleteMessage(messageId: string) {
-    // Optimistic delete
+  function deleteMessage(messageId: string) {
     setConversations((prev) => {
-      const threadKey = `${selectedMentor.id}_${studentId}`;
+      const threadKey = `${mentorId}_${selectedStudent.id}`;
       const list = prev[threadKey] ?? [];
       return {
         ...prev,
         [threadKey]: list.filter((m) => m.id !== messageId),
       };
     });
-
-    if (!useDb) return;
-    try {
-      const res = await fetch(`/api/messages/message/${encodeURIComponent(messageId)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) return;
-      // No need to merge; optimistic delete already updated state.
-    } catch {
-      return;
-    }
   }
 
   return (
@@ -413,28 +236,30 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm ring-1 ring-white/20">
-              <span className="text-[14px] font-bold">U</span>
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-extrabold text-slate-900">uniflow</div>
-              <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-indigo-500/90">
-                Career & mentorship
+            <Link href="/mentor-dashboard" className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm ring-1 ring-white/20">
+                <span className="text-[14px] font-bold">FP</span>
               </div>
-            </div>
+              <div className="min-w-0 hidden sm:block">
+                <div className="truncate text-sm font-extrabold text-slate-900">uniflow</div>
+                <div className="truncate text-[11px] font-semibold uppercase tracking-wider text-indigo-500/90">
+                  Mentor Portal
+                </div>
+              </div>
+            </Link>
           </div>
 
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-700 md:flex">
-            <Link className="hover:text-indigo-700" href="/student-dashboard">
+            <Link className="hover:text-indigo-700" href="/mentor-dashboard">
               Dashboard
             </Link>
-            <Link className="hover:text-indigo-700" href="/networking/mentors">
-              Mentors
+            <Link className="text-indigo-700" href="#">
+              Inbox
             </Link>
-            <Link className="hover:text-indigo-700" href="/networking">
-              Resources
+            <Link className="hover:text-indigo-700" href="#">
+              Mentees
             </Link>
-            <Link className="hover:text-indigo-700" href="/community">
+            <Link className="hover:text-indigo-700" href="#">
               Community
             </Link>
           </nav>
@@ -445,7 +270,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search resources..."
+                placeholder="Search..."
                 className="w-[260px] rounded-full border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
@@ -463,7 +288,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
         {/* Sidebar */}
         <aside className="w-[320px] border-r border-slate-200 bg-white">
           <div className="px-5 py-4">
-            <h2 className="text-base font-extrabold text-slate-900">Messages</h2>
+            <h2 className="text-base font-extrabold text-slate-900">Student Inbox</h2>
           </div>
 
           <div className="px-5 pb-3">
@@ -472,43 +297,43 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search mentors..."
+                placeholder="Search students..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
           </div>
 
           <div className="overflow-auto px-2 pb-2" style={{ maxHeight: "calc(100vh - 140px)" }}>
-            {filteredMentors.map((m) => {
-              const msgs = conversations[`${m.id}_${studentId}`] ?? [];
+            {filteredStudents.map((s) => {
+              const msgs = conversations[`${mentorId}_${s.id}`] ?? [];
               const preview = getLastPreview(msgs);
               const lastTime = msgs[msgs.length - 1]?.timeLabel ?? "";
-              const active = m.id === selectedMentor.id;
+              const active = s.id === selectedStudent.id;
 
               return (
                 <button
-                  key={m.id}
+                  key={s.id}
                   type="button"
-                  onClick={() => router.push(`/messages/${m.id}`)}
+                  onClick={() => setSelectedStudentId(s.id)}
                   className={[
                     "w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition",
                     active ? "bg-indigo-50 ring-1 ring-indigo-100" : "hover:bg-slate-50",
                   ].join(" ")}
                 >
                   <div className="relative h-11 w-11 rounded-full bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center">
-                    <span className="text-sm font-bold text-slate-700">{initials(m.name)}</span>
+                    <span className="text-sm font-bold text-slate-700">{initials(s.name)}</span>
                     <span
                       className={[
                         "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-white",
-                        m.online ? "bg-emerald-500" : "bg-slate-300",
+                        s.online ? "bg-emerald-500" : "bg-slate-300",
                       ].join(" ")}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-900">{m.name}</div>
-                        <div className="truncate text-xs text-slate-500">{m.title}</div>
+                        <div className="truncate text-sm font-semibold text-slate-900">{s.name}</div>
+                        <div className="truncate text-xs text-slate-500">{s.yearAndSemester || "Student"}</div>
                       </div>
                       <div className="text-[11px] font-semibold text-slate-400">{lastTime}</div>
                     </div>
@@ -528,20 +353,20 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative h-10 w-10 rounded-full bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center">
-                  <span className="text-sm font-bold text-slate-700">{initials(selectedMentor.name)}</span>
+                  <span className="text-sm font-bold text-slate-700">{initials(selectedStudent.name)}</span>
                   <span
                     className={[
                       "absolute -right-0.5 bottom-0.5 h-3 w-3 rounded-full ring-2 ring-white",
-                      selectedMentor.online ? "bg-emerald-500" : "bg-slate-300",
+                      selectedStudent.online ? "bg-emerald-500" : "bg-slate-300",
                     ].join(" ")}
                   />
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-sm font-extrabold text-slate-900">
-                    {selectedMentor.name}
+                    {selectedStudent.name}
                   </div>
                   <div className="truncate text-xs font-semibold text-slate-500">
-                    {selectedMentor.title} • <span className="text-emerald-600">{selectedMentor.online ? "ONLINE" : "OFFLINE"}</span>
+                    {selectedStudent.yearAndSemester || "Student"} • <span className="text-emerald-600">{selectedStudent.online ? "ONLINE" : "OFFLINE"}</span>
                   </div>
                 </div>
               </div>
@@ -586,14 +411,14 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                   <div
                     className={[
                       "flex",
-                      msg.sender === "user" ? "justify-end" : "justify-start",
+                      msg.sender === "mentor" ? "justify-end" : "justify-start",
                     ].join(" ")}
                   >
                     {msg.attachment?.kind === "pdf" ? (
                       <div
                         className={[
                           "max-w-[520px] rounded-2xl px-4 py-3 ring-1",
-                          msg.sender === "user"
+                          msg.sender === "mentor"
                             ? "bg-indigo-600 text-white ring-indigo-600"
                             : "bg-slate-50 text-slate-900 ring-slate-200",
                         ].join(" ")}
@@ -610,7 +435,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                             aria-label="Download"
                             className={[
                               "h-9 w-9 rounded-xl flex items-center justify-center ring-1",
-                              msg.sender === "user"
+                              msg.sender === "mentor"
                                 ? "bg-white/15 ring-white/30"
                                 : "bg-white ring-slate-200",
                             ].join(" ")}
@@ -623,7 +448,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                       <div
                         className={[
                           "max-w-[520px] rounded-2xl px-4 py-3 text-sm ring-1",
-                          msg.sender === "user"
+                          msg.sender === "mentor"
                             ? "bg-indigo-600 text-white ring-indigo-600"
                             : "bg-white text-slate-900 ring-slate-200",
                         ].join(" ")}
@@ -633,14 +458,14 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                             <input
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
-                              className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm outline-none ring-1 ring-white/20"
+                              className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm outline-none ring-1 ring-white/20 text-white"
                               autoFocus
                             />
                             <div className="flex items-center gap-2 justify-end">
                               <button
                                 type="button"
                                 onClick={() => setEditingMessageId(null)}
-                                className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold ring-1 ring-white/20 hover:bg-white/15"
+                                className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold ring-1 ring-white/20 hover:bg-white/15 text-white"
                               >
                                 Cancel
                               </button>
@@ -656,9 +481,9 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
                         ) : (
                           <>
                             <div className="whitespace-pre-wrap">{msg.text}</div>
-                            <div className="mt-2 text-[11px] opacity-70 flex items-center justify-between gap-3">
+                            <div className={`mt-2 text-[10px] flex items-center justify-between gap-3 ${msg.sender === 'mentor' ? 'text-indigo-200' : 'text-slate-400'}`}>
                               <span>{msg.timeLabel}</span>
-                              {msg.sender === "user" ? (
+                              {msg.sender === "mentor" ? (
                                 <span className="flex items-center gap-2">
                                   <button
                                     type="button"
@@ -723,7 +548,7 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
               <input
                 value={composer}
                 onChange={(e) => setComposer(e.target.value)}
-                placeholder={`Write a message to ${selectedMentor.name}...`}
+                placeholder={`Message ${selectedStudent.name}...`}
                 className="flex-1 bg-transparent px-2 py-1 text-sm outline-none"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") sendMessage();
@@ -746,4 +571,3 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
     </div>
   );
 }
-

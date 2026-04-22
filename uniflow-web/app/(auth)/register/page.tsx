@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import { AuthMarketingLayout } from "@/components/shared/AuthMarketingLayout";
-import { RegisterForm } from "./RegisterForm";
-=======
 'use client';
 
 import Link from 'next/link';
@@ -50,25 +46,8 @@ async function handleStudentRegistration(
   }
 
   try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        password,
-        fullName,
-        yearAndSemester,
-        userType: 'student',
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Registration failed' };
-    }
-
-    return { success: true, message: data.message || 'Account created successfully!' };
+    // Mocking the API call for frontend demonstration
+    return { success: true, message: 'Account created successfully!' };
   } catch (error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
@@ -132,28 +111,8 @@ async function handleMentorRegistration(
   }
 
   try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        password,
-        fullName,
-        company,
-        jobTitle,
-        yearsOfExperience,
-        primaryExpertise,
-        userType: 'mentor',
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Registration failed' };
-    }
-
-    return { success: true, message: data.message || 'Account created successfully!' };
+    // Mocking the API call for frontend demonstration
+    return { success: true, message: 'Account created successfully!' };
   } catch (error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
@@ -188,6 +147,10 @@ export default function UnifiedRegisterPage() {
     '1st Year 2nd Semester',
     '2nd Year 1st Semester',
     '2nd Year 2nd Semester',
+    '3rd Year 1st Semester',
+    '3rd Year 2nd Semester',
+    '4th Year 1st Semester',
+    '4th Year 2nd Semester',
   ];
 
   const handleStudentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -223,6 +186,29 @@ export default function UnifiedRegisterPage() {
 
     if (result.success) {
       setMessage({ type: 'success', text: result.message || 'Account created successfully!' });
+      
+      const nameStr = studentFormData.fullName.split(' ')[0];
+      const name = nameStr ? nameStr.charAt(0).toUpperCase() + nameStr.slice(1) : '';
+      
+      // Save student to localStorage for the mentor dashboard to read
+      try {
+        const stored = localStorage.getItem('registeredStudents');
+        const students = stored ? JSON.parse(stored) : [];
+        students.push({
+          id: Date.now().toString(),
+          name: studentFormData.fullName,
+          email: studentFormData.email,
+          yearAndSemester: studentFormData.yearAndSemester,
+        });
+        localStorage.setItem('registeredStudents', JSON.stringify(students));
+      } catch (e) {
+        console.error('Failed to save to localStorage', e);
+      }
+      
+      setTimeout(() => {
+        window.location.href = `/student-dashboard?name=${name}`;
+      }, 500);
+
       setStudentFormData({
         fullName: '',
         email: '',
@@ -256,6 +242,34 @@ export default function UnifiedRegisterPage() {
 
     if (result.success) {
       setMessage({ type: 'success', text: result.message || 'Account created successfully!' });
+      
+      const nameStr = mentorFormData.fullName.split(' ')[0];
+      const name = nameStr ? nameStr.charAt(0).toUpperCase() + nameStr.slice(1) : '';
+      
+      // Save mentor to localStorage for the find mentors page to read
+      try {
+        const stored = localStorage.getItem('registeredMentors');
+        const mentors = stored ? JSON.parse(stored) : [];
+        mentors.push({
+          id: Date.now().toString(),
+          name: mentorFormData.fullName,
+          title: mentorFormData.jobTitle,
+          company: mentorFormData.company,
+          rating: 5.0,
+          years_experience: Number(mentorFormData.yearsOfExperience) || 0,
+          sessions: 0,
+          available_this_week: true,
+          tags: [mentorFormData.primaryExpertise].filter(Boolean),
+        });
+        localStorage.setItem('registeredMentors', JSON.stringify(mentors));
+      } catch (e) {
+        console.error('Failed to save mentor to localStorage', e);
+      }
+
+      setTimeout(() => {
+        window.location.href = `/mentor-dashboard?name=${name}`;
+      }, 500);
+
       setMentorFormData({
         fullName: '',
         email: '',
@@ -271,25 +285,18 @@ export default function UnifiedRegisterPage() {
       setMessage({ type: 'error', text: result.error || 'Registration failed' });
     }
   };
->>>>>>> 081a5c79fc96e95a9a2b2fafb298c85dc27a80b3
 
   return (
-<<<<<<< HEAD
-    <AuthMarketingLayout
-      headerCta={{ href: "/login", label: "Login" }}
-      headerCtaVariant="muted"
-    >
-      <RegisterForm />
-    </AuthMarketingLayout>
-=======
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
-        <div className="bg-gradient-to-r from-[#3B82F6] via-[#4F46E5] to-[#A855F7] text-white p-8 md:p-12 flex flex-col justify-between rounded-r-3xl">
+        <div className="bg-gradient-to-r from-[#3B82F6] via-[#4F46E5] to-[#A855F7] text-white p-8 md:p-12 flex flex-col justify-between rounded-r-3xl shadow-xl z-10">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2 mb-8">
-              <img src="/logo.svg" alt="FuturePath Hub" className="h-10 w-10" />
-              <span className="text-2xl font-bold">FuturePath Hub</span>
-            </Link>
+            <div className="inline-flex items-center gap-2 mb-8 cursor-default">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-md">
+                <span className="text-[16px] font-bold">FP</span>
+              </span>
+              <span className="text-2xl font-bold">uniflow</span>
+            </div>
 
             <h1 className="text-5xl font-bold mb-6 leading-tight">
               Start your IT journey today.
@@ -320,14 +327,14 @@ export default function UnifiedRegisterPage() {
             </div>
           </div>
 
-          <p className="text-blue-100 text-sm">© 2024 FuturePath Hub. All rights reserved. Built for the next generation of IT professionals.</p>
+          <p className="text-blue-100 text-sm">© 2024 uniflow. All rights reserved. Built for the next generation of IT professionals.</p>
         </div>
 
         <div className="flex items-center justify-center p-6 md:p-12 overflow-y-auto">
           <div className="w-full max-w-md">
             <div className="mb-8">
               <h2 className="text-4xl font-bold text-gray-900 mb-2">Create an account</h2>
-              <p className="text-gray-600">Fill in your details to get started with FuturePath Hub.</p>
+              <p className="text-gray-600">Fill in your details to get started with uniflow.</p>
             </div>
 
             {/* Tab Navigation */}
@@ -488,20 +495,16 @@ export default function UnifiedRegisterPage() {
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <Link href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
-                      Privacy Policy
-                    </Link>
+                    <span className="text-blue-600 font-semibold cursor-pointer">Terms of Service</span>
+                    {' '}and{' '}
+                    <span className="text-blue-600 font-semibold cursor-pointer">Privacy Policy</span>
                   </span>
                 </label>
 
                 <button
                   type="submit"
                   disabled={isLoading || !studentFormData.agreeToTerms}
-                  className="w-full bg-gradient-to-r from-blue-700 to-violet-600 hover:from-blue-800 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-blue-700 to-violet-600 hover:from-blue-800 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg"
                 >
                   {isLoading ? 'Creating account...' : 'Register Now'}
                   <ArrowRight size={20} />
@@ -673,20 +676,16 @@ export default function UnifiedRegisterPage() {
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <Link href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
-                      Privacy Policy
-                    </Link>
+                    <span className="text-blue-600 font-semibold cursor-pointer">Terms of Service</span>
+                    {' '}and{' '}
+                    <span className="text-blue-600 font-semibold cursor-pointer">Privacy Policy</span>
                   </span>
                 </label>
 
                 <button
                   type="submit"
                   disabled={isLoading || !mentorFormData.agreeToTerms}
-                  className="w-full bg-gradient-to-r from-blue-700 to-violet-600 hover:from-blue-800 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-blue-700 to-violet-600 hover:from-blue-800 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg"
                 >
                   {isLoading ? 'Creating account...' : 'Become a Mentor'}
                   <ArrowRight size={20} />
@@ -696,7 +695,7 @@ export default function UnifiedRegisterPage() {
 
             <p className="mt-6 text-center text-gray-600">
               Already have an account?{' '}
-              <Link href={activeTab === 'student' ? '/student/login' : '/mentor/login'} className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
                 Login here
               </Link>
             </p>
@@ -704,6 +703,5 @@ export default function UnifiedRegisterPage() {
         </div>
       </div>
     </div>
->>>>>>> 081a5c79fc96e95a9a2b2fafb298c85dc27a80b3
   );
 }

@@ -56,28 +56,16 @@ export default function HomePage() {
             <p className="text-gray-600 mb-6">Get started with uniflow by logging in or creating an account</p>
             <div className="flex flex-col gap-3">
               <Link
-                href="/student/login"
-                className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition text-center"
+                href="/login"
+                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition text-center shadow-sm"
               >
-                Student Login
+                Login
               </Link>
               <Link
-                href="/student/register"
-                className="inline-block px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 font-semibold transition text-center"
+                href="/register"
+                className="inline-block px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 font-semibold transition text-center"
               >
-                Student Sign Up
-              </Link>
-              <Link
-                href="/mentor/login"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition text-center"
-              >
-                Mentor Login
-              </Link>
-              <Link
-                href="/mentor/register"
-                className="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 font-semibold transition text-center"
-              >
-                Mentor Sign Up
+                Create an Account
               </Link>
             </div>
           </div>
@@ -123,10 +111,10 @@ export default function HomePage() {
               Home
             </Link>
             <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-              Login (Legacy)
+              Login
             </Link>
             <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-              Register (Legacy)
+              Register
             </Link>
           </div>
         </div>

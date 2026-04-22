@@ -19,6 +19,7 @@ import {
   getSpecializationSlugForKey,
   type SpecializationKey,
 } from "@/lib/specializationRolesContent";
+import { SpecializationChatbot } from "@/components/shared/SpecializationChatbot";
 
 type Specialization = {
   key: SpecializationKey;
@@ -299,6 +300,9 @@ export default function SpecializationPage() {
           </div>
         </div>
       </footer>
+
+      {/* Specialization Chatbot Widget */}
+      <SpecializationChatbot />
     </div>
   );
 }

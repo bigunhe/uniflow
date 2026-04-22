@@ -161,7 +161,20 @@ function bucketLabel(bucket: Exclude<ExperienceBucket, "all">) {
 
 export default function FindMentorsClient({ mentors }: { mentors: MentorRow[] }) {
   const router = useRouter();
-  const effectiveMentors = mentors.length ? mentors : DUMMY_MENTORS;
+  
+  const [localMentors, setLocalMentors] = useState<MentorRow[]>([]);
+  useEffect(() => {
+    const stored = localStorage.getItem('registeredMentors');
+    if (stored) {
+      try {
+        setLocalMentors(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, []);
+
+  const effectiveMentors = useMemo(() => {
+    return [...localMentors, ...(mentors.length ? mentors : DUMMY_MENTORS)];
+  }, [localMentors, mentors]);
 
   const [query, setQuery] = useState("");
   const [experience, setExperience] = useState<ExperienceBucket>("all");
