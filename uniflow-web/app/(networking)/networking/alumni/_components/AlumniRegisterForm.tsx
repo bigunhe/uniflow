@@ -390,13 +390,14 @@ export function AlumniRegisterForm({ initialProfile = null, roleFromUrl }: Props
                   className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.05)] px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2 appearance-none [&>option]:bg-[#080c14] [&>option]:text-[#f0f4fb]"
                 >
                   <option value="" disabled>Select a programme</option>
-                  <option value="Bachelor of information technology">Bachelor of information technology</option>
-                  <option value="Bachelor of cyber security">Bachelor of cyber security</option>
+                  <option value="Bachelor of Information Technology">Bachelor of Information Technology</option>
+                  <option value="Bachelor of Cyber Security">Bachelor of Cyber Security</option>
                   <option value="Bachelor of Computer Science">Bachelor of Computer Science</option>
-                  <option value="Bachelor of computer Networking">Bachelor of computer Networking</option>
-                  <option value="Bachelor of data Science">Bachelor of data Science</option>
-                  <option value="Bachelor of information technology engineering">Bachelor of information technology engineering</option>
-                  <option value="Bachelor of Interactive media">Bachelor of Interactive media</option>
+                  <option value="Bachelor of Computer Networking">Bachelor of Computer Networking</option>
+                  <option value="Bachelor of Data Science">Bachelor of Data Science</option>
+                  <option value="Bachelor of Information Technology Engineering">Bachelor of Information Technology Engineering</option>
+                  <option value="Bachelor of Interactive Media">Bachelor of Interactive Media</option>
+                  <option value="Bachelor of Software Engineering">Bachelor of Software Engineering</option>
                 </select>
                 {fieldErrors.programme ? (
                   <p className="mt-1 text-xs text-rose-300">{fieldErrors.programme}</p>

@@ -21,7 +21,7 @@ export default async function MentorsPage({ params }: { params: Promise<{ specia
   // We'll show all registered alumni for this specialization, or if their current role matches
   const realMentorsMapped: MentorProfile[] = realProfiles
     .filter(p => {
-      const specMatch = p.programme === spec.title;
+      const specMatch = p.programme?.toLowerCase() === spec.title.toLowerCase();
       const roleMatch = p.current_role?.toLowerCase().includes(role.title.toLowerCase());
       return specMatch || roleMatch;
     })
