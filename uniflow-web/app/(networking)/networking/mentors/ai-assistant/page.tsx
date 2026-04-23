@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCheck, Send, Sparkles } from "lucide-react";
+import StressTips from "@/components/learning/ai/StressTips";
+import MusicEmbed from "@/components/learning/ai/MusicEmbed";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -616,6 +618,24 @@ export default function MentorAiAssistantPage() {
               </div>
             </form>
           </section>
+
+          <aside className="space-y-6">
+            <div className="rounded-[2rem] border border-white/8 bg-[rgba(255,255,255,0.03)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur">
+              <p className="text-sm font-semibold text-white">Focus Tools</p>
+              <p className="mt-1 text-xs text-[rgba(168,184,208,0.85)]">
+                Use these when you want a faster reset before asking the next question.
+              </p>
+
+              <div className="mt-4 space-y-4">
+                <StressTips className="border-rose-900/25 bg-rose-950/15" />
+                <MusicEmbed
+                  title="Lo-fi Study Mix"
+                  href="https://music.youtube.com/search?q=lofi+study+beats"
+                  description="Open a low-distraction mix while you work through the assistant prompts."
+                />
+              </div>
+            </div>
+          </aside>
 
         </div>
       </div>
