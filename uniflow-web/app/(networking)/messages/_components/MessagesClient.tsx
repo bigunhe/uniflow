@@ -74,7 +74,10 @@ const MENTORS: Mentor[] = [
   },
 ];
 
-function getMentorById(id: string | undefined | null): Mentor {
+function getMentorById(id: string | undefined | null, initialMentor?: Mentor): Mentor {
+  if (initialMentor && initialMentor.id === id) {
+    return initialMentor;
+  }
   return (
     MENTORS.find((m) => m.id === id) ??
     MENTORS[0]
@@ -160,7 +163,13 @@ function getLastPreview(messages: ChatMessage[] | undefined) {
   return last.text ?? "";
 }
 
-export default function MessagesClient({ selectedMentorId }: { selectedMentorId: string }) {
+export default function MessagesClient({ 
+  selectedMentorId,
+  initialMentor,
+}: { 
+  selectedMentorId: string;
+  initialMentor?: Mentor;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [composer, setComposer] = useState("");
@@ -174,9 +183,16 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
   const [editingText, setEditingText] = useState<string>("");
 
   const selectedMentor = useMemo(
-    () => getMentorById(selectedMentorId),
-    [selectedMentorId]
+    () => getMentorById(selectedMentorId, initialMentor),
+    [selectedMentorId, initialMentor]
   );
+
+  const displayMentors = useMemo(() => {
+    if (initialMentor && !MENTORS.find(m => m.id === initialMentor.id)) {
+      return [initialMentor, ...MENTORS];
+    }
+    return MENTORS;
+  }, [initialMentor]);
 
   const selectedMessages = conversations[selectedMentor.id] ?? [];
 
@@ -232,8 +248,9 @@ export default function MessagesClient({ selectedMentorId }: { selectedMentorId:
 
   const filteredMentors = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return MENTORS;
-    return MENTORS.filter((m) => {
+    const mentorsList = displayMentors;
+    if (!q) return mentorsList;
+    return mentorsList.filter((m) => {
       const preview = getLastPreview(conversations[m.id]);
       return (
         m.name.toLowerCase().includes(q) ||

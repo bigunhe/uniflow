@@ -154,8 +154,6 @@ function validateStudentForm(input: {
   const numericYear = Number(trimmedYear);
   if (!trimmedYear) {
     errors.yearLevel = "Year level is required";
-  } else if (!Number.isInteger(numericYear) || numericYear < 1 || numericYear > 5) {
-    errors.yearLevel = "Year level must be between 1 and 5";
   }
 
   const trimmedLearningGoals = input.learningGoals.trim();
@@ -584,31 +582,43 @@ export default function RoleSelectionPage() {
                   </label>
                   <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Program
-                    <input
+                    <select
                       required
                       value={program}
                       onChange={(event) => setProgram(event.target.value)}
-                      pattern="[A-Za-z ]+"
-                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
-                      placeholder="e.g. Computer Science"
-                    />
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.05)] px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2 appearance-none [&>option]:bg-[#080c14] [&>option]:text-[#f0f4fb]"
+                    >
+                      <option value="" disabled>Select a program</option>
+                      <option value="Bachelor of information technology">Bachelor of information technology</option>
+                      <option value="Bachelor of cyber security">Bachelor of cyber security</option>
+                      <option value="Bachelor of Computer Science">Bachelor of Computer Science</option>
+                      <option value="Bachelor of computer Networking">Bachelor of computer Networking</option>
+                      <option value="Bachelor of data Science">Bachelor of data Science</option>
+                      <option value="Bachelor of information technology engineering">Bachelor of information technology engineering</option>
+                      <option value="Bachelor of Interactive media">Bachelor of Interactive media</option>
+                    </select>
                     {fieldErrors.program ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.program}</p>
                     ) : null}
                   </label>
                   <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Year Level
-                    <input
+                    <select
                       required
                       value={yearLevel}
                       onChange={(event) => setYearLevel(event.target.value)}
-                      type="number"
-                      min={1}
-                      max={5}
-                      inputMode="numeric"
-                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
-                      placeholder="Year level (1-5)"
-                    />
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.05)] px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2 appearance-none [&>option]:bg-[#080c14] [&>option]:text-[#f0f4fb]"
+                    >
+                      <option value="" disabled>Select year level</option>
+                      <option value="1st year 1st sem">1st year 1st sem</option>
+                      <option value="1st year 2nd sem">1st year 2nd sem</option>
+                      <option value="2nd year 1st sem">2nd year 1st sem</option>
+                      <option value="2nd year 2nd sem">2nd year 2nd sem</option>
+                      <option value="3rd year 1st sem">3rd year 1st sem</option>
+                      <option value="3rd year 2nd sem">3rd year 2nd sem</option>
+                      <option value="4th year 1st sem">4th year 1st sem</option>
+                      <option value="4th year 2nd sem">4th year 2nd sem</option>
+                    </select>
                     {fieldErrors.yearLevel ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.yearLevel}</p>
                     ) : null}
