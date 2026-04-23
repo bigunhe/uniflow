@@ -106,13 +106,13 @@ export default function MentorsEntryPage() {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href="/networking/mentors/start"
+                  href="/networking/mentors/start?role=student"
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/12 bg-white/6 px-5 text-sm font-semibold text-slate-100 shadow-[0_8px_18px_rgba(0,0,0,0.18)] transition hover:bg-white/10"
                 >
                   Join as Student
                 </Link>
                 <Link
-                  href="/networking/mentors/start"
+                  href="/networking/mentors/start?role=mentor"
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/12 bg-transparent px-5 text-sm font-semibold text-slate-200 transition hover:bg-white/8 hover:text-white"
                 >
                   Join as Mentor
@@ -177,7 +177,7 @@ export default function MentorsEntryPage() {
               Ready to accelerate your future?
             </h3>
             <Link
-              href="/networking/mentors/start"
+              href="/networking/mentors/start?role=student"
               className="mt-5 inline-flex h-11 items-center justify-center rounded-full border border-white/12 bg-white/6 px-6 text-sm font-semibold text-slate-100 shadow-[0_8px_18px_rgba(0,0,0,0.18)] transition hover:bg-white/10"
             >
               Join the Network

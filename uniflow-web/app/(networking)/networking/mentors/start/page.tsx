@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   saveUserRoleProfile,
   UserRole,
@@ -258,6 +258,7 @@ function validateMentorForm(input: {
 
 export default function RoleSelectionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [role, setRole] = useState<UserRole>("student");
 
   // Form States
@@ -282,11 +283,16 @@ export default function RoleSelectionPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const requestedRole = searchParams.get("role");
+    if (requestedRole === "student" || requestedRole === "mentor") {
+      setRole(requestedRole);
+    }
+
     const loadExistingProfile = async () => {
       try {
         const profile = await getMyRoleProfile();
 
-        if (profile.student) {
+        if (profile.student && !profile.mentor) {
           setRole("student");
           setFullName(profile.student.full_name ?? "");
           setPhone(profile.student.phone ?? "");
@@ -297,7 +303,7 @@ export default function RoleSelectionPage() {
           setSkills((profile.student.skills || []).join(", "));
         }
 
-        if (profile.mentor) {
+        if (profile.mentor && !profile.student) {
           setRole("mentor");
           setFullName(profile.mentor.full_name ?? "");
           setPhone(profile.mentor.phone ?? "");
@@ -324,7 +330,7 @@ export default function RoleSelectionPage() {
     };
 
     void loadExistingProfile();
-  }, [router]);
+  }, [searchParams]);
 
   useEffect(() => {
     setFieldErrors({});
@@ -417,7 +423,11 @@ export default function RoleSelectionPage() {
         });
       }
 
-      router.push("/networking/mentors/home");
+      const nextRoute =
+        result.data.role === "student"
+          ? "/networking/mentors/home?role=student"
+          : "/networking/mentors/home?role=mentor";
+      router.push(nextRoute);
     } catch (error) {
       setFormError(parseMentorshipError(error, "Could not save profile."));
     } finally {

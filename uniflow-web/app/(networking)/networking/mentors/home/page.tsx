@@ -6,10 +6,11 @@ import { Check, PencilLine, Trash2, X } from "lucide-react";
 import MentorCard from "../_components/mentorCard";
 import { mentorButtonClassName } from "../_components/MentorButton";
 import { mentorProfiles } from "../_components/mentorData";
-import { getUserRoleProfile } from "../_components/userRoleProfile";
+import { getUserRoleProfile, UserRole } from "../_components/userRoleProfile";
 import StressTips from "@/components/learning/ai/StressTips";
 import MusicEmbed from "@/components/learning/ai/MusicEmbed";
 import {
+  getMyRoleProfile,
   listMentorBadges,
   listMentorRequests,
   refreshMentorBadges,
@@ -274,44 +275,70 @@ function StudyWorkspaceSection() {
 
 export default function MentorsHomePage() {
   const [profile, setProfile] = useState(getUserRoleProfile());
+  const [resolvedRole, setResolvedRole] = useState<UserRole | null>(null);
   const [mentorRequests, setMentorRequests] = useState<MentorRequestRow[]>([]);
   const [mentorBadges, setMentorBadges] = useState<MentorBadgeRow[]>([]);
 
   useEffect(() => {
-    const userProfile = getUserRoleProfile();
-    setProfile(userProfile);
+    let active = true;
+    const syncRoleAndMentorData = async () => {
+      const userProfile = getUserRoleProfile();
+      if (!active) return;
+      setProfile(userProfile);
 
-    if (userProfile?.role !== "mentor") {
-      return;
-    }
+      let roleFromDatabase: UserRole | null = null;
+      try {
+        const roleProfile = await getMyRoleProfile();
+        if (roleProfile.mentor) {
+          roleFromDatabase = "mentor";
+        } else if (roleProfile.student) {
+          roleFromDatabase = "student";
+        }
+      } catch {
+        roleFromDatabase = null;
+      }
 
-    const syncMentorData = async () => {
+      const finalRole = roleFromDatabase ?? userProfile?.role ?? null;
+      if (!active) return;
+      setResolvedRole(finalRole);
+
+      if (finalRole !== "mentor") {
+        return;
+      }
+
       try {
         const [requests, badges] = await Promise.all([
           listMentorRequests(),
           refreshMentorBadges(),
         ]);
+        if (!active) return;
         setMentorRequests(requests as MentorRequestRow[]);
         setMentorBadges((badges || []) as MentorBadgeRow[]);
       } catch {
+        if (!active) return;
         const requests = await listMentorRequests();
         const badges = await listMentorBadges();
+        if (!active) return;
         setMentorRequests(requests as MentorRequestRow[]);
         setMentorBadges((badges || []) as MentorBadgeRow[]);
       }
     };
 
-    void syncMentorData();
+    void syncRoleAndMentorData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Show student home page
-  if (profile?.role === "student") {
+  if (resolvedRole === "student") {
     return (
       <div className="space-y-12">
         <section className="grid grid-cols-12 gap-6 rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-[0_20px_45px_rgba(0,0,0,0.32)] lg:p-10">
           <div className="col-span-12 space-y-5 lg:col-span-7">
             <h1 className="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
-              Hello, {profile.fullName}!
+              Hello, {profile?.fullName || "Student"}!
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-slate-400">
               Ready for your next learning session? Browse available mentors, join study groups,
@@ -452,7 +479,7 @@ export default function MentorsHomePage() {
   }
 
   // Show mentor home page
-  if (profile?.role === "mentor") {
+  if (resolvedRole === "mentor") {
     const pendingRequests = mentorRequests
       .filter((request) => request.status === "pending")
       .slice(0, 2);
