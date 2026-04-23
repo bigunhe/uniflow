@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   createMentorshipRequest,
@@ -364,20 +365,27 @@ export default function MentorDiscoveryPage() {
                     >
                       Profile
                     </button>
-                    <button
-                      type="button"
-                      disabled={Boolean(request && request.status !== "rejected")}
-                      onClick={() => void handleRequestMentor(mentor.id)}
-                      className="inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
-                    >
-                      {!request
-                        ? "Request Mentorship"
-                        : request.status === "pending"
-                          ? "Pending"
-                          : request.status === "accepted"
-                            ? "Accepted"
+                    {request?.status === "accepted" ? (
+                      <Link
+                        href={`/networking/mentors/messages?requestId=${request.id}`}
+                        className="inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                      >
+                        Message Portal
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={Boolean(request && request.status !== "rejected")}
+                        onClick={() => void handleRequestMentor(mentor.id)}
+                        className="inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+                      >
+                        {!request
+                          ? "Request Mentorship"
+                          : request.status === "pending"
+                            ? "Pending"
                             : "Request Again"}
-                    </button>
+                      </button>
+                    )}
                   </div>
 
                   <p className="mt-3 text-xs text-[rgba(168,184,208,0.85)]">{getAvailabilityText(mentor.availability)} {mentor.session_mode ? `| ${mentor.session_mode}` : ""}</p>
@@ -451,20 +459,34 @@ export default function MentorDiscoveryPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleRequestMentor(selectedMentor.id)}
-                    disabled={Boolean(requestByMentor.get(selectedMentor.id) && requestByMentor.get(selectedMentor.id)?.status !== "rejected")}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
-                  >
-                    {(() => {
-                      const request = requestByMentor.get(selectedMentor.id);
-                      if (!request) return "Request Mentorship";
-                      if (request.status === "pending") return "Request Pending";
-                      if (request.status === "accepted") return "Accepted";
-                      return "Request Again";
-                    })()}
-                  </button>
+                  {(() => {
+                    const request = requestByMentor.get(selectedMentor.id);
+                    if (request?.status === "accepted") {
+                      return (
+                        <Link
+                          href={`/networking/mentors/messages?requestId=${request.id}`}
+                          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                        >
+                          Open Message Portal
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => void handleRequestMentor(selectedMentor.id)}
+                        disabled={Boolean(request && request.status !== "rejected")}
+                        className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+                      >
+                        {!request
+                          ? "Request Mentorship"
+                          : request.status === "pending"
+                            ? "Request Pending"
+                            : "Request Again"}
+                      </button>
+                    );
+                  })()}
                   <button
                     type="button"
                     onClick={() => setSelectedMentor(null)}

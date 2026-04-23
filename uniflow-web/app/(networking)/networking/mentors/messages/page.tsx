@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   getCurrentUserIdSafe,
   getMyRoleProfile,
@@ -42,6 +43,8 @@ type MentorRequestRow = {
 };
 
 export default function MentorMessagesPage() {
+  const searchParams = useSearchParams();
+  const preferredRequestId = searchParams.get("requestId") || "";
   const [threads, setThreads] = useState<AcceptedThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [messages, setMessages] = useState<MentorshipMessage[]>([]);
@@ -81,7 +84,8 @@ export default function MentorMessagesPage() {
           if (!isActive) return;
           setThreads(accepted);
           if (accepted.length > 0) {
-            setSelectedThreadId((current) => current || accepted[0].requestId);
+            const preferred = accepted.find((item) => item.requestId === preferredRequestId);
+            setSelectedThreadId((current) => current || preferred?.requestId || accepted[0].requestId);
           }
           return;
         }
@@ -99,7 +103,8 @@ export default function MentorMessagesPage() {
         if (!isActive) return;
         setThreads(accepted);
         if (accepted.length > 0) {
-          setSelectedThreadId((current) => current || accepted[0].requestId);
+          const preferred = accepted.find((item) => item.requestId === preferredRequestId);
+          setSelectedThreadId((current) => current || preferred?.requestId || accepted[0].requestId);
         }
       } catch (loadError) {
         if (!isActive) return;
@@ -116,7 +121,7 @@ export default function MentorMessagesPage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [preferredRequestId]);
 
   useEffect(() => {
     if (!selectedThreadId) {
