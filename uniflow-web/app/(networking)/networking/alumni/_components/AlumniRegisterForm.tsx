@@ -383,13 +383,21 @@ export function AlumniRegisterForm({ initialProfile = null, roleFromUrl }: Props
 
               <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
                 Programme / degree
-                <input
+                <select
                   required
                   value={programme}
                   onChange={(e) => setProgramme(e.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
-                  placeholder="e.g. BSc Computer Science"
-                />
+                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.05)] px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2 appearance-none [&>option]:bg-[#080c14] [&>option]:text-[#f0f4fb]"
+                >
+                  <option value="" disabled>Select a programme</option>
+                  <option value="Bachelor of information technology">Bachelor of information technology</option>
+                  <option value="Bachelor of cyber security">Bachelor of cyber security</option>
+                  <option value="Bachelor of Computer Science">Bachelor of Computer Science</option>
+                  <option value="Bachelor of computer Networking">Bachelor of computer Networking</option>
+                  <option value="Bachelor of data Science">Bachelor of data Science</option>
+                  <option value="Bachelor of information technology engineering">Bachelor of information technology engineering</option>
+                  <option value="Bachelor of Interactive media">Bachelor of Interactive media</option>
+                </select>
                 {fieldErrors.programme ? (
                   <p className="mt-1 text-xs text-rose-300">{fieldErrors.programme}</p>
                 ) : null}
@@ -467,17 +475,22 @@ export function AlumniRegisterForm({ initialProfile = null, roleFromUrl }: Props
                 <>
                   <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Year level
-                    <input
+                    <select
                       required
                       value={yearLevel}
                       onChange={(e) => setYearLevel(e.target.value)}
-                      type="number"
-                      min={1}
-                      max={7}
-                      inputMode="numeric"
-                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
-                      placeholder="e.g. 2"
-                    />
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.05)] px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2 appearance-none [&>option]:bg-[#080c14] [&>option]:text-[#f0f4fb]"
+                    >
+                      <option value="" disabled>Select year level</option>
+                      <option value="1st year 1st sem">1st year 1st sem</option>
+                      <option value="1st year 2nd sem">1st year 2nd sem</option>
+                      <option value="2nd year 1st sem">2nd year 1st sem</option>
+                      <option value="2nd year 2nd sem">2nd year 2nd sem</option>
+                      <option value="3rd year 1st sem">3rd year 1st sem</option>
+                      <option value="3rd year 2nd sem">3rd year 2nd sem</option>
+                      <option value="4th year 1st sem">4th year 1st sem</option>
+                      <option value="4th year 2nd sem">4th year 2nd sem</option>
+                    </select>
                     {fieldErrors.yearLevel ? (
                       <p className="mt-1 text-xs text-rose-300">{fieldErrors.yearLevel}</p>
                     ) : null}

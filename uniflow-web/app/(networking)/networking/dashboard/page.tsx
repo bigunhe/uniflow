@@ -1,19 +1,10 @@
 import Link from "next/link";
 import { LayoutDashboard, Compass, Users, Briefcase } from "lucide-react";
 
-export default function AlumniNetworkStudentWorkspacePage() {
+export default function StudentDashboardPage() {
   return (
     <div className="brand-dark-shell min-h-[calc(100vh-4rem)] bg-[#080c14] text-[#d4dde8]">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-        <div className="mb-8">
-          <Link
-            href="/networking/alumni"
-            className="text-sm font-medium text-[#00d2b4] hover:text-[#33ddc4] hover:underline transition"
-          >
-            ← Alumni network hub
-          </Link>
-        </div>
-
         <header className="mb-12">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#00d2b4]">
             Student Workspace

@@ -224,8 +224,19 @@ export async function submitAlumniNetworkProfile(formData: FormData): Promise<Su
   return { ok: true, nextPath };
 }
 
-/** Stub for Ridmi: list profiles by role (returns [] until wired to UI). */
-export async function getAlumniNetworkProfilesByRole(_role: AlumniNetworkRole): Promise<unknown[]> {
-  void _role;
-  return [];
+export async function getAlumniNetworkProfilesByRole(role: AlumniNetworkRole): Promise<AlumniNetworkProfileFormData[]> {
+  try {
+    const supabase = await createRouteHandlerSupabase();
+    const { data } = await supabase
+      .from("alumni_network_profiles")
+      .select("*")
+      .eq("role", role);
+      
+    if (data && Array.isArray(data)) {
+      return data.map(row => mapRow(row as Record<string, unknown>));
+    }
+    return [];
+  } catch {
+    return [];
+  }
 }
