@@ -26,7 +26,7 @@ export default async function MentorsPage({ params }: { params: Promise<{ specia
       return specMatch || roleMatch;
     })
     .map(p => ({
-      id: p.user_id || p.id,
+      id: p.id,
       name: p.full_name,
       roleId: role.id,
       company: p.company || "Independent",
