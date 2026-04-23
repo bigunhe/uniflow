@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import {
+  BadgeCheck,
+  BookOpen,
+  ChevronDown,
+  Clock3,
+  Download,
+  LayoutGrid,
+  Layers3,
+  Sparkles,
+} from "lucide-react";
 import { MentorHeader } from "@/app/(networking)/networking/mentors/_components/MentorHeader";
 
 type LearningModule = {
@@ -12,6 +21,11 @@ type LearningModule = {
   commonDoubts: string[];
   tips: string[];
   resources: string[];
+};
+
+type ModuleQuestion = {
+  id: string;
+  question: string;
 };
 
 const modules: LearningModule[] = [
@@ -175,170 +189,263 @@ const modules: LearningModule[] = [
   },
 ];
 
-const askAiHref = (query: string) => `/networking/mentors/ai-assistant?prefill=${encodeURIComponent(query)}`;
+function buildQuestions(module: LearningModule): ModuleQuestion[] {
+  return module.commonDoubts.slice(0, 3).map((question, index) => ({
+    id: `${module.id}-question-${index + 1}`,
+    question,
+  }));
+}
+
+function ModuleCard({ module, featured = false }: { module: LearningModule; featured?: boolean }) {
+  const questions = buildQuestions(module);
+
+  return (
+    <article
+      className={`relative overflow-hidden rounded-[28px] border border-slate-600/80 bg-slate-900/65 shadow-[0_20px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl ${
+        featured ? "p-6 lg:p-7" : "p-5"
+      }`}
+    >
+      <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-teal-400/8 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-10 right-6 h-28 w-28 rounded-full bg-slate-100/5 blur-2xl" />
+
+      <div className={`flex items-start gap-4 ${featured ? "pb-5" : "pb-4"}`}>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-teal-400/20 bg-slate-800/80 text-teal-200 shadow-inner shadow-black/10">
+          <LayoutGrid className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={`${featured ? "text-2xl" : "text-lg"} font-semibold !text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]`}>
+              {module.title}
+            </h3>
+            <span className="rounded-full border border-teal-300/35 bg-teal-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] !text-white">
+              In progress
+            </span>
+          </div>
+          <p className={`mt-3 max-w-2xl text-sm leading-7 !text-white ${featured ? "sm:text-[15px]" : ""}`}>
+            {module.summary}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {module.outcomes.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-full border border-white/25 bg-slate-950/55 px-3 py-1 text-[11px] font-semibold !text-white"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <div className={`mt-5 rounded-3xl border border-slate-600/80 bg-slate-950/60 ${featured ? "p-5" : "p-4"}`}>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] !text-white">Question deck</p>
+            <p className="mt-1 text-sm !text-white">3 guided prompts with an Ask AI handoff</p>
+          </div>
+          <span className="rounded-full border border-teal-300/25 bg-teal-400/15 px-2.5 py-1 text-[11px] font-semibold !text-white">
+            {module.commonDoubts.length} prompts
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {questions.map((item) => (
+            <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-600/80 bg-slate-900/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold leading-6 !text-teal-200">{item.question}</p>
+              <Link
+                href={`/networking/mentors/ai-assistant?prefill=${encodeURIComponent(item.question)}`}
+                className="inline-flex shrink-0 items-center justify-center rounded-full border border-teal-300/30 bg-teal-400/15 px-3.5 py-2 text-xs font-semibold !text-white transition hover:border-teal-200/45 hover:bg-teal-400/22 hover:!text-white"
+              >
+                Ask AI
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center justify-between gap-4 border-t border-slate-600/70 pt-4 text-xs !text-white">
+        <div className="flex items-center gap-2">
+          <Clock3 className="h-4 w-4 text-teal-300" />
+          <span className="!text-white">Estimated review time 12 - 20 min</span>
+        </div>
+        <div className="flex items-center gap-2 text-teal-200">
+          <span className="!text-white">3 guided questions</span>
+          <ChevronDown className="h-4 w-4" />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-slate-600/80 bg-slate-950/60 p-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-600 bg-slate-900 text-teal-200">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.18em] !text-white">{label}</p>
+        <p className="mt-1 text-sm font-semibold !text-white">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function ModulesPage() {
-  const [selectedId, setSelectedId] = useState(modules[0].id);
-  const [studentDoubt, setStudentDoubt] = useState("");
-
-  const selectedModule = useMemo(
-    () => modules.find((mod) => mod.id === selectedId) ?? modules[0],
-    [selectedId],
-  );
-
-  const matchedDoubt = useMemo(() => {
-    const doubt = studentDoubt.trim().toLowerCase();
-    if (!doubt) return null;
-    return selectedModule.commonDoubts.find((item) => doubt.includes(item.toLowerCase()));
-  }, [selectedModule, studentDoubt]);
+  const featuredModule = modules[0];
+  const secondaryModules = modules.slice(1);
+  const totalQuestions = modules.length * 3;
+  const totalOutcomes = modules.reduce((count, module) => count + module.outcomes.length, 0);
 
   return (
     <div className="brand-dark-shell relative min-h-screen bg-slate-950">
       <MentorHeader />
 
-      <main className="relative z-10 mx-auto w-full max-w-7xl space-y-8 px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-3 rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-teal-500">Learning Modules</p>
-          <h1 className="text-2xl font-bold text-slate-50">Plan your next session</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Browse modules, see common student doubts, and jump into Ask AI when a question matches.
-          </p>
-        </div>
-        <Link
-          href={askAiHref("Help me pick a module to start")}
-          className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-teal-700"
-        >
-          Ask AI to Guide Me
-        </Link>
-      </header>
+      <main className="relative z-10 mx-auto w-full max-w-7xl space-y-8 px-4 pb-10 pt-6 !text-white sm:px-6 lg:px-8">
+        <section className="overflow-hidden rounded-[32px] border border-slate-600/80 bg-slate-900/70 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl !text-white">
+          <div className="grid gap-0 lg:grid-cols-12">
+            <div className="relative lg:col-span-8 px-6 py-7 sm:px-7 lg:px-8 lg:py-8">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.14),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(148,163,184,0.1),transparent_30%)]" />
+              <div className="relative">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] !text-white">
+                  Curriculum &gt; Core Computer Science
+                </p>
+                <h1 className="mt-2 text-3xl font-bold tracking-tight !text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)] sm:text-4xl">
+                  Learning Modules
+                </h1>
+                <p className="mt-3 max-w-2xl text-sm leading-7 !text-white sm:text-[15px]">
+                  Master the foundational building blocks of software engineering with a curated sequence of high-performance learning tracks.
+                </p>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-4 space-y-3">
-          {modules.map((mod) => {
-            const isActive = mod.id === selectedModule.id;
-            return (
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold !text-white">
+                    {modules.length} modules
+                  </span>
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold !text-white">
+                    {totalQuestions} guided questions
+                  </span>
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold !text-white">
+                    {totalOutcomes} outcomes mapped
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <aside className="border-t border-slate-600/80 bg-slate-950/55 p-5 lg:col-span-4 lg:border-l lg:border-t-0 lg:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">At a glance</p>
+              <div className="mt-4 space-y-3">
+                <StatCard icon={<Clock3 className="h-4 w-4" />} label="Total est. time" value={`${modules.length * 20} minutes`} />
+                <StatCard icon={<BadgeCheck className="h-4 w-4" />} label="Completed modules" value={`${Math.min(4, modules.length)} / ${modules.length}`} />
+                <StatCard icon={<Sparkles className="h-4 w-4" />} label="Guided prompts" value={`${totalQuestions} accordion questions`} />
+              </div>
+
               <button
-                key={mod.id}
-                onClick={() => setSelectedId(mod.id)}
-                className={`w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
-                  isActive
-                    ? "border-teal-400/70 bg-teal-500/15 shadow-[0_10px_24px_rgba(20,184,166,0.18)]"
-                    : "border-slate-700 bg-slate-800/30 hover:border-teal-500/30 hover:bg-slate-800/50"
-                }`}
+                type="button"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-500/80 bg-slate-900/90 px-4 py-3 text-sm font-semibold text-white transition hover:border-teal-400/40 hover:text-teal-50"
               >
-                <p className="text-sm font-semibold text-slate-50">{mod.title}</p>
-                <p className="mt-1 text-xs text-slate-400">{mod.summary}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {mod.outcomes.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-slate-800/50 px-2.5 py-1 text-[11px] font-semibold text-teal-400 ring-1 ring-teal-500/30"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                <Download className="h-4 w-4 text-teal-200" />
+                Download Syllabus
               </button>
-            );
-          })}
+            </aside>
+          </div>
         </section>
 
-        <section className="lg:col-span-8 space-y-6 rounded-3xl border border-slate-700 bg-slate-900/40 backdrop-blur-sm p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-100">{selectedModule.title}</h2>
-            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-              Focused overview
-            </span>
-            <span className="rounded-full border border-slate-600 bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-300">
-              {selectedModule.commonDoubts.length} common doubts
-            </span>
-          </div>
-          <p className="text-sm leading-relaxed text-slate-300">{selectedModule.summary}</p>
-
-          <div className="space-y-2 rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4">
-            <h3 className="text-sm font-semibold text-slate-100">What you will learn</h3>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-              {selectedModule.outcomes.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+        <section className="grid gap-5 lg:grid-cols-12">
+          <div className="lg:col-span-8">
+            <ModuleCard module={featuredModule} featured />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
-              <p className="text-sm font-semibold text-slate-100">Practical tips</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-                {selectedModule.tips.map((tip) => (
-                  <li key={tip}>{tip}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="space-y-2 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
-              <p className="text-sm font-semibold text-slate-100">Starter resources</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-                {selectedModule.resources.map((res) => (
-                  <li key={res}>{res}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-100">Common student doubts</h3>
-              <span className="rounded-full border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-300">
-                Ask AI is fastest for these
-              </span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {selectedModule.commonDoubts.map((doubt) => (
-                <div key={doubt} className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-100">{doubt}</p>
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
-                    <span>AI can draft a quick explanation</span>
-                    <Link
-                      href={askAiHref(doubt)}
-                      className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-indigo-500"
-                    >
-                      Ask AI
-                    </Link>
-                  </div>
+          <aside className="lg:col-span-4 space-y-4">
+            <div className="rounded-[28px] border border-slate-600/80 bg-slate-900/70 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl !text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">Quick view</p>
+              <div className="mt-4 space-y-3">
+                <div className="rounded-2xl border border-slate-600/80 bg-slate-950/60 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] !text-white">Featured track</p>
+                  <p className="mt-1 text-base font-semibold !text-white">{featuredModule.title}</p>
+                  <p className="mt-2 text-sm leading-7 !text-white">{featuredModule.summary}</p>
                 </div>
-              ))}
+                <div className="rounded-2xl border border-slate-600/80 bg-slate-950/60 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] !text-white">Question style</p>
+                  <p className="mt-1 text-sm leading-7 !text-white">
+                    Every module shows exactly three prompts with a direct Ask AI button for deeper help in the assistant page.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-slate-600/80 bg-slate-900/70 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl !text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">Study flow</p>
+              <div className="mt-4 space-y-3">
+                <div className="rounded-2xl border border-slate-600/80 bg-slate-950/60 p-4">
+                  <p className="text-sm font-semibold !text-white">1. Review the module summary</p>
+                  <p className="mt-1 text-sm leading-7 !text-white">Get the big picture before opening questions.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-600/80 bg-slate-950/60 p-4">
+                  <p className="text-sm font-semibold !text-white">2. Expand one question at a time</p>
+                  <p className="mt-1 text-sm leading-7 !text-white">Use Ask AI to open the mentor assistant with that question prefilled.</p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {secondaryModules.map((module) => (
+            <ModuleCard key={module.id} module={module} />
+          ))}
+        </section>
+
+        <section className="grid gap-5 lg:grid-cols-12">
+          <div className="overflow-hidden rounded-[28px] border border-slate-600/80 bg-slate-900/70 p-6 shadow-[0_20px_70px_rgba(0,0,0,0.28)] !text-white lg:col-span-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-teal-300/25 bg-teal-400/15 text-teal-50">
+                <BookOpen className="h-9 w-9" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">Expert mentor</p>
+                <h2 className="mt-2 text-2xl font-bold !text-white">Need deep-dive support?</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 !text-white">
+                  Book a live mentor session when a module needs deeper explanation, extra practice, or a project-level walkthrough.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button type="button" className="rounded-full bg-teal-300 px-5 py-2.5 text-sm font-semibold !text-white transition hover:bg-teal-200">
+                    Request Session
+                  </button>
+                  <button type="button" className="rounded-full border border-white/25 bg-slate-900/80 px-5 py-2.5 text-sm font-semibold !text-white transition hover:border-white/50 hover:!text-white">
+                    View Profile
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-3 rounded-2xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-indigo-100">Your doubt</p>
-              {matchedDoubt ? (
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                  Matches a common doubt — launch Ask AI
-                </span>
-              ) : null}
+          <div className="grid gap-5 lg:col-span-4">
+            <div className="rounded-[28px] border border-slate-600/80 bg-slate-900/70 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.25)] !text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">Prerequisites remaining</p>
+              <div className="mt-4 space-y-3">
+                {modules[0].commonDoubts.slice(0, 2).map((item) => (
+                  <div key={item} className="flex items-start gap-3 rounded-2xl border border-slate-600/80 bg-slate-950/60 p-3 text-sm !text-white">
+                    <span className="mt-0.5 text-rose-300">×</span>
+                    <span className="!text-white">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <input
-                type="text"
-                value={studentDoubt}
-                onChange={(event) => setStudentDoubt(event.target.value)}
-                placeholder="Describe your question"
-                className="h-11 flex-1 rounded-xl border border-indigo-300/30 bg-slate-950/70 px-3 text-sm text-slate-100 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/30"
-              />
-              <Link
-                href={askAiHref(studentDoubt || `Help me with ${selectedModule.title}`)}
-                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
-              >
-                Ask AI now
-              </Link>
+
+            <div className="rounded-[28px] border border-slate-600/80 bg-slate-900/70 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.25)] !text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] !text-white">Suggested next steps</p>
+              <div className="mt-4 space-y-3">
+                {modules[1].tips.slice(0, 2).map((item) => (
+                  <div key={item} className="flex items-start gap-3 rounded-2xl border border-slate-600/80 bg-slate-950/60 p-3 text-sm !text-white">
+                    <span className="mt-0.5 text-teal-300">•</span>
+                    <span className="!text-white">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-indigo-100/90">
-              If your typed doubt matches a common one, we route you to Ask AI first to save time.
-            </p>
           </div>
         </section>
-      </div>
       </main>
     </div>
   );

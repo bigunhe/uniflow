@@ -22,7 +22,7 @@ const mentorNavItems = [
   { label: "Dashboard", href: "/networking/mentors/home" },
   { label: "Requests", href: "/networking/mentors/request-management" },
   { label: "Sessions", href: "/networking/mentors/live-session" },
-  { label: "Feedback", href: "/networking/mentors/tutor-analytics" },
+  { label: "Study Workspace", href: "/networking/mentors/study-workspace" },
   { label: "Messages", href: "/networking/mentors/messages" },
 ];
 

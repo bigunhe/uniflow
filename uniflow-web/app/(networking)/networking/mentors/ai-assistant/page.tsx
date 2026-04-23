@@ -530,7 +530,7 @@ export default function MentorAiAssistantPage() {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+        <div className="mt-6">
           <section className="rounded-[2rem] border border-white/8 bg-[rgba(255,255,255,0.03)] shadow-[0_24px_80px_rgba(0,0,0,0.3)] backdrop-blur">
             <div className="border-b border-white/8 px-5 py-4 sm:px-6">
               <p className="text-sm font-semibold text-white">Conversation</p>
@@ -616,57 +616,6 @@ export default function MentorAiAssistantPage() {
               </div>
             </form>
           </section>
-
-          <aside className="space-y-6">
-            <div className="rounded-[2rem] border border-white/8 bg-[rgba(255,255,255,0.03)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur">
-              <p className="text-sm font-semibold text-white">Suggested Mentors</p>
-              <p className="mt-1 text-xs text-[rgba(168,184,208,0.85)]">
-                Based on your latest AI request, these mentors may be a good next step.
-              </p>
-
-              <div className="mt-4 space-y-3">
-                {suggestedMentors.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-[rgba(168,184,208,0.85)]">
-                    Ask a more specific question to see tailored mentor matches.
-                  </div>
-                ) : (
-                  suggestedMentors.map((mentor) => (
-                    <article
-                      key={mentor.id || mentor.full_name}
-                      className="rounded-2xl border border-white/8 bg-[rgba(255,255,255,0.04)] p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-white">{mentor.full_name || "Mentor"}</p>
-                          <p className="mt-1 text-xs text-[rgba(168,184,208,0.85)]">
-                            {(mentor.subject_tags || []).join(", ") || "Expert mentor"}
-                          </p>
-                          {mentor.rating ? (
-                            <p className="mt-2 text-xs font-medium text-[#7df1e1]">Rating {mentor.rating.toFixed(1)}</p>
-                          ) : null}
-                        </div>
-                        <Link
-                          href="/networking/mentors/mentor-discovery"
-                          className="rounded-lg border border-[#00d2b4]/20 bg-[#00d2b4]/10 px-3 py-1.5 text-xs font-semibold text-[#7df1e1] transition hover:bg-[#00d2b4]/15 hover:text-white"
-                        >
-                          Book
-                        </Link>
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-[#00d2b4]/15 bg-[#00d2b4]/8 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7df1e1]">Dark shell tips</p>
-              <ul className="mt-3 space-y-2 text-sm text-[rgba(232,238,248,0.88)]">
-                <li>Use the AI for first-pass guidance.</li>
-                <li>Escalate to a mentor for deeper review.</li>
-                <li>Keep messages short and specific for better results.</li>
-              </ul>
-            </div>
-          </aside>
         </div>
       </div>
     </div>

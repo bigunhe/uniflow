@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import {
   saveUserRoleProfile,
   UserRole,
-  getUserRoleProfile,
 } from "../_components/userRoleProfile";
+import {
+  getMyRoleProfile,
+  upsertMentorProfile,
+  upsertStudentProfile,
+} from "@/services/mentorship";
 import Image from "next/image";
 
 // Configuration for dynamic content based on role
@@ -29,7 +33,6 @@ const ROLE_DATA = {
   },
 };
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\d{10}$/;
 const programRegex = /^[A-Za-z ]+$/;
 
@@ -38,24 +41,69 @@ type FieldErrors = Record<string, string>;
 type StudentValidated = {
   role: "student";
   fullName: string;
-  email: string;
   phone: string;
   university: string;
   program: string;
-  yearLevel: string;
+  yearLevel: number;
+  learningGoals: string;
+  skills: string[];
 };
 
 type MentorValidated = {
   role: "mentor";
   fullName: string;
-  email: string;
   phone: string;
-  expertise: string;
-  yearsOfExperience: string;
+  expertise: string[];
+  yearsOfExperience: number;
+  roleName: string;
+  company: string;
+  mentoringTopics: string[];
   bio: string;
+  availability: string;
+  sessionMode: string;
 };
 
-function validateCommonFields(input: { fullName: string; email: string; phone: string }) {
+function parseMentorshipError(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+
+    if (message.includes("auth session") || message.includes("magic-link login is not active")) {
+      return "Your login session is not ready yet. Please open your latest magic link again and return to this page.";
+    }
+
+    return error.message;
+  }
+
+  if (error && typeof error === "object") {
+    const maybeError = error as { code?: unknown; message?: unknown; details?: unknown };
+    const code = typeof maybeError.code === "string" ? maybeError.code : "";
+    const message = typeof maybeError.message === "string" ? maybeError.message : "";
+    const details = typeof maybeError.details === "string" ? maybeError.details : "";
+
+    if (code === "42P01" || message.toLowerCase().includes("relation") && message.toLowerCase().includes("does not exist")) {
+      return "Mentorship database tables are not created yet. Run the SQL migration 202604220001_peer_mentorship_schema.sql in your Supabase project, then try again.";
+    }
+
+    if (code === "42501" || message.toLowerCase().includes("row-level security")) {
+      return "Database permissions for mentorship are missing. Apply the mentorship SQL migration so RLS policies are created.";
+    }
+
+    if (message) {
+      return details ? `${message} (${details})` : message;
+    }
+  }
+
+  return fallback;
+}
+
+function normalizeCsv(input: string) {
+  return input
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function validateCommonFields(input: { fullName: string; phone: string }) {
   const errors: FieldErrors = {};
 
   const trimmedFullName = input.fullName.trim();
@@ -63,15 +111,6 @@ function validateCommonFields(input: { fullName: string; email: string; phone: s
     errors.fullName = "Full name is required";
   } else if (trimmedFullName !== input.fullName) {
     errors.fullName = "Remove leading or trailing spaces";
-  }
-
-  const trimmedEmail = input.email.trim();
-  if (!trimmedEmail) {
-    errors.email = "Email is required";
-  } else if (trimmedEmail !== input.email) {
-    errors.email = "Remove leading or trailing spaces";
-  } else if (!emailRegex.test(trimmedEmail)) {
-    errors.email = "Enter a valid email";
   }
 
   const trimmedPhone = input.phone.trim();
@@ -83,18 +122,19 @@ function validateCommonFields(input: { fullName: string; email: string; phone: s
     errors.phone = "Phone number must be exactly 10 digits (numbers only)";
   }
 
-  return { errors, trimmedFullName, trimmedEmail, trimmedPhone };
+  return { errors, trimmedFullName, trimmedPhone };
 }
 
 function validateStudentForm(input: {
   fullName: string;
-  email: string;
   phone: string;
   university: string;
   program: string;
   yearLevel: string;
+  learningGoals: string;
+  skills: string;
 }): { errors: FieldErrors; data?: StudentValidated } {
-  const { errors, trimmedFullName, trimmedEmail, trimmedPhone } = validateCommonFields(input);
+  const { errors, trimmedFullName, trimmedPhone } = validateCommonFields(input);
 
   const trimmedUniversity = input.university.trim();
   if (!trimmedUniversity) {
@@ -118,6 +158,16 @@ function validateStudentForm(input: {
     errors.yearLevel = "Year level must be between 1 and 5";
   }
 
+  const trimmedLearningGoals = input.learningGoals.trim();
+  if (!trimmedLearningGoals) {
+    errors.learningGoals = "Learning goals are required";
+  }
+
+  const parsedSkills = normalizeCsv(input.skills);
+  if (parsedSkills.length === 0) {
+    errors.skills = "Add at least one skill";
+  }
+
   if (Object.keys(errors).length > 0) {
     return { errors };
   }
@@ -127,30 +177,38 @@ function validateStudentForm(input: {
     data: {
       role: "student",
       fullName: trimmedFullName,
-      email: trimmedEmail,
       phone: trimmedPhone,
       university: trimmedUniversity,
       program: trimmedProgram,
-      yearLevel: String(numericYear),
+      yearLevel: numericYear,
+      learningGoals: trimmedLearningGoals,
+      skills: parsedSkills,
     },
   };
 }
 
 function validateMentorForm(input: {
   fullName: string;
-  email: string;
   phone: string;
   expertise: string;
   yearsOfExperience: string;
+  roleName: string;
+  company: string;
+  mentoringTopics: string;
+  bio: string;
+  availability: string;
+  sessionMode: string;
 }): { errors: FieldErrors; data?: MentorValidated } {
-  const { errors, trimmedFullName, trimmedEmail, trimmedPhone } = validateCommonFields(input);
+  const { errors, trimmedFullName, trimmedPhone } = validateCommonFields(input);
 
-  const expertiseItems = input.expertise
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const expertiseItems = normalizeCsv(input.expertise);
   if (expertiseItems.length === 0) {
     errors.expertise = "Expertise is required (use a comma-separated list)";
+  }
+
+  const mentoringTopicsItems = normalizeCsv(input.mentoringTopics);
+  if (mentoringTopicsItems.length === 0) {
+    errors.mentoringTopics = "Add at least one mentoring topic";
   }
 
   const trimmedYears = input.yearsOfExperience.trim();
@@ -159,6 +217,21 @@ function validateMentorForm(input: {
     errors.yearsOfExperience = "Years of experience is required";
   } else if (!Number.isInteger(numericYears) || numericYears < 0) {
     errors.yearsOfExperience = "Years of experience must be a non-negative integer";
+  }
+
+  const trimmedRoleName = input.roleName.trim();
+  if (!trimmedRoleName) {
+    errors.roleName = "Role is required";
+  }
+
+  const trimmedSessionMode = input.sessionMode.trim();
+  if (!trimmedSessionMode) {
+    errors.sessionMode = "Session mode is required";
+  }
+
+  const trimmedAvailability = input.availability.trim();
+  if (!trimmedAvailability) {
+    errors.availability = "Availability is required";
   }
 
   if (Object.keys(errors).length > 0) {
@@ -170,11 +243,15 @@ function validateMentorForm(input: {
     data: {
       role: "mentor",
       fullName: trimmedFullName,
-      email: trimmedEmail,
       phone: trimmedPhone,
-      expertise: expertiseItems.join(", "),
-      yearsOfExperience: String(numericYears),
-      bio: "",
+      expertise: expertiseItems,
+      yearsOfExperience: numericYears,
+      roleName: trimmedRoleName,
+      company: input.company.trim(),
+      mentoringTopics: mentoringTopicsItems,
+      bio: input.bio.trim(),
+      availability: trimmedAvailability,
+      sessionMode: trimmedSessionMode,
     },
   };
 }
@@ -185,21 +262,68 @@ export default function RoleSelectionPage() {
 
   // Form States
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [university, setUniversity] = useState("");
   const [program, setProgram] = useState("");
   const [yearLevel, setYearLevel] = useState("");
+  const [learningGoals, setLearningGoals] = useState("");
+  const [skills, setSkills] = useState("");
   const [expertise, setExpertise] = useState("");
   const [yearsOfExperience, setYearsOfExperience] = useState("");
+  const [roleName, setRoleName] = useState("");
+  const [company, setCompany] = useState("");
+  const [mentoringTopics, setMentoringTopics] = useState("");
+  const [bio, setBio] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [sessionMode, setSessionMode] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const profile = getUserRoleProfile();
-    if (profile) {
-      router.replace("/networking/mentors/home");
-    }
+    const loadExistingProfile = async () => {
+      try {
+        const profile = await getMyRoleProfile();
+
+        if (profile.student) {
+          setRole("student");
+          setFullName(profile.student.full_name ?? "");
+          setPhone(profile.student.phone ?? "");
+          setUniversity(profile.student.university ?? "");
+          setProgram(profile.student.program ?? "");
+          setYearLevel(profile.student.year_level ? String(profile.student.year_level) : "");
+          setLearningGoals(profile.student.learning_goals ?? "");
+          setSkills((profile.student.skills || []).join(", "));
+        }
+
+        if (profile.mentor) {
+          setRole("mentor");
+          setFullName(profile.mentor.full_name ?? "");
+          setPhone(profile.mentor.phone ?? "");
+          setExpertise((profile.mentor.expertise || []).join(", "));
+          setYearsOfExperience(
+            typeof profile.mentor.years_experience === "number"
+              ? String(profile.mentor.years_experience)
+              : "",
+          );
+          setRoleName(profile.mentor.current_role ?? "");
+          setCompany(profile.mentor.company ?? "");
+          setMentoringTopics((profile.mentor.mentoring_topics || []).join(", "));
+          setBio(profile.mentor.bio ?? "");
+          setAvailability(
+            Object.values(profile.mentor.availability || {}).join(", ") || "",
+          );
+          setSessionMode(profile.mentor.session_mode ?? "");
+        }
+      } catch (error) {
+        setFormError(parseMentorshipError(error, "Could not load profile. Please refresh and try again."));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadExistingProfile();
   }, [router]);
 
   useEffect(() => {
@@ -207,25 +331,31 @@ export default function RoleSelectionPage() {
     setFormError(null);
   }, [role]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const result =
       role === "student"
         ? validateStudentForm({
             fullName,
-            email,
             phone,
             university,
             program,
             yearLevel,
+            learningGoals,
+            skills,
           })
         : validateMentorForm({
             fullName,
-            email,
             phone,
             expertise,
             yearsOfExperience,
+            roleName,
+            company,
+            mentoringTopics,
+            bio,
+            availability,
+            sessionMode,
           });
 
     if (!result.data) {
@@ -234,10 +364,65 @@ export default function RoleSelectionPage() {
       return;
     }
 
-    setFieldErrors({});
-    setFormError(null);
-    saveUserRoleProfile(result.data);
-    router.push("/networking/mentors/home");
+    setIsSubmitting(true);
+
+    try {
+      setFieldErrors({});
+      setFormError(null);
+
+      if (result.data.role === "student") {
+        await upsertStudentProfile({
+          fullName: result.data.fullName,
+          phone: result.data.phone,
+          university: result.data.university,
+          program: result.data.program,
+          yearLevel: result.data.yearLevel,
+          learningGoals: result.data.learningGoals,
+          skills: result.data.skills,
+        });
+
+        saveUserRoleProfile({
+          role: "student",
+          fullName: result.data.fullName,
+          phone: result.data.phone,
+          university: result.data.university,
+          program: result.data.program,
+          yearLevel: String(result.data.yearLevel),
+          email: "",
+        });
+      } else {
+        await upsertMentorProfile({
+          fullName: result.data.fullName,
+          phone: result.data.phone,
+          expertise: result.data.expertise,
+          yearsExperience: result.data.yearsOfExperience,
+          role: result.data.roleName,
+          company: result.data.company,
+          mentoringTopics: result.data.mentoringTopics,
+          bio: result.data.bio,
+          availability: {
+            schedule: result.data.availability,
+          },
+          sessionMode: result.data.sessionMode,
+        });
+
+        saveUserRoleProfile({
+          role: "mentor",
+          fullName: result.data.fullName,
+          phone: result.data.phone,
+          expertise: result.data.expertise.join(", "),
+          yearsOfExperience: String(result.data.yearsOfExperience),
+          bio: result.data.bio,
+          email: "",
+        });
+      }
+
+      router.push("/networking/mentors/home");
+    } catch (error) {
+      setFormError(parseMentorshipError(error, "Could not save profile."));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePhoneChange = (value: string) => {
@@ -246,6 +431,14 @@ export default function RoleSelectionPage() {
   };
 
   const currentContent = ROLE_DATA[role];
+
+  if (isLoading) {
+    return (
+      <section className="rounded-3xl border border-white/8 bg-[rgba(255,255,255,0.03)] p-10 text-sm text-[rgba(232,238,248,0.86)] shadow-xl">
+        Loading profile setup...
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-white/8 bg-[rgba(255,255,255,0.03)] shadow-xl">
@@ -346,22 +539,6 @@ export default function RoleSelectionPage() {
               </label>
 
               <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
-                Email
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
-                  placeholder="name@email.com"
-                  autoComplete="email"
-                />
-                {fieldErrors.email ? (
-                  <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
-                ) : null}
-              </label>
-
-              <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                 Phone Number
                 <input
                   required
@@ -426,23 +603,49 @@ export default function RoleSelectionPage() {
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.yearLevel}</p>
                     ) : null}
                   </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Learning Goals
+                    <textarea
+                      required
+                      value={learningGoals}
+                      onChange={(event) => setLearningGoals(event.target.value)}
+                      className="mt-2 min-h-[92px] w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="Describe what you want to improve this semester"
+                    />
+                    {fieldErrors.learningGoals ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.learningGoals}</p>
+                    ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Skills (comma separated)
+                    <input
+                      required
+                      value={skills}
+                      onChange={(event) => setSkills(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="e.g. Python, SQL, React"
+                    />
+                    {fieldErrors.skills ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.skills}</p>
+                    ) : null}
+                  </label>
                 </>
               ) : (
                 <>
-                  <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
-                    Expertise
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
+                    Expertise (comma separated)
                     <input
                       required
                       value={expertise}
                       onChange={(event) => setExpertise(event.target.value)}
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                       placeholder="e.g. Data Structures"
                     />
                     {fieldErrors.expertise ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.expertise}</p>
                     ) : null}
                   </label>
-                  <label className="col-span-12 text-sm font-medium text-slate-700 md:col-span-6">
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
                     Years of Experience
                     <input
                       required
@@ -452,12 +655,85 @@ export default function RoleSelectionPage() {
                       min={0}
                       step={1}
                       inputMode="numeric"
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none ring-indigo-500 transition focus:bg-white focus:ring-2"
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
                       placeholder="e.g. 5"
                     />
                     {fieldErrors.yearsOfExperience ? (
                       <p className="mt-1 text-xs text-red-600">{fieldErrors.yearsOfExperience}</p>
                     ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
+                    Current Role
+                    <input
+                      required
+                      value={roleName}
+                      onChange={(event) => setRoleName(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="e.g. Senior Software Engineer"
+                    />
+                    {fieldErrors.roleName ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.roleName}</p>
+                    ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)] md:col-span-6">
+                    Company
+                    <input
+                      value={company}
+                      onChange={(event) => setCompany(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="e.g. UniFlow Labs"
+                    />
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Mentoring Topics (comma separated)
+                    <input
+                      required
+                      value={mentoringTopics}
+                      onChange={(event) => setMentoringTopics(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="e.g. Interview prep, Project architecture"
+                    />
+                    {fieldErrors.mentoringTopics ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.mentoringTopics}</p>
+                    ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Session Mode
+                    <select
+                      value={sessionMode}
+                      onChange={(event) => setSessionMode(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition focus:bg-white/8 focus:ring-2"
+                    >
+                      <option value="">Select mode</option>
+                      <option value="online">Online</option>
+                      <option value="in-person">In-person</option>
+                      <option value="hybrid">Hybrid</option>
+                    </select>
+                    {fieldErrors.sessionMode ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.sessionMode}</p>
+                    ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Availability
+                    <input
+                      required
+                      value={availability}
+                      onChange={(event) => setAvailability(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="e.g. Mon-Fri 7 PM to 10 PM"
+                    />
+                    {fieldErrors.availability ? (
+                      <p className="mt-1 text-xs text-red-600">{fieldErrors.availability}</p>
+                    ) : null}
+                  </label>
+                  <label className="col-span-12 text-sm font-medium text-[rgba(232,238,248,0.88)]">
+                    Bio
+                    <textarea
+                      value={bio}
+                      onChange={(event) => setBio(event.target.value)}
+                      className="mt-2 min-h-[92px] w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#f0f4fb] outline-none ring-[#00d2b4] transition placeholder:text-[rgba(168,184,208,0.6)] focus:bg-white/8 focus:ring-2"
+                      placeholder="Share your mentoring style and what students can expect"
+                    />
                   </label>
                 </>
               )}
@@ -465,9 +741,10 @@ export default function RoleSelectionPage() {
               <div className="col-span-12 pt-1">
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="h-11 w-full rounded-xl bg-gradient-to-r from-[#00d2b4] to-[#6366f1] px-5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
                 >
-                  Continue to Home
+                  {isSubmitting ? "Saving Profile..." : "Continue to Home"}
                 </button>
               </div>
             </form>

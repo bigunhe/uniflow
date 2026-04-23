@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Check, PencilLine, Trash2, X } from "lucide-react";
 import MentorCard from "../_components/mentorCard";
 import { mentorButtonClassName } from "../_components/MentorButton";
 import { mentorProfiles } from "../_components/mentorData";
 import { getUserRoleProfile } from "../_components/userRoleProfile";
+import StressTips from "@/components/learning/ai/StressTips";
+import MusicEmbed from "@/components/learning/ai/MusicEmbed";
 import {
-  GuidanceRequest,
-  getGuidanceRequests,
-  updateGuidanceRequestStatus,
-} from "../_components/guidanceRequests";
+  listMentorBadges,
+  listMentorRequests,
+  refreshMentorBadges,
+  updateMentorshipRequestStatus,
+} from "@/services/mentorship";
 
 const mentorStats = [
   { label: "Active Mentors", value: "120+" },
@@ -24,52 +28,280 @@ const studentStats = [
   { label: "Semester Goals", value: "72%" },
 ];
 
-const mentorHubStats = [
-  { label: "Total Students", value: "1,284", badge: "+12%" },
-  { label: "Hours Mentored", value: "142.5", badge: "Weekly" },
-  { label: "Impact Score", value: "98/100", highlight: true },
-  { label: "Avg. Rating", value: "4.9", badge: "Top 1% Mentor" },
+type MentorRequestRow = {
+  id: string;
+  status: "pending" | "accepted" | "rejected";
+  meeting_link: string | null;
+  student?: {
+    full_name?: string | null;
+    learning_goals?: string | null;
+  } | null;
+};
+
+type MentorBadgeRow = {
+  badge_name: string;
+  criteria: string | null;
+};
+
+type Task = {
+  id: string;
+  text: string;
+  status: "todo" | "in-progress" | "complete";
+};
+
+const taskStatusOptions: Array<{ value: Task["status"]; label: string; className: string }> = [
+  { value: "todo", label: "Todo", className: "bg-slate-500/15 text-slate-200 border-slate-400/20" },
+  { value: "in-progress", label: "In Progress", className: "bg-amber-400/15 text-amber-200 border-amber-300/20" },
+  { value: "complete", label: "Complete", className: "bg-emerald-400/15 text-emerald-200 border-emerald-300/20" },
 ];
 
-const mentorHubSessions = [
-  {
-    date: "OCT 24",
-    title: "Advanced Tailwind Layouts",
-    time: "02:00 PM - 03:30 PM",
-    status: "Live Now",
-  },
-  {
-    date: "OCT 25",
-    title: "Backend Scaling Strategies",
-    time: "10:00 AM - 11:00 AM",
-    status: "Upcoming",
-  },
-  {
-    date: "OCT 25",
-    title: "Portfolio Review: Fintech",
-    time: "04:30 PM - 05:30 PM",
-    status: "Upcoming",
-  },
-];
+function StudyWorkspaceSection() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [input, setInput] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskText, setEditingTaskText] = useState("");
+
+  const addTask = () => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    setTasks((currentTasks) => [
+      ...currentTasks,
+      {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        text: trimmed,
+        status: "todo",
+      },
+    ]);
+    setInput("");
+  };
+
+  const startEditingTask = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditingTaskText(task.text);
+  };
+
+  const cancelEditingTask = () => {
+    setEditingTaskId(null);
+    setEditingTaskText("");
+  };
+
+  const saveEditedTask = (taskId: string) => {
+    const trimmed = editingTaskText.trim();
+    if (!trimmed) return;
+
+    setTasks((currentTasks) =>
+      currentTasks.map((task) => (task.id === taskId ? { ...task, text: trimmed } : task)),
+    );
+    cancelEditingTask();
+  };
+
+  const updateTaskStatus = (taskId: string, status: Task["status"]) => {
+    setTasks((currentTasks) =>
+      currentTasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
+    );
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks((currentTasks) => currentTasks.filter((task) => task.id !== taskId));
+    if (editingTaskId === taskId) {
+      cancelEditingTask();
+    }
+  };
+
+  return (
+    <section id="study-workspace" className="space-y-6 rounded-3xl border border-slate-700 bg-slate-900/40 p-8 shadow-sm">
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-teal-500">Study Workspace</p>
+        <h2 className="text-2xl font-bold text-slate-50">Focus Tools and Learning Tasks</h2>
+        <p className="text-sm text-slate-400">
+          Keep your study flow organized with a quick reset and a local task list.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+          <div>
+            <p className="text-sm font-semibold text-slate-50">Focus Tools</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Use these when you want a faster reset before asking the next question.
+            </p>
+          </div>
+
+          <StressTips className="border-rose-900/25 bg-rose-950/15" />
+          <MusicEmbed
+            title="Lo-fi Study Mix"
+            href="https://music.youtube.com/search?q=lofi+study+beats"
+            description="Open a low-distraction mix while you work through the assistant prompts."
+          />
+        </div>
+
+        <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+          <div>
+            <p className="text-sm font-semibold text-slate-50">Learning Tasks (CRUD)</p>
+            <p className="mt-1 text-sm text-slate-400">Track action items</p>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addTask();
+                }
+              }}
+              placeholder="Add task"
+              className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-teal-400/40 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={addTask}
+              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-teal-400 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+            >
+              Add
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {tasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/50 px-4 py-5 text-sm text-slate-400">
+                Add a task to start tracking your next steps.
+              </div>
+            ) : (
+              tasks.map((task) => {
+                const statusMeta = taskStatusOptions.find((option) => option.value === task.status) || taskStatusOptions[0];
+                const isEditing = editingTaskId === task.id;
+
+                return (
+                  <div
+                    key={task.id}
+                    className={`rounded-2xl border border-slate-700 bg-slate-950/50 p-4 ${task.status === "complete" ? "opacity-70" : "opacity-100"}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        {isEditing ? (
+                          <input
+                            value={editingTaskText}
+                            onChange={(event) => setEditingTaskText(event.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                saveEditedTask(task.id);
+                              }
+                              if (event.key === "Escape") {
+                                cancelEditingTask();
+                              }
+                            }}
+                            autoFocus
+                            className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 focus:border-teal-400/40 focus:outline-none"
+                          />
+                        ) : (
+                          <p className={`text-sm font-medium leading-6 text-slate-100 ${task.status === "complete" ? "line-through opacity-70" : ""}`}>
+                            {task.text}
+                          </p>
+                        )}
+
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${statusMeta.className}`}>
+                            {statusMeta.label}
+                          </span>
+                          <select
+                            value={task.status}
+                            onChange={(event) => updateTaskStatus(task.id, event.target.value as Task["status"])}
+                            className="rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1.5 text-[11px] font-semibold text-slate-100 outline-none focus:border-teal-400/40"
+                          >
+                            {taskStatusOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {isEditing ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => saveEditedTask(task.id)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-400/25 bg-emerald-400/10 text-emerald-200 transition hover:bg-emerald-400/15"
+                              aria-label="Save task"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditingTask}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 text-slate-100 transition hover:bg-slate-800"
+                              aria-label="Cancel edit"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => startEditingTask(task)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 text-slate-100 transition hover:border-teal-400/25 hover:bg-teal-400/10"
+                            aria-label="Edit task"
+                          >
+                            <PencilLine className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteTask(task.id)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/15"
+                          aria-label="Delete task"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function MentorsHomePage() {
   const [profile, setProfile] = useState(getUserRoleProfile());
-  const [mentorRequests, setMentorRequests] = useState<GuidanceRequest[]>([]);
+  const [mentorRequests, setMentorRequests] = useState<MentorRequestRow[]>([]);
+  const [mentorBadges, setMentorBadges] = useState<MentorBadgeRow[]>([]);
 
   useEffect(() => {
     const userProfile = getUserRoleProfile();
     setProfile(userProfile);
 
-    const syncRequests = () => {
-      setMentorRequests(getGuidanceRequests());
+    if (userProfile?.role !== "mentor") {
+      return;
+    }
+
+    const syncMentorData = async () => {
+      try {
+        const [requests, badges] = await Promise.all([
+          listMentorRequests(),
+          refreshMentorBadges(),
+        ]);
+        setMentorRequests(requests as MentorRequestRow[]);
+        setMentorBadges((badges || []) as MentorBadgeRow[]);
+      } catch {
+        const requests = await listMentorRequests();
+        const badges = await listMentorBadges();
+        setMentorRequests(requests as MentorRequestRow[]);
+        setMentorBadges((badges || []) as MentorBadgeRow[]);
+      }
     };
 
-    syncRequests();
-    window.addEventListener("guidance-requests-updated", syncRequests);
-
-    return () => {
-      window.removeEventListener("guidance-requests-updated", syncRequests);
-    };
+    void syncMentorData();
   }, []);
 
   // Show student home page
@@ -99,10 +331,10 @@ export default function MentorsHomePage() {
                 Learning Modules
               </Link>
               <Link
-                href="/student/feedback"
+                href="/networking/mentors/study-workspace"
                 className={mentorButtonClassName({ variant: "ghost", size: "lg" })}
               >
-                Add Feedback
+                Focus Corner
               </Link>
             </div>
           </div>
@@ -224,6 +456,21 @@ export default function MentorsHomePage() {
     const pendingRequests = mentorRequests
       .filter((request) => request.status === "pending")
       .slice(0, 2);
+    const acceptedRequests = mentorRequests.filter((request) => request.status === "accepted");
+    const studentsHelped = new Set(
+      acceptedRequests.map((request) => request.student?.full_name || request.id),
+    ).size;
+
+    const mentorHubStats = [
+      { label: "Active Sessions", value: String(acceptedRequests.length), badge: "Accepted" },
+      { label: "Incoming Requests", value: String(pendingRequests.length), badge: "Pending" },
+      { label: "Students Helped", value: String(studentsHelped), highlight: true },
+      {
+        label: "Badge Count",
+        value: String(mentorBadges.length),
+        badge: mentorBadges[0]?.badge_name || "Mentor",
+      },
+    ];
 
     return (
       <div className="space-y-6">
@@ -295,8 +542,8 @@ export default function MentorsHomePage() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-bold text-slate-100">{request.studentName}</p>
-                        <p className="text-xs text-slate-400">{request.mentorName}</p>
+                        <p className="text-sm font-bold text-slate-100">{request.student?.full_name || "Student"}</p>
+                        <p className="text-xs text-slate-400">Mentorship request</p>
                       </div>
                       <span className={index === 0
                         ? "rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300"
@@ -306,19 +553,19 @@ export default function MentorsHomePage() {
                       </span>
                     </div>
 
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-300">{request.topic}</p>
+                    <p className="mt-2 line-clamp-2 text-sm text-slate-300">{request.student?.learning_goals || "Learning goals not provided."}</p>
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => updateGuidanceRequestStatus(request.id, "accepted")}
+                        onClick={() => void updateMentorshipRequestStatus(request.id, "accepted")}
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 text-xs font-semibold text-white transition hover:bg-indigo-700"
                       >
                         Accept
                       </button>
                       <button
                         type="button"
-                        onClick={() => updateGuidanceRequestStatus(request.id, "rejected")}
+                        onClick={() => void updateMentorshipRequestStatus(request.id, "rejected")}
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-800/70 text-xs font-semibold text-slate-300 transition hover:bg-slate-800"
                       >
                         Reject
@@ -344,41 +591,51 @@ export default function MentorsHomePage() {
               </div>
 
               <div className="space-y-2.5">
-                {mentorHubSessions.map((session, index) => (
-                  <article key={session.title} className="rounded-xl border border-slate-700 bg-slate-900/70 p-3.5">
+                {acceptedRequests.slice(0, 3).map((session, index) => (
+                  <article key={session.id} className="rounded-xl border border-slate-700 bg-slate-900/70 p-3.5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="inline-flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-indigo-500/20 text-[10px] font-bold leading-tight text-indigo-200">
-                          {session.date.split(" ")[0]}
-                          <span className="text-xs">{session.date.split(" ")[1]}</span>
+                          ACC
+                          <span className="text-xs">EPT</span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-100">{session.title}</p>
-                          <p className="text-xs text-slate-400">{session.time}</p>
+                          <p className="text-sm font-semibold text-slate-100">Session with {session.student?.full_name || "Student"}</p>
+                          <p className="text-xs text-slate-400">Accepted mentorship</p>
                         </div>
                       </div>
 
                       {index === 0 ? (
-                        <button
-                          type="button"
-                          className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700"
-                        >
-                          Join Room
-                        </button>
+                        <Link href={`/networking/mentors/live-session?requestId=${session.id}`} className="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700">Join Room</Link>
                       ) : (
-                        <span className={session.status === "Live Now" ? "text-xs font-semibold text-emerald-300" : "text-xs font-semibold text-slate-400"}>
-                          {session.status}
+                        <span className="text-xs font-semibold text-emerald-300">
+                          Ready
                         </span>
                       )}
                     </div>
                   </article>
                 ))}
+                {acceptedRequests.length === 0 ? (
+                  <article className="rounded-xl border border-dashed border-slate-600 p-3.5 text-sm text-slate-400">
+                    No active sessions yet. Accept requests to start mentorship sessions.
+                  </article>
+                ) : null}
               </div>
             </div>
 
             <article className="rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-              <p className="text-lg font-semibold text-slate-100">Growth Insight</p>
-              <p className="mt-1 text-sm text-slate-400">Your session bookings increased by 12% this week.</p>
+              <p className="text-lg font-semibold text-slate-100">Mentor Badges</p>
+              {mentorBadges.length === 0 ? (
+                <p className="mt-1 text-sm text-slate-400">Complete more sessions to unlock badges.</p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {mentorBadges.map((badge) => (
+                    <span key={badge.badge_name} className="rounded-full border border-indigo-400/40 bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-200">
+                      {badge.badge_name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </article>
           </div>
         </section>
@@ -388,7 +645,7 @@ export default function MentorsHomePage() {
             <h2 className="text-2xl font-bold tracking-tight text-slate-50">Quick Actions</h2>
             <div className="flex gap-2">
               <Link href="/networking/mentors/messages" className="inline-flex h-10 items-center rounded-lg border border-slate-700 bg-slate-800/70 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Messages</Link>
-              <Link href="/networking/mentors/tutor-analytics" className="inline-flex h-10 items-center rounded-lg border border-slate-700 bg-slate-800/70 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Feedback</Link>
+              <Link href="/networking/mentors/study-workspace" className="inline-flex h-10 items-center rounded-lg border border-slate-700 bg-slate-800/70 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Study Workspace</Link>
               <Link href="/networking/mentors/live-session" className="inline-flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">New Session</Link>
             </div>
           </div>
