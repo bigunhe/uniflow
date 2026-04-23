@@ -2,25 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteHandlerSupabase } from "@/lib/supabase/route-handler";
 import {
   getLearningModuleByCode,
-  LEARNING_SYNC_BUCKET,
-  listLearningFiles,
-  normalizeModuleCode,
 } from "@/lib/learning/sync";
-import { uploadStoredModuleInsights } from "@/lib/learning/insights";
 import {
-  analyzeModuleWithGemini,
-  selectPdfsForModel,
-} from "@/services/gemini-learning";
+  buildModuleInsightBody,
+  buildModuleInsightCacheKey,
+  downloadCachedModuleInsights,
+  uploadCachedModuleInsights,
+  uploadStoredModuleInsights,
+} from "@/lib/learning/insights";
+import { listLearningFiles, normalizeModuleCode } from "@/lib/learning/sync";
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.GEMINI_API_KEY?.trim()) {
-      return NextResponse.json(
-        { error: "Server is missing GEMINI_API_KEY. Add it to uniflow-web/.env.local" },
-        { status: 503 }
-      );
-    }
-
     const supabase = await createRouteHandlerSupabase();
     const {
       data: { user },
@@ -52,34 +45,47 @@ export async function POST(request: NextRequest) {
       sizeBytes: Number(f.size_bytes),
     }));
 
-    const pdfPick = selectPdfsForModel(manifest);
-    const pdfs: { fileName: string; base64: string }[] = [];
-
-    for (const meta of pdfPick) {
-      const row = fileRows.find((f) => f.original_name === meta.fileName);
-      if (!row) continue;
-      const { data, error } = await supabase.storage
-        .from(LEARNING_SYNC_BUCKET)
-        .download(row.storage_path);
-      if (error || !data) continue;
-      const ab = await data.arrayBuffer();
-      const base64 = Buffer.from(ab).toString("base64");
-      pdfs.push({ fileName: meta.fileName, base64 });
-    }
-
-    const { insight, model } = await analyzeModuleWithGemini({
+    const cacheKey = buildModuleInsightCacheKey({
       moduleCode: moduleRow.module_code,
       moduleName: moduleRow.module_name,
       studentFocus: body.studentFocus,
       fileManifest: manifest,
-      pdfs,
+    });
+
+    const cached = await downloadCachedModuleInsights(supabase, {
+      userId: user.id,
+      moduleCode: moduleRow.module_code,
+      cacheKey,
+    });
+
+    if (cached) {
+      return NextResponse.json({
+        ok: true,
+        stored: cached,
+      });
+    }
+
+    const insight = buildModuleInsightBody({
+      moduleCode: moduleRow.module_code,
+      moduleName: moduleRow.module_name,
+      studentFocus: body.studentFocus,
+      fileManifest: manifest,
     });
 
     const stored = await uploadStoredModuleInsights(supabase, {
       userId: user.id,
       moduleCode: moduleRow.module_code,
       moduleName: moduleRow.module_name,
-      model,
+      model: "heuristic",
+      insight,
+    });
+
+    await uploadCachedModuleInsights(supabase, {
+      userId: user.id,
+      moduleCode: moduleRow.module_code,
+      moduleName: moduleRow.module_name,
+      cacheKey,
+      model: "heuristic",
       insight,
     });
 
