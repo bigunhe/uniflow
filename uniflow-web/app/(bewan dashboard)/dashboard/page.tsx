@@ -6,6 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 import { UniFlowBrandLink } from "@/components/shared/UniFlowBrandLink";
 import { readProjectStateMap, PROJECT_STATE_STORAGE_KEY } from "@/lib/projects/localState";
 import { projectsPulsePillarPercent } from "@/lib/projects/pulseContribution";
+import {
+  LEARNING_GAPS_CHANGED_EVENT,
+  aggregateLearningPercent,
+  displayPulseRingScore,
+  fakeCommunityPercent,
+} from "@/lib/learning/gapCheckProgress";
 
 type Profile = {
   display_name: string;
@@ -130,14 +136,22 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedNav, setExpandedNav] = useState<string | null>(null);
   const [projectsPillarLocal, setProjectsPillarLocal] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [learningAgg, setLearningAgg] = useState(0);
 
   const refreshProjectsPillar = () => {
     if (typeof window === "undefined") return;
     setProjectsPillarLocal(projectsPulsePillarPercent(readProjectStateMap()));
   };
 
+  const refreshLearningAgg = useCallback(() => {
+    if (typeof window === "undefined") return;
+    setLearningAgg(aggregateLearningPercent(userId));
+  }, [userId]);
+
   useEffect(() => {
     refreshProjectsPillar();
+    refreshLearningAgg();
     const onStorage = (event: StorageEvent) => {
       if (
         event.key === PROJECT_STATE_STORAGE_KEY ||
@@ -145,8 +159,12 @@ export default function DashboardPage() {
       ) {
         refreshProjectsPillar();
       }
+      if (event.key?.startsWith("uniflow.learningGapChecks.v1:")) {
+        refreshLearningAgg();
+      }
     };
     const onProjectState = () => refreshProjectsPillar();
+    const onLearningGaps = () => refreshLearningAgg();
     const onPulseSynced = () => {
       refreshProjectsPillar();
       void supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -158,12 +176,14 @@ export default function DashboardPage() {
     window.addEventListener("storage", onStorage);
     window.addEventListener("uniflow-project-state-changed", onProjectState);
     window.addEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+    window.addEventListener(LEARNING_GAPS_CHANGED_EVENT, onLearningGaps);
     return () => {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("uniflow-project-state-changed", onProjectState);
       window.removeEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+      window.removeEventListener(LEARNING_GAPS_CHANGED_EVENT, onLearningGaps);
     };
-  }, [supabase]);
+  }, [supabase, userId, refreshLearningAgg]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -172,6 +192,8 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
+
+      setUserId(user.id);
 
       const { data } = await supabase.from("user_data").select("*").eq("id", user.id).maybeSingle();
 
@@ -279,10 +301,9 @@ export default function DashboardPage() {
     </div>
   );
 
-  const score = Math.min(100, Math.max(0, Math.round(Number(profile?.pulse_score) || 0)));
-  const mastery = Math.min(100, Math.round(score * 0.3 * 3.33));
   const projects = projectsPillarLocal;
-  const community = Math.min(100, Math.round(score * 0.3 * 3.33));
+  const communityFake = fakeCommunityPercent(learningAgg);
+  const displayRingScore = displayPulseRingScore(learningAgg, projectsPillarLocal);
 
   const handleNavClick = (id: string) => {
     setActiveNav(id);
@@ -587,7 +608,7 @@ export default function DashboardPage() {
             <div className="card pulse-card" style={{animationDelay:".1s"}}>
               <div className="card-title" style={{textAlign:"center"}}>Employability Pulse</div>
               <div className="pulse-ring-wrap">
-                <PulseRing score={score} />
+                <PulseRing score={displayRingScore} />
               </div>
               <div style={{ textAlign:"center" }}>
                 <div style={{ fontSize:12, color:"rgba(168,184,208,.85)", marginBottom:12 }}>
@@ -597,7 +618,7 @@ export default function DashboardPage() {
                   <div className="pulse-pill">
                     <div className="pulse-pill-dot" style={{background:"#00d2b4"}} />
                     <span className="pulse-pill-text">Academic</span>
-                    <span className="pulse-pill-val" style={{marginLeft:"auto"}}>{mastery}%</span>
+                    <span className="pulse-pill-val" style={{marginLeft:"auto"}}>{learningAgg}%</span>
                   </div>
                   <div className="pulse-pill">
                     <div className="pulse-pill-dot" style={{background:"#6366f1"}} />
@@ -607,7 +628,7 @@ export default function DashboardPage() {
                   <div className="pulse-pill">
                     <div className="pulse-pill-dot" style={{background:"#f59e0b"}} />
                     <span className="pulse-pill-text">Community</span>
-                    <span className="pulse-pill-val" style={{marginLeft:"auto"}}>{community}%</span>
+                    <span className="pulse-pill-val" style={{marginLeft:"auto"}}>{communityFake}%</span>
                   </div>
                 </div>
               </div>
@@ -616,17 +637,17 @@ export default function DashboardPage() {
             {/* Pillar breakdown */}
             <div className="card pillar-card" style={{animationDelay:".15s"}}>
               <div className="card-title">Score Pillars</div>
-              <PillarBar label="Academic Mastery" value={mastery} color="#00d2b4" icon="📘" />
+              <PillarBar label="Academic Mastery" value={learningAgg} color="#00d2b4" icon="📘" />
               <PillarBar label="Practical Projects" value={projects} color="#6366f1" icon="🔗" />
-              <PillarBar label="Community Impact" value={community} color="#f59e0b" icon="🤝" />
+              <PillarBar label="Community Impact" value={communityFake} color="#f59e0b" icon="🤝" />
               <div style={{ marginTop:20, padding:"14px 16px", background:"rgba(70,99,157,.06)", borderRadius:12, border:"1px solid rgba(70,99,157,.12)" }}>
                 <div style={{ fontSize:12, color:"rgba(168,184,208,.85)", marginBottom:6 }}>How to improve</div>
                 <div style={{ fontSize:13, color:"rgba(232,238,248,.9)", lineHeight:1.6 }}>
-                  {projects < mastery && community < mastery
+                  {projects < learningAgg && communityFake < learningAgg
                     ? "Submit a project with GitHub evidence to boost your score the most (+40 pts)."
-                    : community < 30
+                    : communityFake < 30
                     ? "Help a peer with a study session to earn Community Impact points (+10 pts)."
-                    : "Complete more module KPIs in the Learning section to raise Academic Mastery."}
+                    : "Tick more Knowledge Gap checks on your modules to raise Academic Mastery."}
                 </div>
               </div>
             </div>

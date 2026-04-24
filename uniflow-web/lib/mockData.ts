@@ -15,6 +15,8 @@ export const mockSyncedModules = [
   },
 ];
 
+import type { SearchVectorItem } from "@/lib/learning/insights";
+
 // ─── Module Insights (Deep Dive Radar) ───────────────────────────────────────
 
 export type CoreModel = {
@@ -35,7 +37,7 @@ export type ModuleInsight = {
   moduleName: string;
   resourceCount: number;
   coreModels: CoreModel[];
-  searchVectors: string[];
+  searchVectors: SearchVectorItem[];
   knowledgeGaps: string[];
   files: LectureFile[];
 };
@@ -62,11 +64,31 @@ export const mockModuleInsights: Record<string, ModuleInsight> = {
     ],
 
     searchVectors: [
-      "If NAT already solved the IPv4 address shortage in the 90s, why are cloud providers still spending billions on IPv6 migration — what does NAT fundamentally break that IPv6 actually fixes?",
-      "Why do enterprises use VLANs instead of just physically separating networks with subnets — what can a VLAN do that subnetting alone cannot, and where does each approach break down?",
-      "What stops a misconfigured or malicious host from claiming it belongs to a different subnet, and how does a router actually verify that claim?",
-      "If you had to design an IP addressing scheme for a company that doubles in size every 18 months, how would CIDR let you plan for that without wasting the entire address space up front?",
-      "Why is the broadcast address always the last address in a subnet — what physically happens when a packet is sent there, and why does that behaviour create a security risk?",
+      {
+        query:
+          "NAT vs IPv6 end-to-end addressing: why does NAT break certain protocols and when is IPv6 migration unavoidable for large providers?",
+        sourceFiles: ["Lecture 4: Subnetting & Routing.pdf"],
+      },
+      {
+        query:
+          "VLAN 802.1Q tagging vs IP subnetting alone: when must you segment at L2 vs L3 and what failures happen if you confuse the two?",
+        sourceFiles: ["Lecture 4: Subnetting & Routing.pdf", "Lecture 3: IP Addressing Fundamentals.pdf"],
+      },
+      {
+        query:
+          "Longest prefix match routing: tie-breaking when two routes overlap and how that affects path selection in real routers",
+        sourceFiles: ["Lecture 4: Subnetting & Routing.pdf"],
+      },
+      {
+        query:
+          "CIDR aggregation and route summarization: how supernetting reduces routing table size and what black-holing risks appear when summarizing incorrectly",
+        sourceFiles: ["Lecture 3: IP Addressing Fundamentals.pdf"],
+      },
+      {
+        query:
+          "Directed broadcast and subnet broadcast addresses: historical role vs why they are disabled on many networks today (smurf amplification, security)",
+        sourceFiles: ["Lecture 4: Subnetting & Routing.pdf"],
+      },
     ],
 
     knowledgeGaps: [
@@ -121,11 +143,31 @@ export const mockModuleInsights: Record<string, ModuleInsight> = {
     ],
 
     searchVectors: [
-      "If 3NF removes most redundancy, why does BCNF exist — what edge case does 3NF miss, and does it actually matter in production databases?",
-      "NoSQL databases deliberately violate normalisation rules — under what specific real-world conditions is a denormalised schema actually the correct engineering decision?",
-      "The CAP theorem says you can only have two of Consistency, Availability, and Partition Tolerance — how do databases like PostgreSQL and MongoDB each make that trade-off, and what does it mean for your application?",
-      "If transactions guarantee ACID properties, why do modern systems introduce concepts like eventual consistency and why would any engineer willingly give up consistency?",
-      "An index speeds up reads but slows down writes — at what point does adding more indexes to a table become actively harmful, and how would you find that threshold?",
+      {
+        query:
+          "BCNF vs 3NF decomposition: anomaly that 3NF allows but BCNF removes, and when to accept a non-BCNF 3NF schema in practice",
+        sourceFiles: ["Lecture 5: Normalisation (1NF–3NF).pdf"],
+      },
+      {
+        query:
+          "Denormalization for read-heavy workloads: when star schema / wide tables beat normalized OLTP and how you manage update anomalies",
+        sourceFiles: ["Lecture 5: Normalisation (1NF–3NF).pdf"],
+      },
+      {
+        query:
+          "CAP theorem partition tolerance: why it is not optional in distributed systems and how Cassandra vs PostgreSQL interpret consistency tradeoffs",
+        sourceFiles: ["Lecture 7: Transactions & ACID.pdf"],
+      },
+      {
+        query:
+          "ACID isolation levels vs eventual consistency: read phenomena (dirty read, phantom) and why some systems choose snapshot isolation",
+        sourceFiles: ["Lecture 7: Transactions & ACID.pdf"],
+      },
+      {
+        query:
+          "B-tree index write amplification: when too many secondary indexes hurt INSERT throughput and how to detect index bloat in production",
+        sourceFiles: ["Lecture 5: Normalisation (1NF–3NF).pdf"],
+      },
     ],
 
     knowledgeGaps: [

@@ -7,7 +7,7 @@ export function formatLearningFileSummary(file: LearningFileRow): string {
   const kb = Math.max(1, Math.round(file.size_bytes / 1024));
   return `${type} • ${kb} KB • Uploaded ${new Date(
     file.uploaded_at
-  ).toLocaleString()}. Run "Generate AI insights" for a content-based summary.`;
+  ).toLocaleString()}. Run "Generate AI insights" to extract text from PDF/PPTX and save AI summaries.`;
 }
 
 export function storedInsightsToModuleInsight(

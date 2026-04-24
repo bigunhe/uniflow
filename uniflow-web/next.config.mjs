@@ -8,6 +8,7 @@ const nextConfig = {
 	turbopack: {
 		root: __dirname,
 	},
+	serverExternalPackages: ["pdf-parse", "unpdf", "pdfjs-dist"],
 };
 
 export default nextConfig;

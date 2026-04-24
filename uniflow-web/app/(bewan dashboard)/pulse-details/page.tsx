@@ -8,15 +8,14 @@ import {
   PROJECT_STATE_STORAGE_KEY,
 } from "@/lib/projects/localState";
 import { projectsPulsePillarPercent } from "@/lib/projects/pulseContribution";
+import {
+  LEARNING_GAPS_CHANGED_EVENT,
+  aggregateLearningPercent,
+  displayPulseRingScore,
+} from "@/lib/learning/gapCheckProgress";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-
-function learningProgressFromModuleCount(count: number): number {
-  if (count <= 0) return 0;
-  const target = 7;
-  return Math.min(100, Math.round((count / target) * 100));
-}
 
 function PulseRing({ score }: { score: number }) {
   const size = 200;
@@ -223,10 +222,16 @@ export default function PulseDetailsPage() {
   const [username, setUsername] = useState<string | null>(null);
   const [learningCount, setLearningCount] = useState(0);
   const [projectsPercent, setProjectsPercent] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [learningChecklistAgg, setLearningChecklistAgg] = useState(0);
 
   const refreshProjectsSlice = useCallback(() => {
     setProjectsPercent(projectsPulsePillarPercent(readProjectStateMap()));
   }, []);
+
+  const refreshLearningAgg = useCallback(() => {
+    setLearningChecklistAgg(aggregateLearningPercent(userId));
+  }, [userId]);
 
   const refreshPulseFromDb = useCallback(async () => {
     const {
@@ -253,6 +258,9 @@ export default function PulseDetailsPage() {
       router.replace("/login");
       return;
     }
+
+    setUserId(user.id);
+    setLearningChecklistAgg(aggregateLearningPercent(user.id));
 
     const { data: profile } = await supabase
       .from("user_data")
@@ -283,6 +291,10 @@ export default function PulseDetailsPage() {
   }, [load]);
 
   useEffect(() => {
+    refreshLearningAgg();
+  }, [refreshLearningAgg]);
+
+  useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (
         e.key === PROJECT_STATE_STORAGE_KEY ||
@@ -290,8 +302,12 @@ export default function PulseDetailsPage() {
       ) {
         refreshProjectsSlice();
       }
+      if (e.key?.startsWith("uniflow.learningGapChecks.v1:")) {
+        refreshLearningAgg();
+      }
     };
     const onProjectState = () => refreshProjectsSlice();
+    const onLearningGaps = () => refreshLearningAgg();
     const onPulseSynced = () => {
       refreshProjectsSlice();
       void refreshPulseFromDb();
@@ -299,13 +315,16 @@ export default function PulseDetailsPage() {
     window.addEventListener("storage", onStorage);
     window.addEventListener("uniflow-project-state-changed", onProjectState);
     window.addEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+    window.addEventListener(LEARNING_GAPS_CHANGED_EVENT, onLearningGaps);
     const onWindowFocus = () => {
       refreshProjectsSlice();
+      refreshLearningAgg();
       void refreshPulseFromDb();
     };
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
       refreshProjectsSlice();
+      refreshLearningAgg();
       void refreshPulseFromDb();
     };
     window.addEventListener("focus", onWindowFocus);
@@ -314,13 +333,14 @@ export default function PulseDetailsPage() {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("uniflow-project-state-changed", onProjectState);
       window.removeEventListener("uniflow-projects-pulse-synced", onPulseSynced);
+      window.removeEventListener(LEARNING_GAPS_CHANGED_EVENT, onLearningGaps);
       window.removeEventListener("focus", onWindowFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [refreshProjectsSlice, refreshPulseFromDb]);
+  }, [refreshProjectsSlice, refreshPulseFromDb, refreshLearningAgg]);
 
-  const learningPercent = learningProgressFromModuleCount(learningCount);
   const modulesToTarget = Math.max(0, 7 - learningCount);
+  const displayRingScore = displayPulseRingScore(learningChecklistAgg, projectsPercent);
 
   if (loading) {
     return (
@@ -464,9 +484,12 @@ export default function PulseDetailsPage() {
               alignItems: "center",
             }}
           >
-            <PulseRing score={pulseScore} />
+            <PulseRing score={displayRingScore} />
             <p style={{ margin: "20px 0 0", fontSize: 13, color: "rgba(168,184,208,0.95)", textAlign: "center", lineHeight: 1.55 }}>
-              Capped at 100. Updates when you sync learning, submit project evidence, and complete verification.
+              Blends Knowledge Gap checklist progress, project evidence, and a preview community signal. Capped at 100.
+            </p>
+            <p style={{ margin: "10px 0 0", fontSize: 12, color: "rgba(168,184,208,0.65)", textAlign: "center", lineHeight: 1.5 }}>
+              Project verification credits on your profile: {pulseScore}/100
             </p>
           </div>
 
@@ -486,12 +509,12 @@ export default function PulseDetailsPage() {
             <PillarBar
               label="Learning"
               icon="📚"
-              value={learningPercent}
+              value={learningChecklistAgg}
               color="#3b82f6"
               sublabel={
                 learningCount === 0
-                  ? "No modules synced yet — connect your LMS from Learning."
-                  : `${learningCount} module${learningCount === 1 ? "" : "s"} synced${modulesToTarget > 0 ? ` · ~${modulesToTarget} more toward a strong baseline` : ""}`
+                  ? "No modules synced yet — connect your LMS from Learning. Knowledge Gap checks on each module feed this score."
+                  : `${learningCount} module${learningCount === 1 ? "" : "s"} synced · Knowledge Gap checklist ${learningChecklistAgg}% overall${modulesToTarget > 0 ? ` · ~${modulesToTarget} more modules toward a strong baseline` : ""}`
               }
             />
 

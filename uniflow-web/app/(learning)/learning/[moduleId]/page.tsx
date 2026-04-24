@@ -28,7 +28,13 @@ import {
   formatLearningFileSummary,
   storedInsightsToModuleInsight,
 } from "@/lib/learning/moduleInsightDisplay";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  alignChecksToLength,
+  moduleGapSelfCheckPercent,
+  readGapChecksMap,
+  setModuleGapChecks,
+} from "@/lib/learning/gapCheckProgress";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FeatureTopbar } from "@/components/layout/FeatureTopbar";
 import { Inter } from "next/font/google";
@@ -36,28 +42,51 @@ import { toast } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], weight: ["600", "700", "800"] });
 
-const placeholderInsight = (moduleCode: string): ModuleInsight => ({
-  moduleId: moduleCode,
-  moduleName: "Custom Synced Module",
-  resourceCount: 0,
-  coreModels: [
-    {
-      id: "model-custom-1",
-      headline: "Start with one big idea from this module",
-      analogy:
-        "Treat this as a blank whiteboard. Pick one concept from your uploaded files and explain it in your own words before checking notes.",
-    },
-  ],
-  searchVectors: [
-    "What is the single concept from this module that appears easy in class but fails in real systems, and why?",
-    "If I had to teach this topic to a junior in 10 minutes, what examples would I use and what misconceptions must I prevent?",
-  ],
-  knowledgeGaps: [
-    "Can I explain the main concept from this module without opening slides?",
-    "Can I solve one practical problem from this module end-to-end with no hints?",
-  ],
-  files: [],
-});
+/** Real synced module with no saved insights yet — no fake AI cards. */
+function emptyInsightForModule(
+  moduleRow: LearningModuleRow,
+  fileRows: LearningFileRow[]
+): ModuleInsight {
+  return {
+    moduleId: moduleRow.module_code,
+    moduleName: moduleRow.module_name,
+    resourceCount: moduleRow.resource_count,
+    coreModels: [],
+    searchVectors: [],
+    knowledgeGaps: [],
+    files: fileRows.map((file) => ({
+      id: file.id,
+      fileName: file.original_name,
+      isDense: true,
+      summary: formatLearningFileSummary(file),
+    })),
+  };
+}
+
+function emptyShellForCode(moduleCode: string, fileRows: LearningFileRow[]): ModuleInsight {
+  return {
+    moduleId: moduleCode,
+    moduleName: moduleCode,
+    resourceCount: fileRows.length,
+    coreModels: [],
+    searchVectors: [],
+    knowledgeGaps: [],
+    files: fileRows.map((file) => ({
+      id: file.id,
+      fileName: file.original_name,
+      isDense: true,
+      summary: formatLearningFileSummary(file),
+    })),
+  };
+}
+
+function EmptySectionCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-5 py-6 text-sm leading-relaxed text-white/45">
+      {children}
+    </div>
+  );
+}
 
 export default function DeepDiveRadarPage() {
   const supabase = createClient();
@@ -70,7 +99,8 @@ export default function DeepDiveRadarPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [storedAi, setStoredAi] = useState<StoredModuleInsights | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [studentFocus, setStudentFocus] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [gapChecks, setGapChecks] = useState<boolean[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -86,6 +116,8 @@ export default function DeepDiveRadarPage() {
           router.replace("/login");
           return;
         }
+        if (!active) return;
+        setUserId(user.id);
 
         const moduleData = await getLearningModuleByCode(
           supabase,
@@ -131,23 +163,30 @@ export default function DeepDiveRadarPage() {
     if (moduleRow && storedAi) {
       return storedInsightsToModuleInsight(storedAi, moduleRow, fileRows);
     }
-    const base = mockModuleInsights[moduleCode] ?? placeholderInsight(moduleCode);
-    if (fileRows.length > 0) {
-      return {
-        ...base,
-        moduleId: moduleRow?.module_code ?? base.moduleId,
-        moduleName: moduleRow?.module_name ?? base.moduleName,
-        resourceCount: moduleRow?.resource_count ?? fileRows.length,
-        files: fileRows.map((file) => ({
-          id: file.id,
-          fileName: file.original_name,
-          isDense: true,
-          summary: formatLearningFileSummary(file),
-        })),
-      };
+    if (moduleRow && !storedAi) {
+      return emptyInsightForModule(moduleRow, fileRows);
     }
-    return base;
+    const demo = mockModuleInsights[moduleCode];
+    if (demo && !moduleRow) {
+      return demo;
+    }
+    return emptyShellForCode(moduleCode, fileRows);
   }, [moduleRow, storedAi, fileRows, moduleCode]);
+
+  const hasSavedInsights = Boolean(moduleRow && storedAi);
+  const showEmptyInsightSections = Boolean(moduleRow && !storedAi);
+  const gapCount = insight.knowledgeGaps.length;
+
+  useEffect(() => {
+    if (!userId || !moduleCode) {
+      setGapChecks([]);
+      return;
+    }
+    const map = readGapChecksMap(userId);
+    setGapChecks(alignChecksToLength(map[moduleCode], gapCount));
+  }, [userId, moduleCode, gapCount]);
+
+  const gapSelfCheckPct = moduleGapSelfCheckPercent(gapChecks);
 
   const headerModuleCode = moduleRow?.module_code ?? insight.moduleId;
   const headerModuleName = moduleRow?.module_name ?? insight.moduleName;
@@ -168,15 +207,29 @@ export default function DeepDiveRadarPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           moduleCode: moduleRow.module_code,
-          studentFocus: studentFocus.trim() || undefined,
         }),
       });
       const data = (await res.json()) as {
         ok?: boolean;
         stored?: StoredModuleInsights;
         error?: string;
+        code?: string;
+        retryAfterSec?: number;
+        digestDetails?: { file: string; reason: string }[];
       };
       if (!res.ok) {
+        if (data.code === "GEMINI_QUOTA") {
+          const wait =
+            typeof data.retryAfterSec === "number" && data.retryAfterSec > 0
+              ? ` Try again in ~${data.retryAfterSec}s.`
+              : "";
+          throw new Error(
+            `Gemini quota or rate limit.${wait} Check Google AI Studio usage or set GEMINI_MODEL in .env.`
+          );
+        }
+        if (data.digestDetails?.length) {
+          console.warn("[learning] Digest extraction details:", data.digestDetails);
+        }
         throw new Error(data.error ?? "Request failed");
       }
       if (data.stored) {
@@ -188,7 +241,7 @@ export default function DeepDiveRadarPage() {
     } finally {
       setGenerating(false);
     }
-  }, [moduleRow, studentFocus]);
+  }, [moduleRow]);
 
   if (!loading && !moduleRow && !mockModuleInsights[moduleCode]) {
     return (
@@ -200,6 +253,14 @@ export default function DeepDiveRadarPage() {
         >
           ← Back to Modules
         </Link>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="brand-dark-shell flex min-h-screen items-center justify-center bg-[#080c14] text-sm text-white/45">
+        Loading module…
       </div>
     );
   }
@@ -228,13 +289,20 @@ export default function DeepDiveRadarPage() {
             {headerModuleName}
           </h1>
           <p className="text-sm text-white/35">
-            AI Discovery Active&nbsp;·&nbsp;{headerResourceCount} Resources Analyzed
+            {hasSavedInsights
+              ? `Insights from synced files · ${headerResourceCount} resources in module`
+              : moduleRow
+                ? `No AI insights yet · ${headerResourceCount} resource${headerResourceCount === 1 ? "" : "s"} synced — generate below from PDF/PPTX text`
+                : `Demo or loading · ${headerResourceCount} resource${headerResourceCount === 1 ? "" : "s"}`}
           </p>
           {storedAi && moduleRow && (
             <p className="mt-2 text-xs text-white/40">
               Saved insights from{" "}
               {new Date(storedAi.generatedAt).toLocaleString()}
               {storedAi.model ? ` · ${storedAi.model}` : ""}
+              {storedAi.digestTruncated
+                ? " · digest truncated (character budget; add key lectures first)"
+                : ""}
             </p>
           )}
           {loadError && (
@@ -242,17 +310,10 @@ export default function DeepDiveRadarPage() {
           )}
 
           {moduleRow && (
-            <div className="mt-6 space-y-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/45">
-                Optional focus for AI (exam date, weak topics, …)
-              </label>
-              <textarea
-                value={studentFocus}
-                onChange={(e) => setStudentFocus(e.target.value)}
-                rows={2}
-                placeholder="e.g. Mid-term in 2 weeks — emphasize subnetting and routing tables"
-                className="w-full resize-y rounded-lg border border-white/10 bg-[#080c14] px-3 py-2 text-sm text-white/90 placeholder:text-white/25 focus:border-[#00d2b4]/50 focus:outline-none"
-              />
+            <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="mb-3 text-xs text-white/40">
+                Builds study hooks from your synced PDF and PPTX files (text extraction). Not a chat box.
+              </p>
               <Button
                 type="button"
                 onClick={() => void runGenerate()}
@@ -278,19 +339,26 @@ export default function DeepDiveRadarPage() {
             </h2>
           </div>
           <div className="flex flex-col gap-4">
-            {insight.coreModels.map((model) => (
-              <div
-                key={model.id}
-                className="rounded-r-xl border-l-[3px] border-[#00d2b4] bg-[#00d2b4]/5 px-5 py-4"
-              >
-                <p className="mb-2 text-sm font-semibold text-white/90">
-                  {model.headline}
-                </p>
-                <p className="text-sm leading-relaxed text-white/55">
-                  {model.analogy}
-                </p>
-              </div>
-            ))}
+            {insight.coreModels.length === 0 && showEmptyInsightSections ? (
+              <EmptySectionCard>
+                Not generated yet. After you click <strong className="text-white/60">Generate AI insights</strong>,
+                mental models from your lecture text will appear here.
+              </EmptySectionCard>
+            ) : (
+              insight.coreModels.map((model) => (
+                <div
+                  key={model.id}
+                  className="rounded-r-xl border-l-[3px] border-[#00d2b4] bg-[#00d2b4]/5 px-5 py-4"
+                >
+                  <p className="mb-2 text-sm font-semibold text-white/90">
+                    {model.headline}
+                  </p>
+                  <p className="text-sm leading-relaxed text-white/55">
+                    {model.analogy}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
@@ -303,30 +371,62 @@ export default function DeepDiveRadarPage() {
             <span className="text-xs text-white/25">— paste into Google or ChatGPT</span>
           </div>
           <div className="flex flex-col gap-2">
-            {insight.searchVectors.map((question, i) => (
-              <SearchVectorItem key={i} question={question} />
-            ))}
+            {insight.searchVectors.length === 0 && showEmptyInsightSections ? (
+              <EmptySectionCard>
+                Not generated yet. You will get concrete, module-specific search strings to paste elsewhere — not generic study tips.
+              </EmptySectionCard>
+            ) : (
+              insight.searchVectors.map((item, i) => (
+                <SearchVectorItem
+                  key={i}
+                  query={item.query}
+                  sourceFiles={item.sourceFiles}
+                />
+              ))
+            )}
           </div>
         </section>
 
         <section className="mb-10">
-          <div className="mb-4 flex items-center gap-2">
-            <Target className="h-4 w-4 text-amber-400" />
+          <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Target className="h-4 w-4 shrink-0 text-amber-400" />
             <h2 className="text-xs font-semibold uppercase tracking-widest text-white/50">
               Knowledge Gap Check
             </h2>
             <span className="text-xs text-white/25">— can you answer these without notes?</span>
+            {gapSelfCheckPct !== null && userId ? (
+              <span className="text-xs font-medium text-amber-400/90">
+                · Self-check: {gapSelfCheckPct}% ({gapChecks.filter(Boolean).length}/{gapChecks.length})
+              </span>
+            ) : gapCount === 0 ? (
+              <span className="text-xs text-white/25">· No prompts yet</span>
+            ) : null}
           </div>
           <div className="flex flex-col gap-3">
-            {insight.knowledgeGaps.map((gap, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <Checkbox
-                  disabled
-                  className="mt-0.5 shrink-0 cursor-default opacity-60"
-                />
-                <p className="text-sm leading-relaxed text-white/60">{gap}</p>
-              </div>
-            ))}
+            {insight.knowledgeGaps.length === 0 && showEmptyInsightSections ? (
+              <EmptySectionCard>
+                Not generated yet. Self-check prompts tied to your slides will show here after generation.
+              </EmptySectionCard>
+            ) : (
+              insight.knowledgeGaps.map((gap, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <Checkbox
+                    checked={gapChecks[i] === true}
+                    onCheckedChange={(v) => {
+                      const on = v === true;
+                      const next = gapChecks.slice();
+                      if (next.length !== gapCount) return;
+                      next[i] = on;
+                      setGapChecks(next);
+                      if (userId) setModuleGapChecks(userId, moduleCode, next);
+                    }}
+                    disabled={!userId || gapChecks.length !== gapCount}
+                    className="mt-0.5 shrink-0 border-amber-400/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-[#080c14]"
+                  />
+                  <p className="text-sm leading-relaxed text-white/60">{gap}</p>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
